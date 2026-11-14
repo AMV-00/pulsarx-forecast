@@ -6,9 +6,9 @@ contains any number that was not already in the template sentence.
 """
 FACTOR_NAMES = {
     "en": {"sleep": "short sleep", "circadian": "a disrupted sleep cycle", "workload": "a heavy workload",
-           "wake": "a long time awake", "cognitive": "lower focus"},
+           "wake": "a long time awake", "cognitive": "lower focus", "self_report": "the astronaut reporting tiredness"},
     "ar": {"sleep": "قلة النوم", "circadian": "اضطراب دورة النوم", "workload": "ضغط العمل",
-           "wake": "طول مدة الاستيقاظ", "cognitive": "انخفاض التركيز"},
+           "wake": "طول مدة الاستيقاظ", "cognitive": "انخفاض التركيز", "self_report": "شعور الرائد بالتعب"},
 }
 APPROVERS_AR = {"ground": "فريق الأرض", "commander": "قائد الطاقم (مؤقتًا لحين تأكيد الأرض)"}
 LEVELS = {"en": {"low": "low", "medium": "medium", "high": "high"},
