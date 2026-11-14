@@ -73,3 +73,13 @@ def test_reassign_only_to_ready_crew():
             other = client.get(f"/forecast/{c['to_crew']}?use_claude=false").json()
             lvl = next(d["level"] for d in other["forecast"]["days"] if d["day"] == day)
             assert lvl == "low"
+
+
+def test_digital_twin():
+    client.post("/simulate")
+    t = client.get("/twin/B").json()
+    assert t["label"] == "Simulated" and not t["unknown"]
+    assert len(t["forecast"]) == 3
+    assert any(d["alert"] for d in t["forecast"])
+    assert t["now"]["signals"]["sleep_hours"]["status"].endswith("below normal")
+    assert not client.get("/twin/A").json()["forecast"][1]["alert"]

@@ -9,6 +9,7 @@ from app.data.simulate import CREW, DAYS, LABEL, free_minutes, generate_ring, ge
 from app.explain.templates import polish, reason_sentence
 from app.fallback.answers import answer
 from app.model.forecast import forecast
+from app.model.twin import build_twin
 from app.model.whatif import what_if
 from app.nova.extract import extract
 from app.nova.questions import LOW_CONFIDENCE, MORNING
@@ -70,6 +71,12 @@ def simulate(seed: int = 1):
 @app.get("/ring/{crew}")
 def ring(crew: str):
     return {"label": LABEL, "source": "FORECAST Smart Ring (simulated)", "days": _ring(crew)}
+
+
+@app.get("/twin/{crew}")
+def twin(crew: str):
+    """Readiness Digital Twin: personal baseline + today's signals + 3-day readiness forecast."""
+    return {"label": LABEL, **build_twin(crew, _ring(crew), _schedules().get(crew, {}), DAYS, _self_report(crew))}
 
 
 @app.get("/schedule/{crew}/{day}")
