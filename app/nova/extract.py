@@ -56,14 +56,14 @@ def extract_with_claude(text: str, client=None, model: str = "claude-sonnet-5-5"
 
         load_dotenv()
         client = Anthropic()
-    msg = client.messages.create(
-        model=model,
-        max_tokens=300,
-        system=SYSTEM,
-        tools=[EXTRACT_TOOL],
-        tool_choice={"type": "tool", "name": "record_checkin"},
-        messages=[{"role": "user", "content": text}],
-    )
+    args = dict(model=model, max_tokens=2000, system=SYSTEM + " Always answer by calling record_checkin.",
+                tools=[EXTRACT_TOOL], messages=[{"role": "user", "content": text}])
+    try:
+        msg = client.messages.create(tool_choice={"type": "tool", "name": "record_checkin"}, **args)
+    except Exception as e:  # some models think first, and then a forced tool is not allowed
+        if "tool_choice" not in str(e) and "thinking" not in str(e):
+            raise
+        msg = client.messages.create(tool_choice={"type": "auto"}, **args)
     for block in msg.content:
         if block.type == "tool_use":
             return _clean(block.input)
@@ -80,12 +80,28 @@ def extract_offline(text: str) -> dict:
     m = re.search(r"(\d+(?:\.\d+)?)\s*(?:h|hr|hrs|hour|hours)\b", t)
     if m:
         raw["sleep_hours"] = float(m.group(1))
-    m = re.search(r"(?:tired|fatigue)\D{0,15}([1-5])\b", t)
+    m = re.search(r"(?:tired|fatigue)\D{0,15}(\d+)\b", t)
     if m:
         raw["fatigue"] = int(m.group(1))
-    m = re.search(r"stress\D{0,15}([1-5])\b", t)
+    elif re.search(r"not tired|well rested|\brested|energ", t):
+        raw["fatigue"] = 1
+    elif re.search(r"exhausted|(?:very|really|so|extremely) tired", t):
+        raw["fatigue"] = 5
+    elif re.search(r"(?:a bit|a little|slightly|kind of) tired", t):
+        raw["fatigue"] = 3
+    elif re.search(r"\btired\b", t):
+        raw["fatigue"] = 4
+    m = re.search(r"stress\D{0,15}(\d+)\b", t)
     if m:
         raw["stress"] = int(m.group(1))
+    elif re.search(r"not stressed|calm|relaxed", t):
+        raw["stress"] = 1
+    elif re.search(r"(?:very|really|so|extremely) stressed|overwhelmed", t):
+        raw["stress"] = 5
+    elif re.search(r"(?:a bit|a little|slightly|kind of) (?:stressed|anxious|tense)", t):
+        raw["stress"] = 3
+    elif re.search(r"\bstressed\b|anxious|tense", t):
+        raw["stress"] = 4
     if re.search(r"not good|bad|sad|down|low", t):
         raw["mood"] = "bad"
     elif re.search(r"\bgood\b|great|happy", t):
@@ -101,7 +117,8 @@ def extract(text: str, client=None) -> dict:
     try:
         result = extract_with_claude(text, client=client)
         result["source"] = "claude"
-    except Exception:
+    except Exception as e:
         result = extract_offline(text)
         result["source"] = "offline"
+        result["claude_error"] = type(e).__name__ + ": " + str(e)[:200]
     return result

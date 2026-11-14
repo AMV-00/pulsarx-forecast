@@ -1,0 +1,428 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FORECAST Console</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Direction
+   Product: onboard tool that forecasts each astronaut's readiness from a smart ring and suggests schedule changes
+   Character: steady, exact, quietly alert
+   World: flight-deck instruments, mission timeline, brushed titanium
+   Moments: the titanium ring, and the readiness timeline (past estimates, 3-day forecast, the EVA marker, the what-if point)
+   Signature: mission-day stamps (D14, D+2) in mono, wherever a day is named
+   Layout: app shell, crew sidebar 264px, content column with one main chart beside the ring */
+:root{
+  --bg:#1b2130; --s1:#212838; --s2:#283044; --s3:#30394f;
+  --hair:rgba(226,234,250,.09); --hair2:rgba(226,234,250,.16);
+  --t1:#e9edf5; --t2:#a7b0c2; --t3:#727c92;
+  --acc:#56d6b6; --acc-ink:#0d2a24;
+  --ok:#6cc7a8; --warn:#d9a648; --bad:#e06a72;
+  --sans:"IBM Plex Sans","Segoe UI",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",Consolas,ui-monospace,monospace;
+  --ease:cubic-bezier(.2,.8,.2,1);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--t1);font:14px/1.5 var(--sans)}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+
+.shell{display:grid;grid-template-columns:264px minmax(0,1fr);min-height:100%;max-width:1600px;margin:0 auto}
+/* sidebar */
+aside{border-right:1px solid var(--hair);padding:20px 16px;display:flex;flex-direction:column;gap:24px;position:sticky;top:0;height:100vh;overflow:auto}
+.brand{display:flex;align-items:center;gap:10px;padding:0 8px}
+.mark{width:22px;height:22px;border-radius:50%;border:2.5px solid var(--t2);position:relative}
+.mark::after{content:"";position:absolute;width:6px;height:6px;border-radius:50%;background:var(--acc);bottom:-4px;left:50%;margin-left:-3px}
+.brand b{font:600 1rem var(--sans);letter-spacing:.02em}
+.group{display:flex;flex-direction:column;gap:4px}
+.glabel{font-size:.75rem;color:var(--t3);padding:0 8px 4px}
+.crow{display:grid;grid-template-columns:28px 1fr auto;align-items:center;gap:10px;height:52px;padding:0 8px;border-radius:8px;border:1px solid transparent;background:transparent;text-align:left;transition:background-color .15s var(--ease)}
+.crow:hover{background:var(--s1)}
+.crow.sel{background:var(--s2);border-color:var(--hair2)}
+.av{width:28px;height:28px;border-radius:50%;background:var(--s3);display:grid;place-items:center;font:500 .8rem var(--sans);color:var(--t2)}
+.crow .nm{display:flex;flex-direction:column;line-height:1.25;min-width:0}
+.crow .nm span{font-size:.75rem;color:var(--t3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.crow .pc{font:500 .9rem var(--mono)}
+.dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:6px;vertical-align:1px}
+.meta{display:flex;flex-direction:column;gap:8px;padding:0 8px;font-size:.78rem;color:var(--t2)}
+.meta .row{display:flex;justify-content:space-between;gap:8px}
+.meta .row span:first-child{color:var(--t3)}
+.switch{display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:pointer}
+.switch input{appearance:none;width:28px;height:16px;border-radius:8px;background:var(--s3);position:relative;margin:0;cursor:pointer;transition:background-color .15s var(--ease)}
+.switch input::after{content:"";position:absolute;top:2px;left:2px;width:12px;height:12px;border-radius:50%;background:var(--t1);transition:transform .15s var(--ease)}
+.switch input:checked{background:var(--acc)}
+.switch input:checked::after{transform:translateX(12px)}
+.textbtn{background:none;border:0;padding:0;color:var(--t2);text-align:left;font-size:.78rem}
+.textbtn:hover{color:var(--t1)}
+.side-foot{margin-top:auto;padding:0 8px;font-size:.72rem;color:var(--t3)}
+
+/* main */
+main{padding:24px 32px 40px;display:flex;flex-direction:column;gap:24px;min-width:0}
+.head{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px}
+.head h1{font:500 1.6rem var(--sans);margin:0}
+.head p{margin:2px 0 0;color:var(--t2)}
+.stamp{font:500 .78rem var(--mono);color:var(--t2);border:1px solid var(--hair2);border-radius:6px;padding:4px 8px}
+.stamp.sim{color:var(--warn);border-color:rgba(217,166,72,.4)}
+.tags{display:flex;gap:8px;flex-wrap:wrap}
+.panel{background:var(--s1);border:1px solid var(--hair);border-radius:16px;padding:20px;min-width:0}
+.ptitle{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin:0 0 16px}
+.ptitle h2{font:500 1rem var(--sans);margin:0}
+.ptitle span{font-size:.8rem;color:var(--t3)}
+
+.top{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px}
+.chartwrap{position:relative}
+#chart{width:100%;height:auto;display:block}
+.legend{display:flex;flex-wrap:wrap;gap:16px;margin-top:8px;font-size:.75rem;color:var(--t3)}
+.legend i{display:inline-block;width:14px;height:0;border-top:2px solid var(--t2);vertical-align:3px;margin-right:6px}
+.legend i.dash{border-top-style:dashed}
+.legend i.acc{border-color:var(--acc);width:8px;height:8px;border:0;background:var(--acc);border-radius:50%;vertical-align:0}
+.headline{display:flex;flex-wrap:wrap;gap:24px;margin-bottom:12px}
+.fig{display:flex;flex-direction:column}
+.fig small{font-size:.75rem;color:var(--t3)}
+.fig b{font:500 1.9rem var(--mono);line-height:1.2}
+.fig em{font-style:normal;font-size:.78rem;color:var(--t2)}
+
+.ringp{padding:0;display:flex;flex-direction:column;overflow:hidden;background:var(--s1)}
+.ringp iframe{border:0;width:100%;aspect-ratio:1/1;display:block;background:transparent}
+.ringcap{padding:12px 20px 16px;border-top:1px solid var(--hair);display:flex;justify-content:space-between;font-size:.78rem;color:var(--t2)}
+.live{color:var(--acc)}
+
+/* signals list */
+.sigs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:32px}
+.sig{display:grid;grid-template-columns:120px 76px minmax(0,1fr) 92px;align-items:center;gap:12px;height:40px;border-bottom:1px solid var(--hair)}
+.sig .k{color:var(--t2)}
+.sig .v{text-align:right}
+.dev{position:relative;height:6px;border-radius:3px;background:var(--s3)}
+.dev .band{position:absolute;top:0;bottom:0;left:33.3%;width:33.3%;background:rgba(226,234,250,.12)}
+.dev .mid{position:absolute;top:-3px;bottom:-3px;left:50%;width:1px;background:var(--t3)}
+.dev .pt{position:absolute;top:50%;width:10px;height:10px;margin:-5px 0 0 -5px;border-radius:50%;border:2px solid var(--s1)}
+.sig .st{font-size:.78rem;text-align:right;white-space:nowrap}
+
+.bottom{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:16px;align-items:start}
+/* NOVA */
+.chat{display:flex;flex-direction:column;gap:12px;max-height:360px;overflow:auto}
+.msg{display:grid;grid-template-columns:28px 1fr;gap:10px;max-width:92%}
+.msg.me{align-self:flex-end;grid-template-columns:1fr 28px}
+.msg.me .av{order:2}
+.nova{background:var(--acc);color:var(--acc-ink);font-weight:600}
+.bub{background:var(--s2);border-radius:12px;padding:8px 12px}
+.me .bub{background:var(--s3)}
+.who{font-size:.72rem;color:var(--t3);margin-bottom:2px}
+.facts{display:flex;flex-wrap:wrap;gap:12px;margin-top:6px;font:500 .8rem var(--mono);color:var(--t2)}
+.facts b{color:var(--t1);font-weight:500}
+.quick{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.quick button{background:transparent;border:1px solid var(--hair2);border-radius:8px;padding:6px 10px;font-size:.8rem;color:var(--t2);transition:border-color .15s var(--ease),color .15s var(--ease)}
+.quick button:hover{color:var(--t1);border-color:var(--t3)}
+.ask{display:flex;gap:8px;margin-top:12px}
+.ask input{flex:1;min-width:0;background:var(--s2);border:1px solid var(--hair2);border-radius:10px;color:var(--t1);padding:10px 12px;font:inherit}
+.ask input::placeholder{color:var(--t3)}
+.primary{background:var(--t1);color:#151a26;border:0;border-radius:10px;padding:0 16px;font-weight:500}
+.primary:active,.btn:active{transform:scale(.98)}
+
+/* suggestions */
+.summary{margin:0 0 16px;color:var(--t2)}
+.acts{display:flex;flex-direction:column}
+.act{display:grid;grid-template-columns:18px minmax(0,1fr) auto;column-gap:12px;row-gap:8px;padding:16px 0;border-top:1px solid var(--hair);transition:opacity .2s var(--ease)}
+.act:first-child{border-top:0;padding-top:0}
+.act svg{width:18px;height:18px;stroke:var(--t2);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;margin-top:2px}
+.act .t{font-weight:500}
+.act .t span{color:var(--t2);font-weight:400}
+.fx{font:500 .85rem var(--mono);white-space:nowrap;color:var(--t2)}
+.fx b{color:var(--acc);font-weight:500}
+.ctrl{grid-column:2/4;display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.btn{background:transparent;border:1px solid var(--hair2);border-radius:8px;padding:4px 12px;font-size:.8rem;transition:border-color .15s var(--ease),background-color .15s var(--ease)}
+.btn:hover{border-color:var(--t3)}
+.btn.main{background:var(--t1);color:#151a26;border-color:var(--t1)}
+.pick{display:inline-flex;align-items:center;gap:6px;font-size:.8rem;color:var(--t2);margin-left:auto;cursor:pointer}
+.pick input{accent-color:var(--acc)}
+.state{font-size:.8rem;color:var(--t3)}
+.act.accept .state{color:var(--ok)} .act.reject{opacity:.5} .act.reject .state{color:var(--bad)} .act.edit .state{color:var(--warn)}
+.act.accept .ctrl .btn,.act.reject .ctrl .btn:not([data-d=why]){display:none}
+.why{grid-column:2/4;margin:0;color:var(--t2);font-size:.85rem;display:none}
+.act.open .why{display:block}
+.note{flex:1 1 160px;min-width:0;background:var(--s2);border:1px solid var(--hair2);border-radius:8px;color:var(--t1);padding:4px 10px;font:inherit;font-size:.8rem}
+.wi{margin-top:8px;padding-top:16px;border-top:1px solid var(--hair2);display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 16px}
+.wi span{color:var(--t2)}
+.wi b{font:500 1.3rem var(--mono)}
+.wi b i{font-style:normal;color:var(--acc)}
+.err{color:var(--bad)}
+footer{font-size:.75rem;color:var(--t3)}
+
+@media (max-width:1180px){.top{grid-template-columns:1fr}.ringp{flex-direction:row}.ringp iframe{width:260px;flex:none}.ringcap{border-top:0;flex-direction:column;justify-content:center;gap:4px}.sigs{grid-template-columns:1fr}}
+@media (max-width:900px){.shell{grid-template-columns:1fr}aside{position:static;height:auto;border-right:0;border-bottom:1px solid var(--hair)}.bottom{grid-template-columns:1fr}main{padding:20px 16px 32px}}
+@media (max-width:560px){.ringp{flex-direction:column}.ringp iframe{width:100%}.sig{grid-template-columns:96px 64px minmax(0,1fr)}.sig .st{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="shell">
+  <aside>
+    <div class="brand"><span class="mark" aria-hidden="true"></span><b>FORECAST</b></div>
+    <div class="group">
+      <div class="glabel">Crew · lowest readiness, next 3 days</div>
+      <div id="crew"></div>
+    </div>
+    <div class="meta">
+      <div class="row"><span>Mission day</span><span class="num" id="mday">D14</span></div>
+      <div class="row"><span>Runs</span><span>Onboard, no Earth link needed</span></div>
+      <div class="row"><span>Report to Mission Control</span><span id="pending">0 to review</span></div>
+    </div>
+    <div class="meta">
+      <label class="switch">NOVA phrasing by Claude <input type="checkbox" id="useClaude"></label>
+      <a class="textbtn" href="../ring/" target="_blank" rel="noopener">Open the ring in 3D</a>
+      <button class="textbtn" id="reset">Reset simulated data</button>
+    </div>
+    <div class="side-foot">All ring data is simulated. NOVA explains the model's numbers and never makes them up.</div>
+  </aside>
+
+  <main>
+    <div class="head">
+      <div><h1 id="title">Crew B</h1><p id="subtitle">Readiness forecast for the next 3 days</p></div>
+      <div class="tags"><span class="stamp num" id="conf">Ring data · 14 days</span><span class="stamp sim">Simulated</span></div>
+    </div>
+
+    <section class="top">
+      <div class="panel">
+        <div class="headline" id="headline"></div>
+        <div class="chartwrap"><svg id="chart" viewBox="0 0 720 260" role="img" aria-label="Readiness timeline"></svg></div>
+        <div class="legend"><span><i></i>Estimated from ring</span><span><i class="dash"></i>Forecast</span><span><i class="acc"></i>With selected changes</span></div>
+      </div>
+      <div class="panel ringp">
+        <iframe src="../ring/?mini" title="FORECAST Smart Ring, 3D"></iframe>
+        <div class="ringcap"><span>FORECAST Smart Ring</span><span class="live" id="ringcap">Crew B · 72 bpm</span></div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="ptitle"><h2>Ring signals today</h2><span>Dot = today, band = normal range for this astronaut</span></div>
+      <div class="sigs" id="sigs"></div>
+    </section>
+
+    <section class="bottom">
+      <div class="panel">
+        <div class="ptitle"><h2>NOVA</h2><span>Voice check-in, typed for the demo</span></div>
+        <div class="chat" id="chat"></div>
+        <div class="quick" id="quick">
+          <button>I slept about 5 hours, really tired and a bit stressed</button>
+          <button>Slept 7 hours, feeling good and calm</button>
+          <button>Fine I guess</button>
+        </div>
+        <form class="ask" id="askForm">
+          <label for="ans" style="position:absolute;left:-9999px">Answer NOVA</label>
+          <input id="ans" autocomplete="off" placeholder="Answer NOVA">
+          <button class="primary" type="submit">Send</button>
+        </form>
+      </div>
+      <div class="panel">
+        <div class="ptitle"><h2>Suggested changes</h2><span id="focusDay"></span></div>
+        <div id="sugg"></div>
+      </div>
+    </section>
+    <footer>FORECAST · PulsarX · NASA Space Apps 2026 · transparent points model, simulated data</footer>
+  </main>
+</div>
+
+<script>
+const API = location.protocol === 'file:' ? 'http://127.0.0.1:8000' : '';
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let crew = 'B', today = 14, last = null, ring = [], twin = null, whatIfPt = null;
+
+async function api(path, body){
+  const opt = body !== undefined ? {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)} : {};
+  const r = await fetch(API + path, opt);
+  if(!r.ok) throw new Error((await r.text()) || r.status);
+  return r.json();
+}
+const col = l => l === 'low' ? 'var(--ok)' : l === 'medium' ? 'var(--warn)' : l === 'high' ? 'var(--bad)' : 'var(--t3)';
+const word = l => l === 'low' ? 'Low risk' : l === 'medium' ? 'Medium risk' : l === 'high' ? 'High risk' : 'Unknown';
+const dstamp = d => d <= today ? 'D' + d : 'D+' + (d - today);
+
+async function loadCrew(){
+  const s = await api('/mission-control/summary');
+  today = s.today; $('mday').textContent = 'D' + today;
+  const pend = s.crew.reduce((n,c) => n + (c.pending_changes ? c.pending_changes.length : 0), 0);
+  $('pending').textContent = pend ? pend + ' to review' : 'Nothing to review';
+  $('crew').innerHTML = s.crew.map(c => c.status === 'unknown'
+    ? `<button class="crow" data-c="${c.crew}"><span class="av">${c.crew}</span><span class="nm">Crew ${c.crew}<span>Not enough ring data</span></span><span class="pc">–</span></button>`
+    : `<button class="crow ${c.crew===crew?'sel':''}" data-c="${c.crew}"><span class="av">${c.crew}</span>
+        <span class="nm">Crew ${c.crew}<span><span class="dot" style="background:${col(c.level)}"></span>${c.alert ? esc(c.critical_tasks[0]) + ' at ' + dstamp(c.on_day) : word(c.level)}</span></span>
+        <span class="pc num" style="color:${col(c.level)}">${c.lowest_readiness}%</span></button>`).join('');
+  document.querySelectorAll('.crow').forEach(b => b.onclick = () => select(b.dataset.c));
+}
+
+function drawChart(){
+  const svg = $('chart'); if(!twin || twin.unknown){ svg.innerHTML = ''; return; }
+  const pts = [...twin.history.map(h => ({...h, f:false})), ...twin.forecast.map(f => ({...f, f:true}))];
+  const W = 720, H = 260, L = 40, R = 16, T = 16, B = 28;
+  const x0 = pts[0].day, x1 = pts.at(-1).day;
+  const X = d => L + (d - x0) / (x1 - x0) * (W - L - R), Y = v => T + (100 - v) / 100 * (H - T - B);
+  let g = '';
+  // risk zones as quiet bands
+  g += `<rect x="${L}" y="${Y(50)}" width="${W-L-R}" height="${Y(0)-Y(50)}" fill="rgba(224,106,114,.07)"/>`;
+  g += `<rect x="${L}" y="${Y(75)}" width="${W-L-R}" height="${Y(50)-Y(75)}" fill="rgba(217,166,72,.05)"/>`;
+  [0,25,50,75,100].forEach(v => g += `<line x1="${L}" x2="${W-R}" y1="${Y(v)}" y2="${Y(v)}" stroke="rgba(226,234,250,.07)"/><text x="${L-8}" y="${Y(v)+4}" text-anchor="end" fill="var(--t3)" font-size="11" font-family="var(--mono)">${v}</text>`);
+  // today divider
+  g += `<line x1="${X(today)}" x2="${X(today)}" y1="${T}" y2="${H-B}" stroke="rgba(226,234,250,.22)" stroke-dasharray="2 4"/>`;
+  g += `<text x="${X(today)+6}" y="${T+10}" fill="var(--t3)" font-size="11">today</text>`;
+  pts.forEach(p => g += `<text x="${X(p.day)}" y="${H-8}" text-anchor="middle" fill="${p.day===today?'var(--t1)':'var(--t3)'}" font-size="11" font-family="var(--mono)">${dstamp(p.day)}</text>`);
+  // lines
+  const past = pts.filter(p => !p.f), fut = [past.at(-1), ...pts.filter(p => p.f)];
+  const path = arr => arr.map((p,i) => (i?'L':'M') + X(p.day).toFixed(1) + ' ' + Y(p.readiness).toFixed(1)).join(' ');
+  g += `<path d="${path(past)}" fill="none" stroke="var(--t2)" stroke-width="2" stroke-linejoin="round"/>`;
+  g += `<path d="${path(fut)}" fill="none" stroke="var(--t1)" stroke-width="2" stroke-dasharray="6 5" stroke-linejoin="round"/>`;
+  pts.forEach(p => g += `<circle cx="${X(p.day)}" cy="${Y(p.readiness)}" r="${p.f?4.5:3}" fill="${p.f?col(p.level):'var(--t2)'}" stroke="var(--s1)" stroke-width="2"/>`);
+  // critical task markers
+  twin.forecast.filter(d => d.critical_tasks.length).forEach(d => {
+    const x = X(d.day), y = Y(d.readiness);
+    g += `<g transform="translate(${x},${y+22})"><rect x="-5" y="-5" width="10" height="10" transform="rotate(45)" fill="${d.alert?'var(--bad)':'var(--t3)'}"/></g>`;
+    g += `<text x="${x}" y="${y+44}" text-anchor="middle" fill="${d.alert?'var(--bad)':'var(--t3)'}" font-size="11">${esc(d.critical_tasks[0])}</text>`;
+  });
+  // what-if point
+  if(whatIfPt){
+    const x = X(whatIfPt.day), y0 = Y(whatIfPt.before), y1 = Y(whatIfPt.after);
+    g += `<line x1="${x}" x2="${x}" y1="${y0}" y2="${y1}" stroke="var(--acc)" stroke-width="2"/>`;
+    g += `<circle cx="${x}" cy="${y1}" r="6" fill="var(--acc)" stroke="var(--s1)" stroke-width="2"/>`;
+    g += `<text x="${x+10}" y="${y1+4}" fill="var(--acc)" font-size="12" font-family="var(--mono)">${whatIfPt.after}%</text>`;
+  }
+  svg.innerHTML = g;
+}
+
+const SIG = [['sleep_hours','Sleep','h',1],['hrv_ms','HRV','ms',0],['resting_hr','Resting heart rate','bpm',0],
+             ['skin_temp_c','Skin temperature','°C',1],['hours_awake','Hours awake','h',1],['active_minutes','Activity','min',0]];
+function drawSignals(){
+  $('sigs').innerHTML = SIG.map(([k,name,unit,dp]) => {
+    const s = twin.now.signals[k], z = Math.max(-3, Math.min(3, s.z));
+    const c = Math.abs(s.z) >= 2 ? 'var(--bad)' : Math.abs(s.z) >= 1 ? 'var(--warn)' : 'var(--ok)';
+    const st = s.status.charAt(0).toUpperCase() + s.status.slice(1);
+    return `<div class="sig"><span class="k">${name}</span><span class="v num">${Number(s.value).toFixed(dp)} ${unit}</span>
+      <span class="dev" title="normal ${s.normal}"><span class="band"></span><span class="mid"></span><span class="pt" style="left:${(z+3)/6*100}%;background:${c}"></span></span>
+      <span class="st" style="color:${c}">${st}</span></div>`;
+  }).join('');
+}
+
+async function loadTwin(){
+  twin = await api('/twin/' + crew);
+  $('title').textContent = 'Crew ' + crew;
+  $('ringcap').textContent = twin.unknown ? 'Crew ' + crew : `Crew ${crew} · ${twin.now.signals.resting_hr.value} bpm`;
+  if(twin.unknown){ $('headline').innerHTML = `<p class="summary">${esc(twin.message)}</p>`; $('sigs').innerHTML=''; drawChart(); return; }
+  const worst = [...twin.forecast].sort((a,b) => (b.alert - a.alert) || (a.readiness - b.readiness))[0];
+  const now = twin.history.at(-1);
+  $('subtitle').textContent = worst.alert ? `${worst.critical_tasks[0]} at ${dstamp(worst.day)} falls on a low-readiness day` : 'Readiness forecast for the next 3 days';
+  $('headline').innerHTML = `
+    <div class="fig"><small>Today, ${dstamp(today)}</small><b class="num">${now.readiness}%</b><em>${word(now.level)}</em></div>
+    <div class="fig"><small>Lowest ahead, ${dstamp(worst.day)}</small><b class="num" style="color:${col(worst.level)}">${worst.readiness}%</b><em>${word(worst.level)}${worst.critical_tasks.length?' · '+esc(worst.critical_tasks[0]):''}</em></div>
+    <div class="fig"><small>Normal for crew ${crew}</small><b class="num">${twin.personal_baseline.sleep_hours.mean} h</b><em>sleep, first 7 days</em></div>`;
+  drawChart(); drawSignals();
+}
+
+function say(html, me){
+  $('chat').insertAdjacentHTML('beforeend', `<div class="msg ${me?'me':''}"><span class="av ${me?'':'nova'}">${me?crew:'N'}</span><div class="bub"><div class="who">${me?'Crew '+crew:'NOVA'}</div>${html}</div></div>`);
+  $('chat').scrollTop = 1e6;
+}
+async function loadNova(){
+  const m = await api('/nova/morning/' + crew);
+  $('chat').innerHTML = ''; say(esc(m.question));
+  $('conf').textContent = 'Ring data · ' + m.confidence + ' confidence';
+}
+async function answer(text){
+  say(esc(text), true);
+  try{
+    const r = await api('/nova/answer', {crew, text});
+    const a = r.answers, f = [];
+    if(a.sleep_hours != null) f.push(`sleep <b>${a.sleep_hours} h</b>`);
+    if(a.fatigue != null) f.push(`fatigue <b>${a.fatigue}/5</b>`);
+    if(a.stress != null) f.push(`stress <b>${a.stress}/5</b>`);
+    if(a.mood != null) f.push(`mood <b>${esc(a.mood)}</b>`);
+    say(`Thanks. I added this to your forecast.${f.length?`<div class="facts">${f.join('')}</div>`:''}${r.nova_note?`<p style="margin:8px 0 0">${esc(r.nova_note)}</p>`:''}
+      <div class="who" style="margin-top:6px">Understood ${a.source === 'claude' ? 'by Claude' : 'offline'}${a.claude_error?' · '+esc(a.claude_error):''}</div>`);
+    await Promise.all([loadTwin(), loadCrew()]); runForecast();
+  }catch(err){ say('<span class="err">The server is not reachable</span>'); }
+}
+$('askForm').onsubmit = e => { e.preventDefault(); const t = $('ans').value.trim(); if(t){ $('ans').value = ''; answer(t); } };
+document.querySelectorAll('#quick button').forEach(b => b.onclick = () => answer(b.textContent));
+
+const ICON = {
+  longer_rest:'<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>',
+  reorder:'<path d="M7 4v16m0 0-3-3m3 3 3-3M17 20V4m0 0-3 3m3-3 3 3"/>',
+  postpone:'<circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/>',
+  reassign:'<circle cx="9" cy="8" r="3"/><path d="M4 19c0-3 2.2-5 5-5s5 2 5 5M15 10h6m-3-3 3 3-3 3"/>'};
+const TITLE = c => c.type === 'longer_rest' ? `Longer rest <span>+${c.extra_minutes} min</span>`
+  : c.type === 'reassign' ? `${esc(c.task)} <span>to crew ${esc(c.to_crew)}</span>`
+  : c.type === 'postpone' ? `Postpone ${esc(c.task)} <span>to ${esc(c.to)}</span>`
+  : `Move ${esc(c.task)} <span>${esc(c.from)} to ${esc(c.to)}</span>`;
+const STATE = {pending:'Waiting for approval', accept:'Accepted', reject:'Rejected', edit:'Edited'};
+
+async function runForecast(){
+  $('sugg').innerHTML = '<p class="summary">Checking the schedule</p>';
+  last = await api(`/forecast/${crew}?lang=en&use_claude=${$('useClaude').checked}`);
+  whatIfPt = null;
+  if(last.unknown || !last.changes){ $('sugg').innerHTML = `<p class="summary">${esc(last.message || '')}</p>`; $('focusDay').textContent = ''; drawChart(); return; }
+  $('focusDay').textContent = 'for ' + dstamp(last.focus_day);
+  if(!last.changes.length){ $('sugg').innerHTML = `<p class="summary">${esc(last.summary)}</p>`; drawChart(); return; }
+  $('sugg').innerHTML = `<p class="summary">${esc(last.summary)}</p><div class="acts">${last.changes.map(c => `
+    <div class="act ${c.status}" data-id="${c.id}">
+      <svg viewBox="0 0 24 24" aria-hidden="true">${ICON[c.type] || ''}</svg>
+      <span class="t">${TITLE(c)}</span>
+      <span class="fx">${c.effect.readiness_before}% → <b>${c.effect.readiness_after}%</b></span>
+      <div class="ctrl">
+        <button class="btn main" data-d="accept">Accept</button><button class="btn" data-d="edit">Edit</button><button class="btn" data-d="reject">Reject</button><button class="btn" data-d="why">Why</button>
+        <span class="state">${STATE[c.status] || c.status}</span>
+        <label class="pick"><input type="checkbox" value="${c.id}" checked> In what-if</label>
+      </div>
+      <p class="why">${esc(c.reason)} Approver: ${esc(c.approver)}</p>
+    </div>`).join('')}</div>
+    <div class="wi"><span>What-if, selected changes</span><b class="num" id="wiv"></b></div>`;
+  document.querySelectorAll('.act .btn').forEach(b => b.onclick = () => act(b.closest('.act'), b.dataset.d));
+  document.querySelectorAll('.pick input').forEach(p => p.onchange = whatIf);
+  whatIf();
+}
+async function whatIf(){
+  const ids = [...document.querySelectorAll('.pick input:checked')].map(p => p.value);
+  if(!ids.length){ $('wiv').textContent = 'Pick a change'; whatIfPt = null; drawChart(); return; }
+  const r = await api('/whatif/' + crew, {day: last.focus_day, change_ids: ids});
+  whatIfPt = {day: r.day, before: r.readiness_before, after: r.readiness_after};
+  $('wiv').innerHTML = `${dstamp(r.day)} ${r.readiness_before}% → <i>${r.readiness_after}%</i>`;
+  drawChart();
+}
+async function act(box, d){
+  const id = box.dataset.id;
+  if(d === 'why'){ box.classList.toggle('open'); return; }
+  if(d === 'edit' && !box.querySelector('.note')){
+    box.querySelector('.state').insertAdjacentHTML('beforebegin', `<input class="note" placeholder="What should change"><button class="btn main" data-d="save">Save</button>`);
+    box.querySelector('[data-d="save"]').onclick = () => act(box, 'save'); box.querySelector('.note').focus(); return;
+  }
+  let note = '';
+  if(d === 'save'){ note = box.querySelector('.note').value.trim(); d = 'edit'; }
+  await api('/decision', {change_id:id, decision:d, note});
+  box.classList.remove('pending','accept','reject','edit'); box.classList.add(d);
+  box.querySelector('.state').textContent = STATE[d] + (note ? ': ' + note : '');
+  box.querySelector('.note')?.remove(); box.querySelector('[data-d="save"]')?.remove();
+  loadCrew();
+}
+
+async function select(c){
+  crew = c;
+  document.querySelectorAll('.crow').forEach(b => b.classList.toggle('sel', b.dataset.c === c));
+  await Promise.all([loadTwin(), loadNova()]);
+  runForecast();
+}
+$('reset').onclick = async () => { await fetch(API + '/simulate', {method:'POST'}); await loadCrew(); select(crew); };
+$('useClaude').onchange = runForecast;
+
+(async () => {
+  try{
+    const s = await api('/mission-control/summary').catch(() => null);
+    if(!s || s.crew.every(c => c.status === 'unknown')) await fetch(API + '/simulate', {method:'POST'});
+    await loadCrew(); await select(crew);
+  }catch(err){
+    document.querySelector('main').insertAdjacentHTML('afterbegin', '<p class="err">The server is not running. In VS Code run: python -m uvicorn app.main:app --reload</p>');
+  }
+})();
+</script>
+</body>
+</html>

@@ -50,3 +50,9 @@ def test_falls_back_offline_on_error():
         messages = SimpleNamespace(create=lambda **kw: (_ for _ in ()).throw(RuntimeError("no net")))
     r = extract("slept 7 hours", client=Broken())
     assert r["source"] == "offline" and r["sleep_hours"] == 7.0
+
+
+def test_offline_words_without_numbers():
+    from app.nova.extract import extract_offline
+    r = extract_offline("I slept about 5 hours, I feel really tired and a bit stressed")
+    assert r["sleep_hours"] == 5 and r["fatigue"] == 5 and r["stress"] == 3

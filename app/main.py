@@ -1,6 +1,10 @@
 """PulsarX FORECAST server: simulated Smart Ring -> personal baseline ->
 readiness forecast linked to tasks -> NOVA explains -> what-if -> Mission Control."""
+from pathlib import Path
+
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import RedirectResponse
+from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
@@ -50,6 +54,16 @@ def _schedules() -> dict:
 def _self_report(crew: str) -> dict | None:
     log = [c for c in store.load("health_log", []) if c["crew"] == crew]
     return log[-1] if log else None
+
+
+WEB_DIR = Path(__file__).resolve().parent.parent / "web"
+if WEB_DIR.is_dir():
+    app.mount("/web", StaticFiles(directory=WEB_DIR, html=True), name="web")
+
+
+@app.get("/", include_in_schema=False)
+def home():
+    return RedirectResponse("/web/dashboard/")
 
 
 @app.get("/health")

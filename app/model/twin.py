@@ -22,6 +22,18 @@ def _status(z: float) -> str:
     return "normal"
 
 
+def _history(readings: list[dict], schedule: dict, today: int) -> list[dict]:
+    """Readiness the twin would have estimated for each past day, using only the data before it."""
+    out = []
+    for d in range(1, today + 1):
+        past = [r for r in readings if r["day"] <= d - 1]
+        f = forecast(past, schedule, d - 1, days_ahead=1)
+        if not f["unknown"]:
+            x = f["days"][0]
+            out.append({"day": d, "readiness": x["readiness"], "level": x["level"]})
+    return out
+
+
 def build_twin(crew: str, readings: list[dict], schedule: dict, today: int, self_report=None) -> dict:
     base = baseline(readings)
     f = forecast(readings, schedule, today, self_report=self_report)
@@ -39,5 +51,6 @@ def build_twin(crew: str, readings: list[dict], schedule: dict, today: int, self
         "personal_baseline": base,
         "forecast": [{"day": d["day"], "readiness": d["readiness"], "level": d["level"],
                       "critical_tasks": d["critical_tasks"], "alert": d["alert"]} for d in f["days"]],
+        "history": _history(readings, schedule, today),
         "try_changes": "Use /forecast to get suggestions, then /whatif to test them on the twin.",
     }
