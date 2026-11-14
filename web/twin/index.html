@@ -3,215 +3,80 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Digital Twin Hologram</title>
+<title>Digital Twin</title>
 <style>
-:root{--bg:#1b2130;--t2:#a7b0c2;--t3:#727c92;--ok:#6cc7a8;--warn:#d9a648;--bad:#e06a72}
-html,body{margin:0;height:100%;overflow:hidden;background:radial-gradient(120% 90% at 50% 70%,#22304a 0%,#1b2130 70%);font:12px/1.3 "IBM Plex Sans","Segoe UI",system-ui,sans-serif;color:#e9edf5}
-body.mini{background:transparent}
-canvas{display:block;width:100%;height:100%;cursor:grab}
-.lbl{position:absolute;left:0;top:0;pointer-events:none;white-space:nowrap;display:flex;align-items:center;gap:6px;font-weight:500;text-shadow:0 1px 3px rgba(0,0,0,.6)}
-.lbl i{display:inline-block;width:18px;height:1px;background:currentColor;opacity:.7}
-.lbl small{display:block;font-weight:400;color:var(--t2);font-size:11px}
-.cap{position:absolute;left:16px;bottom:12px;color:var(--t3);font-size:11px}
-body.mini .cap{display:none}
+:root{--t2:#a7b0c2;--ok:#6cc7a8;--warn:#d9a648;--bad:#e06a72;--bg:#021524}
+html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);font:12px/1.3 "IBM Plex Sans","Segoe UI",system-ui,sans-serif;color:#e9edf5}
+body.scan{--bg:#01112a}
+.stage{position:relative;height:100%;aspect-ratio:900/1195;max-width:100%;margin:0 auto}
+.stage img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:none}
+body.holo #holo, body.scan #scan{display:block}
+.dot{position:absolute;width:14px;height:14px;margin:-7px 0 0 -7px;border-radius:50%;background:var(--c);box-shadow:0 0 0 3px rgba(2,21,36,.7),0 0 16px 4px var(--c)}
+.dot::after{content:"";position:absolute;inset:-9px;border-radius:50%;border:2px solid var(--c);animation:pulse 1.8s ease-out infinite}
+.dot.bad::after{animation-duration:.9s}
+@keyframes pulse{from{transform:scale(.5);opacity:.9}to{transform:scale(1.5);opacity:0}}
+.lbl{position:absolute;transform:translateY(-50%);white-space:nowrap;font-weight:500;color:var(--c);text-shadow:0 1px 3px #000;display:flex;align-items:center;gap:6px}
+.lbl small{display:block;color:var(--t2);font-weight:400}
+.ln{position:absolute;height:1px;background:var(--c);opacity:.55}
+.lbl.l{padding-right:6px}.lbl.r{padding-left:6px}
+.lbl.l{flex-direction:row-reverse;text-align:right}
+.switch{position:absolute;left:12px;bottom:12px;display:flex;gap:4px;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:3px}
+.switch button{font:inherit;color:var(--t2);background:none;border:0;padding:6px 10px;border-radius:7px;cursor:pointer}
+.switch button.on{background:rgba(95,216,255,.15);color:#e9edf5}
+.cap{position:absolute;right:12px;bottom:16px;color:var(--t2);font-size:11px;opacity:.8}
+body.mini .lbl small,body.mini .cap{display:none}
+body.mini .switch{left:8px;bottom:8px}
+@media (prefers-reduced-motion:reduce){.dot::after{animation:none}}
 </style>
 </head>
-<body>
-<canvas id="c"></canvas>
-<div id="labels"></div>
-<div class="cap">Readiness Digital Twin · simulated · drag to rotate</div>
-<script src="../ring/three.min.js"></script>
+<body class="holo">
+<div class="stage" id="stage">
+  <img id="holo" src="../assets/twin-holo.jpg" alt="Digital twin of the astronaut, shown as a hologram">
+  <img id="scan" src="../assets/twin-scan.jpg" alt="Digital twin of the astronaut, shown as a body scan">
+</div>
+<div class="switch" role="group" aria-label="Twin view"><button data-s="holo" class="on">Hologram</button><button data-s="scan">Body scan</button></div>
+<div class="cap">Image: AI illustration · dots: live twin data</div>
 <script>
 const mini = location.search.includes('mini');
-if (mini) document.body.classList.add('mini');
-const COL = {ok:0x6cc7a8, warn:0xd9a648, bad:0xe06a72};
-const CSS = {ok:'var(--ok)', warn:'var(--warn)', bad:'var(--bad)'};
-const canvas = document.getElementById('c');
-const renderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:true});
-renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(32, 1, 0.1, 100);
-camera.position.set(0, 1.05, mini ? 5.3 : 6.2);
-
-// ---------- body: a spacesuit built from smooth solids, drawn as a light projection ----------
-// Each part is drawn twice: an invisible depth pass (so the back of the suit never shows through)
-// and a glowing pass whose brightness rises at the silhouette (fresnel) with scan lines.
-const BASE = new THREE.Color(0x5fd8ff), GOLD = new THREE.Color(0xffc56a);
-const holoMats = [];
-function holoMat(color, fill){
-  const m = new THREE.ShaderMaterial({
-    transparent:true, depthWrite:false, blending:THREE.AdditiveBlending,
-    uniforms:{t:{value:0}, col:{value:color.clone()}, fill:{value:fill}},
-    vertexShader:`varying vec3 vN; varying vec3 vV; varying float vY;
-      void main(){ vec4 wp = modelMatrix*vec4(position,1.); vec4 mv = viewMatrix*wp;
-        vN = normalize(normalMatrix*normal); vV = normalize(-mv.xyz); vY = wp.y; gl_Position = projectionMatrix*mv; }`,
-    fragmentShader:`uniform vec3 col; uniform float t; uniform float fill; varying vec3 vN; varying vec3 vV; varying float vY;
-      void main(){ float f = pow(1. - abs(dot(normalize(vN), normalize(vV))), 2.4);
-        float scan = 0.7 + 0.3*step(0.5, fract(vY*70. - t*0.8));
-        float sweep = smoothstep(0.05, 0., abs(vY - (mod(t*0.5, 3.2) - 0.2)));
-        float a = (fill + f*1.1)*scan;
-        gl_FragColor = vec4(col*a + vec3(0.75,0.95,1.)*sweep*0.28, 1.); }`
-  });
-  holoMats.push(m); return m;
-}
-const depthMat = new THREE.MeshBasicMaterial({colorWrite:false, transparent:true, polygonOffset:true, polygonOffsetFactor:1, polygonOffsetUnits:1});
-const lineMat = new THREE.LineBasicMaterial({color:0x7fe3ff, transparent:true, opacity:0.55, blending:THREE.AdditiveBlending, depthWrite:false});
-const body = new THREE.Group(); scene.add(body);
-const groups = {suit:[], head:[], heart:[], hand:[]};
-function add(geo, pos, opts={}){
-  const g = opts.group || 'suit';
-  const solid = new THREE.Mesh(geo, depthMat); solid.renderOrder = 0;
-  const glow = new THREE.Mesh(geo, opts.mat || holoMat(BASE, opts.fill ?? 0.13)); glow.renderOrder = 1;
-  const o = new THREE.Group(); o.add(solid, glow);
-  if(opts.edges){ const l = new THREE.LineSegments(new THREE.EdgesGeometry(geo, 25), lineMat); l.renderOrder = 2; o.add(l); }
-  o.position.set(...pos); if(opts.rot) o.rotation.set(...opts.rot); if(opts.scale) o.scale.set(...opts.scale);
-  body.add(o); groups[g].push(glow); return o;
-}
-const S = (r, w=32, h=20) => new THREE.SphereGeometry(r, w, h);
-const T = (r, tube) => new THREE.TorusGeometry(r, tube, 10, 48);
-const up = new THREE.Vector3(0,1,0);
-function limb(a, b, r1, r2, group){ // tapered tube from a to b
-  const A = new THREE.Vector3(...a), B = new THREE.Vector3(...b), L = A.distanceTo(B);
-  const o = add(new THREE.CylinderGeometry(r2, r1, L, 28, 1, true), [0,0,0], {group});
-  o.position.copy(A).lerp(B, 0.5); o.quaternion.setFromUnitVectors(up, B.clone().sub(A).normalize());
-  return o;
-}
-function ringAt(p, dir, r, tube, group){ const o = add(T(r, tube), p, {group, fill:0.12});
-  o.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1), new THREE.Vector3(...dir).normalize()); return o; }
-
-// helmet + visor
-add(S(0.19), [0, 2.44, 0], {group:'head'});
-add(new THREE.SphereGeometry(0.193, 40, 20, Math.PI/2 - 0.9, 1.8, Math.PI/2 - 0.55, 0.95), [0, 2.44, 0.004], {group:'head', mat:holoMat(GOLD, 0.32)});
-ringAt([0, 2.27, 0], [0,1,0], 0.135, 0.028, 'head');                      // neck ring
-// torso (hard upper torso), shaped by a lathe profile and flattened front to back
-const prof = [[0.16,1.46],[0.19,1.52],[0.21,1.62],[0.235,1.78],[0.26,1.94],[0.255,2.06],[0.2,2.17],[0.12,2.24]].map(p => new THREE.Vector2(p[0], p[1]));
-add(new THREE.LatheGeometry(prof, 40), [0,0,0], {scale:[1,1,0.72], group:'heart'});
-add(new THREE.BoxGeometry(0.22, 0.12, 0.07), [0, 1.74, 0.17], {edges:true, group:'heart', fill:0.1});   // chest display unit
-add(new THREE.BoxGeometry(0.42, 0.56, 0.2), [0, 1.86, -0.27], {edges:true, fill:0.05});                // life-support backpack
-ringAt([0, 1.48, 0], [0,1,0], 0.17, 0.026).scale.set(1, 0.72, 1);         // waist bearing
-add(S(0.2), [0, 1.33, 0], {scale:[1.08, 0.72, 0.78]});                    // hips / brief
-for(const s of [-1,1]){
-  const hand = s > 0 ? 'hand' : 'suit';
-  add(S(0.1), [s*0.28, 2.04, 0]);                                         // shoulder
-  ringAt([s*0.3, 1.97, 0], [s*0.25,-1,0], 0.078, 0.016);                  // arm bearing
-  limb([s*0.3, 1.98, 0], [s*0.355, 1.67, 0.0], 0.076, 0.068);             // upper arm
-  add(S(0.07), [s*0.355, 1.67, 0.0]);                                     // elbow
-  limb([s*0.355, 1.67, 0.0], [s*0.385, 1.37, 0.04], 0.066, 0.058);        // forearm
-  ringAt([s*0.387, 1.35, 0.042], [s*0.08,-1,0.1], 0.066, 0.016, hand);    // wrist ring
-  add(S(0.068), [s*0.392, 1.27, 0.05], {scale:[1, 1.35, 0.85], group:hand}); // glove
-  limb([s*0.11, 1.26, 0], [s*0.13, 0.78, 0.02], 0.115, 0.1);             // thigh
-  add(S(0.1), [s*0.13, 0.78, 0.02]);                                     // knee
-  limb([s*0.13, 0.78, 0.02], [s*0.135, 0.2, -0.005], 0.098, 0.09);       // shin
-  ringAt([s*0.135, 0.2, 0], [0,1,0], 0.095, 0.018);                      // boot cuff
-  add(S(0.11), [s*0.135, 0.11, 0.035], {scale:[0.95, 0.8, 1.45]});           // boot
-}
-function tintGroups(){
-  for(const k of ['head','heart','hand']){
-    const c = state[k] === 'ok' ? null : new THREE.Color(COL[state[k]]);
-    groups[k].forEach(m => { const u = m.material.uniforms.col.value; if(!m.userData.c0) m.userData.c0 = u.clone(); u.copy(c ? m.userData.c0.clone().lerp(c, 0.7) : m.userData.c0); });
-  }
-}
-const holo = {uniforms:{t:{value:0}}};
-
-// the smart ring on the right hand
-const ring = new THREE.Mesh(new THREE.TorusGeometry(0.062, 0.011, 12, 48), new THREE.MeshBasicMaterial({color:0x56d6b6}));
-ring.position.set(0.392, 1.24, 0.05); ring.rotation.x = Math.PI/2; body.add(ring);
-
-// projector base
-const base = new THREE.Group(); scene.add(base);
-[0.45,0.62,0.8].forEach((r,i) => {
-  const c = new THREE.Mesh(new THREE.RingGeometry(r-0.008, r, 96), new THREE.MeshBasicMaterial({color:0x5fd8ff, transparent:true, opacity:0.35-i*0.09, side:THREE.DoubleSide, blending:THREE.AdditiveBlending, depthWrite:false}));
-  c.rotation.x = -Math.PI/2; c.position.y = -0.02; base.add(c);
-});
-const disc = new THREE.Mesh(new THREE.CircleGeometry(0.8, 64), new THREE.MeshBasicMaterial({color:0x5fd8ff, transparent:true, opacity:0.06, blending:THREE.AdditiveBlending, depthWrite:false}));
-disc.rotation.x = -Math.PI/2; disc.position.y = -0.025; base.add(disc);
-const beam = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.8, 2.9, 48, 1, true), new THREE.ShaderMaterial({
-  transparent:true, depthWrite:false, blending:THREE.AdditiveBlending, side:THREE.DoubleSide,
-  vertexShader:`varying float vY; void main(){ vY = position.y; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.); }`,
-  fragmentShader:`varying float vY; void main(){ float a = smoothstep(1.45, -1.45, vY)*0.07; gl_FragColor = vec4(0.37,0.85,1.,a); }`}));
-beam.position.y = 1.43; beam.renderOrder = -2; disc.renderOrder = -2; base.add(beam);
-
-// floating particles
-const pg = new THREE.BufferGeometry(), N = 260, pp = new Float32Array(N*3);
-for(let i=0;i<N;i++){ const a = Math.random()*6.283, r = Math.random()*0.9; pp[i*3]=Math.cos(a)*r; pp[i*3+1]=Math.random()*2.8; pp[i*3+2]=Math.sin(a)*r; }
-pg.setAttribute('position', new THREE.BufferAttribute(pp,3));
-const parts = new THREE.Points(pg, new THREE.PointsMaterial({color:0x8fe6ff, size:0.018, transparent:true, opacity:0.6, blending:THREE.AdditiveBlending, depthWrite:false}));
-scene.add(parts);
-
-// signal hotspots
-function glowTex(){ const c = document.createElement('canvas'); c.width = c.height = 64; const g = c.getContext('2d');
-  const gr = g.createRadialGradient(32,32,0,32,32,32); gr.addColorStop(0,'rgba(255,255,255,1)'); gr.addColorStop(.25,'rgba(255,255,255,.6)'); gr.addColorStop(1,'rgba(255,255,255,0)');
-  g.fillStyle = gr; g.fillRect(0,0,64,64); return new THREE.CanvasTexture(c); }
-const tex = glowTex();
+if(mini) document.body.classList.add('mini');
+const COL = {ok:'var(--ok)', warn:'var(--warn)', bad:'var(--bad)'};
+const WORD = {ok:'normal', warn:'off normal', bad:'well off normal'};
+// hotspot positions as % of each picture (x, y); side = where the label goes
 const SPOTS = {
-  head:  {pos:[0, 2.66, 0.05],  name:'Head',  sub:'Sleep, hours awake', side:-1},
-  heart: {pos:[0.09, 1.9, 0.2], name:'Heart', sub:'Heart rate, HRV',   side:-1},
-  hand:  {pos:[0.392, 1.24, 0.05],name:'Ring',  sub:'Skin temp, activity',side:1},
+  head:  {name:'Head',  sub:'Sleep, hours awake', side:'l', holo:[50, 13],   scan:[50, 7]},
+  heart: {name:'Heart', sub:'Heart rate, HRV',    side:'l', holo:[57, 25.5], scan:[51.7, 27.6]},
+  hand:  {name:'Ring',  sub:'Skin temp, activity',side:'r', holo:[70, 49],   scan:[74.4, 53.6]},
 };
 const state = {head:'ok', heart:'ok', hand:'ok'};
-const labels = document.getElementById('labels');
-for(const k in SPOTS){
-  const s = SPOTS[k];
-  s.sprite = new THREE.Sprite(new THREE.SpriteMaterial({map:tex, color:COL.ok, transparent:true, blending:THREE.AdditiveBlending, depthWrite:false, depthTest:false}));
-  s.sprite.position.set(...s.pos); s.sprite.scale.setScalar(0.32); body.add(s.sprite);
-  s.core = new THREE.Mesh(new THREE.SphereGeometry(0.035,12,8), new THREE.MeshBasicMaterial({color:COL.ok, depthTest:false}));
-  s.core.position.set(...s.pos); s.core.renderOrder = 5; body.add(s.core);
-  s.el = document.createElement('div'); s.el.className = 'lbl'; labels.appendChild(s.el);
-}
-function render_labels(){
-  for(const k in SPOTS){ const s = SPOTS[k], st = state[k], word = st==='ok'?'normal':st==='warn'?'off normal':'well off normal';
-    s.el.style.color = CSS[st];
-    const txt = mini ? `${s.name}` : `${s.name} · ${word}<small>${s.sub}</small>`;
-    s.el.innerHTML = s.side < 0 ? `<span style="text-align:right">${txt}</span><i></i>` : `<i></i><span>${txt}</span>`;
-    s.sprite.material.color.setHex(COL[st]); s.core.material.color.setHex(COL[st]); }
-  tintGroups();
+let style = new URLSearchParams(location.search).get('style') === 'scan' ? 'scan' : 'holo';
+const stage = document.getElementById('stage');
+function draw(){
+  document.body.className = style + (mini ? ' mini' : '');
+  document.querySelectorAll('.switch button').forEach(b => b.classList.toggle('on', b.dataset.s === style));
+  stage.querySelectorAll('.dot,.lbl,.ln').forEach(e => e.remove());
+  for(const k in SPOTS){
+    const s = SPOTS[k], [x, y] = s[style], c = COL[state[k]] || COL.ok;
+    const d = document.createElement('span'); d.className = 'dot ' + state[k];
+    d.style.cssText = `left:${x}%;top:${y}%;--c:${c}`; stage.appendChild(d);
+    const l = document.createElement('div'); l.className = 'lbl ' + s.side;
+    // labels sit outside the figure; a thin line joins each label to its dot
+    const edge = s.side === 'l' ? 27 : 80;
+    l.style.cssText = `top:${y}%;--c:${c};` + (s.side === 'l' ? `right:${100 - edge}%` : `left:${edge}%`);
+    l.innerHTML = `<span>${s.name}<small>${WORD[state[k]]}</small></span>`;
+    const ln = document.createElement('span'); ln.className = 'ln';
+    ln.style.cssText = `top:${y}%;--c:${c};left:${Math.min(x, edge) + (s.side === 'l' ? 0.6 : 1.5)}%;width:${Math.abs(x - edge) - 2}%`;
+    stage.append(ln, l);
+  }
 }
 function readHash(){
   const h = new URLSearchParams(location.hash.slice(1));
   for(const k in state){ const v = h.get(k); if(v && COL[v]) state[k] = v; }
-  render_labels();
+  draw();
 }
+document.querySelectorAll('.switch button').forEach(b => b.onclick = () => { style = b.dataset.s; draw(); });
 addEventListener('hashchange', readHash);
-addEventListener('message', e => { if(e.data && e.data.twin){ Object.assign(state, e.data.twin); render_labels(); } });
+addEventListener('message', e => { if(e.data && e.data.twin){ Object.assign(state, e.data.twin); draw(); } });
 readHash();
-
-// interaction
-let rotY = -0.35, vel = 0, drag = false, lx = 0;
-canvas.addEventListener('pointerdown', e => { drag = true; lx = e.clientX; canvas.setPointerCapture(e.pointerId); canvas.style.cursor='grabbing'; });
-canvas.addEventListener('pointermove', e => { if(drag){ vel = (e.clientX - lx)*0.01; rotY += vel; lx = e.clientX; } });
-canvas.addEventListener('pointerup', () => { drag = false; canvas.style.cursor='grab'; });
-
-function resize(){
-  const w = innerWidth, h = innerHeight; renderer.setSize(w, h, false);
-  camera.aspect = w/h; camera.fov = w/h < 0.8 ? 40 : 32; camera.updateProjectionMatrix();
-}
-addEventListener('resize', resize); resize();
-
-const v = new THREE.Vector3(), clock = new THREE.Clock();
-const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-(function loop(){
-  const t = clock.getElapsedTime();
-  holoMats.forEach(m => m.uniforms.t.value = t);
-  if(!drag){ vel *= 0.94; rotY += vel + (reduce ? 0 : 0.0035); }
-  body.rotation.y = rotY;
-  body.position.y = Math.sin(t*1.1)*0.02;
-  parts.rotation.y = t*0.05;
-  const pa = parts.geometry.attributes.position;
-  for(let i=0;i<N;i++){ let y = pa.array[i*3+1] + 0.004; if(y > 2.8) y = 0; pa.array[i*3+1] = y; }
-  pa.needsUpdate = true;
-  for(const k in SPOTS){
-    const s = SPOTS[k], st = state[k], beat = st==='bad' ? 1+0.35*Math.max(0,Math.sin(t*6)) : st==='warn' ? 1+0.2*Math.sin(t*3) : 1+0.08*Math.sin(t*1.5);
-    s.sprite.scale.setScalar(0.2*beat);
-    v.set(...s.pos).applyMatrix4(body.matrixWorld).project(camera);
-    const x = (v.x*0.5+0.5)*innerWidth, y = (-v.y*0.5+0.5)*innerHeight;
-    const W = innerWidth, gap = mini ? 0.25 : 0.2;
-    const lx = s.side < 0 ? W*(0.5-gap) - s.el.offsetWidth : W*(0.5+gap);
-    s.el.style.transform = `translate(${lx.toFixed(1)}px,${(y-14).toFixed(1)}px)`;
-  }
-  camera.lookAt(0, 1.25, 0);
-  renderer.render(scene, camera);
-  requestAnimationFrame(loop);
-})();
 </script>
 </body>
 </html>
