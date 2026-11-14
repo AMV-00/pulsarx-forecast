@@ -26,3 +26,15 @@ def next_question(answers: dict, asked_once: set[str] | None = None) -> str | No
     for field in missing_fields(answers):
         return FOLLOW_UPS[field] if field in asked_once else QUESTIONS[field]
     return None
+
+
+# Ring version: the ring measures sleep and body signs, so NOVA asks ONE spoken
+# question at breakfast about what the ring can't measure (mood, stress, tiredness).
+MORNING = {
+    "en": "Good morning. How did you sleep, and how are you feeling today?",
+    "ar": "صباح الخير. كيف كان نومك، وكيف تحس اليوم؟",
+}
+LOW_CONFIDENCE = {
+    "en": "The ring data looks unusual today. From 1 to 5, how tired do you feel?",
+    "ar": "بيانات الخاتم غير معتادة اليوم. من 1 إلى 5، كم تحس بالتعب؟",
+}

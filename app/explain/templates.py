@@ -6,11 +6,11 @@ contains any number that was not already in the template sentence.
 """
 FACTOR_NAMES = {
     "en": {"sleep": "short sleep", "circadian": "a disrupted sleep cycle", "workload": "a heavy workload",
-           "wake": "a long time awake", "cognitive": "lower focus", "self_report": "the astronaut reporting tiredness"},
+           "wake": "a long time awake", "cognitive": "lower focus", "self_report": "the astronaut reporting tiredness", "body": "body signs from the ring (heart rate, HRV, skin temperature)"},
     "ar": {"sleep": "قلة النوم", "circadian": "اضطراب دورة النوم", "workload": "ضغط العمل",
-           "wake": "طول مدة الاستيقاظ", "cognitive": "انخفاض التركيز", "self_report": "شعور الرائد بالتعب"},
+           "wake": "طول مدة الاستيقاظ", "cognitive": "انخفاض التركيز", "self_report": "شعور الرائد بالتعب", "body": "مؤشرات الجسم من الخاتم (النبض وتباينه وحرارة الجلد)"},
 }
-APPROVERS_AR = {"ground": "فريق الأرض", "commander": "قائد الطاقم (مؤقتًا لحين تأكيد الأرض)"}
+APPROVERS_AR = {"ground": "فريق الأرض", "Mission": "مركز المهمة", "commander": "قائد الطاقم (مؤقتًا لحين تأكيد مركز المهمة)"}
 LEVELS = {"en": {"low": "low", "medium": "medium", "high": "high"},
           "ar": {"low": "منخفض", "medium": "متوسط", "high": "مرتفع"}}
 
@@ -23,7 +23,7 @@ T = {
         "postpone": "Postpone {task} to the next day. {reason}. Expected effect: lower workload today.",
         "reassign": "Give {task} to crew member {to_crew} (has free time). {reason}. Expected effect: the task still gets done today with less fatigue risk.",
         "approval": " Needs approval by: {approver}.",
-        "model_effect": " Model estimate: risk {before} → {after}.",
+        "model_effect": " Model estimate: readiness {before}% → {after}%.",
     },
     "ar": {
         "reason": "خطر الإرهاق {level} بسبب {factor}",
@@ -33,22 +33,22 @@ T = {
         "postpone": "تأجيل {task} لليوم التالي. {reason}. الأثر المتوقع: تخفيف ضغط العمل اليوم.",
         "reassign": "إعطاء {task} للرائد {to_crew} (عنده وقت فاضي). {reason}. الأثر المتوقع: تنجز المهمة اليوم بخطر إرهاق أقل.",
         "approval": " يحتاج موافقة: {approver}.",
-        "model_effect": " تقدير النموذج: الخطر {before} ← {after}.",
+        "model_effect": " تقدير النموذج: الجاهزية {before}% ← {after}%.",
     },
 }
 
 
 def reason_sentence(change: dict, facts: dict, lang: str = "en") -> str:
     """facts example: {"level": "high", "top_factor": "sleep", "sleep_hours": 5,
-    optional "risk_before": 0.72, "risk_after": 0.55} -- all from the model."""
+    optional "readiness_before": 42, "readiness_after": 58} -- all from the model."""
     t = T[lang]
     reason = t["reason"].format(level=LEVELS[lang][facts["level"]],
                                 factor=FACTOR_NAMES[lang][facts.get("top_factor", "workload")])
     if facts.get("sleep_hours") is not None and facts.get("top_factor") == "sleep":
         reason += t["sleep"].format(sleep_hours=_fmt(facts["sleep_hours"]))
     text = t[change["type"]].format(reason=reason, **change)
-    if facts.get("risk_before") is not None and facts.get("risk_after") is not None:
-        text += t["model_effect"].format(before=_fmt(facts["risk_before"]), after=_fmt(facts["risk_after"]))
+    if facts.get("readiness_before") is not None and facts.get("readiness_after") is not None:
+        text += t["model_effect"].format(before=_fmt(facts["readiness_before"]), after=_fmt(facts["readiness_after"]))
     approver = change["approver"]
     if lang == "ar":
         approver = APPROVERS_AR.get(approver.split(" ")[0], approver)

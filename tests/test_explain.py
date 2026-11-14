@@ -5,7 +5,7 @@ from app.explain.templates import polish, reason_sentence
 from app.schedule.rules import suggest_changes
 from tests.test_schedule import DAY
 
-FACTS = {"level": "high", "top_factor": "sleep", "sleep_hours": 5, "risk_before": 0.72, "risk_after": 0.55}
+FACTS = {"level": "high", "top_factor": "sleep", "sleep_hours": 5, "readiness_before": 42, "readiness_after": 58}
 
 
 def all_sentences(lang):
@@ -23,7 +23,7 @@ def test_every_change_type_has_sentence_in_both_languages():
 def test_template_numbers_only_from_model_and_rules():
     for lang in ("en", "ar"):
         for s, c in all_sentences(lang):
-            allowed = {"5", "0.72", "0.55"} | {str(v) for v in c.values()}
+            allowed = {"5", "42", "58"} | {str(v) for v in c.values()}
             assert numbers_ok(s, allowed), s
 
 

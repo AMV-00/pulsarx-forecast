@@ -1,11 +1,22 @@
-"""Simulated crew data for the demo. Everything here is labeled "Simulated".
+"""Simulated FORECAST Smart Ring + mission schedule. Everything is labeled "Simulated".
 
-Same seed -> same data, so the demo and the video always look the same.
+The ring stands for a wearable that records sleep, heart rate, HRV, skin
+temperature and activity on its own, so the astronaut types nothing.
+Same seed -> same data, so the demo and video always look the same.
 """
 import random
 
 LABEL = "Simulated"
 CREW = ["A", "B", "C"]
+DAYS = 14          # days of ring history ("today" = day 14)
+FORECAST_DAYS = 3  # days we look ahead
+
+# Each astronaut has their own normal (personal baseline).
+PERSONAL = {
+    "A": {"sleep": 7.2, "mid": 3.0, "hr": 58, "hrv": 62, "temp": 33.8, "active": 70},
+    "B": {"sleep": 6.8, "mid": 3.5, "hr": 64, "hrv": 48, "temp": 34.1, "active": 55},
+    "C": {"sleep": 7.8, "mid": 2.5, "hr": 61, "hrv": 55, "temp": 33.6, "active": 80},
+}
 
 TASK_POOL = [
     ("EVA prep", 120, "heavy", False),
@@ -22,40 +33,52 @@ def _hhmm(total: int) -> str:
     return f"{total // 60:02d}:{total % 60:02d}"
 
 
-def generate_schedule(crew: str, seed: int = 1, day_start: int = 8 * 60) -> list[dict]:
-    """One work day: tasks in a row with one rest block at midday."""
-    rng = random.Random(f"{seed}-{crew}")
-    picks = rng.sample(TASK_POOL, 4)
-    tasks, t = [], day_start
-    for i, (name, minutes, load, critical) in enumerate(picks):
-        if i == 2:
-            tasks.append({"id": f"{crew}-rest", "name": "Rest", "start": _hhmm(t), "minutes": 60,
-                          "load": "rest", "critical": False, "crew": crew, "label": LABEL})
-            t += 60
-        tasks.append({"id": f"{crew}-t{i + 1}", "name": name, "start": _hhmm(t), "minutes": minutes,
-                      "load": load, "critical": critical, "crew": crew, "label": LABEL})
-        t += minutes
-    return tasks
-
-
-def generate_states(days: int = 7, seed: int = 1) -> list[dict]:
-    """Daily astronaut states with ranges taken from the NASA sleep report idea
-    (average ~6 h sleep on orbit vs 8 h recommended). Values are simulated."""
+def generate_ring(days: int = DAYS, seed: int = 1) -> list[dict]:
+    """Daily ring readings. Demo story: crew B slowly loses sleep in the last
+    4 days; A and C stay near their own normal."""
     rng = random.Random(seed)
     out = []
     for crew in CREW:
+        p = PERSONAL[crew]
         for d in range(1, days + 1):
+            drift = (d - (days - 4)) if crew == "B" and d > days - 4 else 0
+            sleep = max(3.5, p["sleep"] + rng.gauss(0, 0.3) - 0.3 * drift)
             out.append({
-                "crew": crew, "day": d, "label": LABEL,
-                "sleep_hours": round(rng.uniform(4.5, 8.0), 1),
-                "circadian_regularity": rng.randint(50, 100),   # % regular sleep/wake
-                "workload_tasks": rng.randint(3, 7),
-                "hours_awake": round(rng.uniform(12, 20), 1),
-                "cognitive": rng.randint(55, 100),              # % focus test
+                "crew": crew, "day": d, "label": LABEL, "source": "FORECAST Smart Ring (simulated)",
+                "sleep_hours": round(sleep, 1),
+                "sleep_midpoint": round(p["mid"] + rng.gauss(0, 0.3) + 0.4 * drift, 1),  # hour of the night
+                "resting_hr": round(p["hr"] + rng.gauss(0, 1.2) + 1.8 * drift),
+                "hrv_ms": round(p["hrv"] + rng.gauss(0, 3) - 4 * drift),
+                "skin_temp_c": round(p["temp"] + rng.gauss(0, 0.1) + 0.12 * drift, 2),
+                "active_minutes": round(p["active"] + rng.gauss(0, 6) - 6 * drift),
+                "hours_awake": round(24 - sleep - 1.5 + rng.gauss(0, 0.4) + 0.3 * drift, 1),
             })
     return out
 
 
-def free_minutes(schedules: dict[str, list[dict]], day_minutes: int = 10 * 60) -> dict[str, int]:
-    """How much free time each crew member has in a work day."""
-    return {c: max(0, day_minutes - sum(t["minutes"] for t in tasks)) for c, tasks in schedules.items()}
+def generate_schedule(crew: str, day: int, seed: int = 1, day_start: int = 8 * 60) -> list[dict]:
+    """One work day: four tasks with one rest block at midday."""
+    rng = random.Random(f"{seed}-{crew}-{day}")
+    picks = rng.sample(TASK_POOL, 4)
+    if crew == "B" and day == DAYS + 2:  # demo story: critical EVA two days ahead
+        picks[0] = ("EVA (critical)", 180, "heavy", True)
+    tasks, t = [], day_start
+    for i, (name, minutes, load, critical) in enumerate(picks):
+        if i == 2:
+            tasks.append({"id": f"{crew}-d{day}-rest", "name": "Rest", "start": _hhmm(t), "minutes": 60,
+                          "load": "rest", "critical": False, "crew": crew, "day": day, "label": LABEL})
+            t += 60
+        tasks.append({"id": f"{crew}-d{day}-t{i + 1}", "name": name, "start": _hhmm(t), "minutes": minutes,
+                      "load": load, "critical": critical, "crew": crew, "day": day, "label": LABEL})
+        t += minutes
+    return tasks
+
+
+def generate_schedules(seed: int = 1) -> dict:
+    """{crew: {"day": [tasks]}} for history + forecast days."""
+    return {c: {str(d): generate_schedule(c, d, seed) for d in range(1, DAYS + FORECAST_DAYS + 1)} for c in CREW}
+
+
+def free_minutes(day_tasks: dict[str, list[dict]], day_minutes: int = 10 * 60) -> dict[str, int]:
+    """Free time per crew member on one day."""
+    return {c: max(0, day_minutes - sum(t["minutes"] for t in tasks)) for c, tasks in day_tasks.items()}

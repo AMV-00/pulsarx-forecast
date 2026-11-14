@@ -6,7 +6,7 @@ from app.explain.templates import reason_sentence
 from app.schedule.rules import suggest_changes
 from tests.test_schedule import DAY
 
-FACTS = {"level": "high", "top_factor": "sleep", "sleep_hours": 5, "risk_before": 0.72, "risk_after": 0.55}
+FACTS = {"level": "high", "top_factor": "sleep", "sleep_hours": 5, "readiness_before": 42, "readiness_after": 58}
 
 from anthropic import Anthropic
 from dotenv import load_dotenv

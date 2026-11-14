@@ -39,7 +39,7 @@ def suggest_changes(level: str, tasks: list[dict], crew_free: dict | None = None
     if level not in ("medium", "high"):
         return changes
 
-    approver = "commander (temporary, until ground confirms)" if mars_mode else "ground"
+    approver = "commander (temporary, until Mission Control confirms)" if mars_mode else "Mission Control"
 
     # 1) Longer rest: extend the first rest block.
     rest = next((t for t in tasks if t["load"] == "rest"), None)

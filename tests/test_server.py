@@ -2,9 +2,10 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app.data import store
-from app.data.simulate import generate_schedule, generate_states
+from app.data.simulate import generate_ring, generate_schedules
 from app.main import app
-from app.model.risk import predict
+from app.model.baseline import baseline
+from app.model.forecast import forecast
 
 
 @pytest.fixture(autouse=True)
@@ -15,30 +16,47 @@ def tmp_data(tmp_path, monkeypatch):
 client = TestClient(app)
 
 
-def test_simulated_data_is_labeled_and_repeatable():
-    assert generate_schedule("A", 1) == generate_schedule("A", 1)
-    assert all(t["label"] == "Simulated" for t in generate_schedule("B", 2))
-    assert all(s["label"] == "Simulated" for s in generate_states(2))
+def crew(c):
+    return [r for r in generate_ring() if r["crew"] == c]
 
 
-def test_model_levels():
-    assert predict({"sleep_hours": 8, "circadian_regularity": 95, "workload_tasks": 3,
-                    "hours_awake": 14, "cognitive": 90})["level"] == "low"
-    hi = predict({"sleep_hours": 4.5, "circadian_regularity": 55, "workload_tasks": 7,
-                  "hours_awake": 19, "cognitive": 60, "fatigue": 5})
-    assert hi["level"] == "high" and hi["score"] == 12
+def test_ring_data_labeled_and_repeatable():
+    assert generate_ring() == generate_ring()
+    assert all(r["label"] == "Simulated" for r in generate_ring())
+
+
+def test_baseline_is_personal():
+    a, b = baseline(crew("A")), baseline(crew("B"))
+    assert a["resting_hr"]["mean"] != b["resting_hr"]["mean"]
+
+
+def test_not_enough_data_says_unknown():
+    f = forecast(crew("A")[:3], {}, 3)
+    assert f["unknown"] and "don't know" in f["message"]
+
+
+def test_demo_story_alert_on_critical_day():
+    f = forecast(crew("B"), generate_schedules()["B"], 14)
+    alerts = [d for d in f["days"] if d["alert"]]
+    assert alerts and alerts[0]["day"] == 16 and "EVA (critical)" in alerts[0]["critical_tasks"]
+    assert all(not d["alert"] for d in forecast(crew("A"), generate_schedules()["A"], 14)["days"])
 
 
 def test_full_offline_flow():
     assert client.post("/simulate").status_code == 200
-    client.post("/checkin", json={"crew": "A", "sleep_hours": 4.5, "fatigue": 5, "mood": "bad", "stress": 4})
-    r = client.post("/predict/A", params={"use_claude": False, "lang": "ar"}).json()
-    assert r["label"] == "Simulated" and r["prediction"]["level"] in ("low", "medium", "high")
-    if r["changes"]:
-        cid = r["changes"][0]["id"]
-        assert client.post("/decision", json={"change_id": cid, "decision": "accept"}).status_code == 200
-        assert client.get("/schedule/A").json()["proposed"][0]["status"] == "accept"
-    assert store.load("health_log")[0]["sleep_hours"] == 4.5
+    q = client.get("/nova/morning/B", params={"lang": "ar"}).json()["question"]
+    assert q
+    r = client.get("/forecast/B", params={"use_claude": False, "lang": "ar"}).json()
+    assert r["label"] == "Simulated" and r["focus_day"] == 16 and r["changes"]
+    eff = r["all_changes_effect"]
+    assert eff["readiness_after"] >= eff["readiness_before"]
+    ids = [c["id"] for c in r["changes"]]
+    w = client.post("/whatif/B", json={"day": 16, "change_ids": ids}).json()
+    assert w == eff
+    assert client.post("/decision", json={"change_id": ids[0], "decision": "accept"}).status_code == 200
+    s = client.get("/mission-control/summary").json()
+    b = next(x for x in s["crew"] if x["crew"] == "B")
+    assert b["alert"] and ids[0] not in b["pending_changes"]
 
 
 def test_bad_decision_rejected():
