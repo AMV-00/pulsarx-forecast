@@ -77,7 +77,7 @@ def polish(sentence: str, client=None, lang: str = "en", model: str = "claude-so
                     "Return only the sentence."),
             messages=[{"role": "user", "content": sentence}],
         )
-        out = msg.content[0].text.strip()
+        out = "".join(b.text for b in msg.content if getattr(b, "type", "text") == "text").strip()
     except Exception:
         return sentence
     return out if out and numbers_ok(out, sentence) else sentence
