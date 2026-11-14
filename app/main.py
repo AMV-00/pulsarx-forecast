@@ -21,7 +21,7 @@ from app.model.whatif import what_if
 from app.nova.extract import extract
 from app.nova.questions import LOW_CONFIDENCE, MORNING
 from app.schedule.rules import suggest_changes
-from app import onboard
+from app import onboard, voice
 
 app = FastAPI(title="PulsarX FORECAST")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
@@ -30,6 +30,11 @@ app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], all
 class CheckinText(BaseModel):
     crew: str
     text: str
+
+
+class VoiceSample(BaseModel):
+    crew: str
+    features: dict
 
 
 class WhatIfRequest(BaseModel):
@@ -83,7 +88,7 @@ if WEB_DIR.is_dir():
 
 @app.get("/", include_in_schema=False)
 def home():
-    return RedirectResponse("/web/dashboard/")
+    return RedirectResponse("/web/hud/")
 
 
 @app.get("/health")
@@ -151,6 +156,16 @@ def nova_answer(body: CheckinText):
         hedge = answer("hedging")
         onboard.queue("hidden_fatigue", {"crew": body.crew, "text": body.text, "why": check["why"]})
     return {"answers": entry, "nova_note": hedge, "hidden_fatigue": check}
+
+
+@app.post("/voice")
+def voice_check(body: VoiceSample):
+    """Experimental voice tone check: four numbers from the browser, compared with this
+    astronaut's own normal voice. Flag only, for a person to review; never changes the score."""
+    r = voice.analyse(body.crew, body.features)
+    if r.get("flag"):
+        onboard.queue("voice_fatigue", {"crew": body.crew, "cues": r["cues"]})
+    return r
 
 
 # ---------- forecast + suggestions ----------

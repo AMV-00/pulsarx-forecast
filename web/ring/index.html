@@ -223,7 +223,7 @@ if(/[?&]mini/.test(location.search)) document.documentElement.classList.add('min
   const stars=new THREE.Points(sg,new THREE.PointsMaterial({color:0xcfe0ff,size:0.06})); if(!document.documentElement.classList.contains('mini')) S.add(stars);
 
   // drag to rotate
-  let drag=false,px=0,py=0,vx=0.0035,vy=0;
+  let drag=false,px=0,py=0,vx=0.008,vy=0;
   cv.addEventListener('pointerdown',e=>{drag=true;px=e.clientX;py=e.clientY;cv.setPointerCapture(e.pointerId);});
   cv.addEventListener('pointerup',()=>drag=false);
   cv.addEventListener('pointermove',e=>{if(!drag)return;const dx=e.clientX-px,dy=e.clientY-py;px=e.clientX;py=e.clientY;
@@ -234,7 +234,7 @@ if(/[?&]mini/.test(location.search)) document.documentElement.classList.add('min
 
   // signal cards flash one by one as if each reading just arrived
   const cards=[...document.querySelectorAll('.sig')]; let ci=0;
-  const still=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const still=false; // keep the 3D ring turning (Windows animation setting turned it off)
   if(!still) setInterval(()=>{cards.forEach(c=>c.classList.remove('flash')); cards[ci%cards.length].classList.add('flash'); ci++;},1400);
 
   const t0=performance.now();
@@ -245,7 +245,7 @@ if(/[?&]mini/.test(location.search)) document.documentElement.classList.add('min
     const k=still?1:ease(Math.min(t/2.2,1));
     ring.scale.setScalar(0.4+0.6*k);
     if(t<2.2 && !still){ring.rotation.set(0.55+ (1-k)*2.2, 0.4+(1-k)*3.5, (1-k)*0.6);}
-    else if(!drag && !still){ring.rotation.y+=vx; ring.rotation.x+=vy; vx+=(0.0035-vx)*0.02; vy*=0.96;}
+    else if(!drag && !still){ring.rotation.y+=vx; ring.rotation.x+=vy; vx+=(0.008-vx)*0.02; vy*=0.96;}
     // heartbeat
     const ph=(t*BPM/60)%1, beat=Math.exp(-ph*7);
     pulsing.forEach(o=>{ if(!o.pulse){o.sp.material.opacity=0.22;o.sp.scale.setScalar(o.base*0.6);return;}

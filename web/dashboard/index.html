@@ -13,7 +13,7 @@
   --hair:rgba(130,180,255,.12); --hair2:rgba(130,180,255,.24);
   --t1:#eaf1fb; --t2:#a9b6cc; --t3:#71819c;
   --acc:#4cb8f5; --acc2:#36d39a;
-  --ok:#36d39a; --warn:#f2a53a; --bad:#f0626a;
+  --ok:#36d39a; --warn:#f2a53a; --bad:#f0626a; --caut:#f5c542; --adv:#6aa8ff;
   --nova:#d5e8ff; --nova-ink:#0f1c33;
   --sans:"IBM Plex Sans","Segoe UI",system-ui,sans-serif;
   --mono:"IBM Plex Mono",Consolas,ui-monospace,monospace;
@@ -56,7 +56,7 @@ a{color:var(--acc)}
 .cp .pc{font:500 .9rem var(--mono)}
 .cp small{color:var(--t3);font-size:.75rem}
 .tag{font:500 .75rem var(--mono);color:var(--t2);border:1px solid var(--hair2);border-radius:20px;padding:4px 10px;white-space:nowrap}
-.tag.sim{color:var(--warn);border-color:rgba(242,165,58,.45)}
+.tag.sim{color:var(--t2);border-color:var(--hair2)}
 .tag.pred{color:var(--acc);border-color:rgba(76,184,245,.45);background:rgba(76,184,245,.08)}
 .spacer{flex:1}
 .btn{background:transparent;border:1px solid var(--hair2);border-radius:10px;padding:6px 14px;font-size:.82rem;transition:border-color .15s var(--ease),background-color .15s var(--ease)}
@@ -69,16 +69,24 @@ a{color:var(--acc)}
 .view{display:none}
 .view.on{display:block}
 #ftBtn{display:none}
-.mcnav{display:none;gap:4px;flex-wrap:wrap;margin:0 0 16px}
-body.mc .mcnav{display:flex}
-.mcnav a{color:var(--t2);text-decoration:none;font-size:.85rem;padding:6px 12px;border-radius:10px;border:1px solid var(--hair)}
-.mcnav a:hover{color:var(--t1);border-color:var(--hair2)}
 .view{scroll-margin-top:16px}
 .dtiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
 .dt{border:1px solid var(--hair);border-radius:14px;padding:16px;background:rgba(13,21,38,.4)}
 .dt small{color:var(--t2)}
 .dt b{display:block;font:500 2.2rem var(--mono);margin:4px 0}
 .dt p{margin:8px 0 0;font-size:.85rem;color:var(--t2)}
+.alertbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:12px;margin:0 0 14px;padding:10px 16px;border-radius:12px;border:1px solid;font-size:.95rem;background:#1a2133}
+.alertbar:empty{display:none}
+.alertbar svg{width:22px;height:22px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.alertbar b{font-weight:600}.alertbar span{flex:1;color:var(--t1)}.alertbar small{color:var(--t2)}
+.alertbar.warning{color:#ff6b6b;border-color:#ff6b6b;background:#3a1a22}
+.alertbar.caution{color:#f5c542;border-color:#f5c542;background:#33290f}
+.alertbar.advisory{color:#6aa8ff;border-color:#6aa8ff;background:#14243d}
+.alertbar.nominal{color:var(--ok);border-color:rgba(108,199,168,.4)}
+.alertbar.ack{border-style:dashed}
+.alertbar .btn{min-height:40px}
+#v-astro .btn,#v-nova .btn,#v-nova input,.tabs button,#alAck{min-height:48px;min-width:48px}
+button:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid #7fd3ff;outline-offset:2px}
 .brief{margin-top:16px;border:1px solid rgba(95,216,255,.25);border-radius:14px;padding:16px 20px;background:rgba(95,216,255,.06)}
 .brief .bh{display:flex;align-items:center;gap:10px}.brief .bh b{flex:1;font-weight:500}
 .brief ul{margin:12px 0 8px;padding-left:18px;display:grid;gap:8px;font-size:1rem;line-height:1.45}
@@ -196,7 +204,7 @@ td.num,th.num{text-align:right}
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
 .chip{font:400 .75rem var(--mono);border:1px solid var(--hair2);border-radius:6px;padding:2px 8px;color:var(--t2)}
 .chip.p1{color:var(--warn);border-color:rgba(242,165,58,.45)}
-.chip.p2{color:var(--bad);border-color:rgba(240,98,106,.5)}
+.chip.p2{color:var(--caut);border-color:rgba(245,197,66,.5)}
 
 /* schedule */
 .task{display:grid;grid-template-columns:56px minmax(0,1fr);gap:10px;padding:10px 0;border-top:1px solid var(--hair)}
@@ -237,7 +245,7 @@ td.num,th.num{text-align:right}
 .act .fx b{color:var(--ok);font-weight:500}
 .ctrl{grid-column:2/4;display:flex;flex-wrap:wrap;align-items:center;gap:8px}
 .state{font-size:.8rem;color:var(--t3)}
-.act.accept .state{color:var(--ok)} .act.reject{opacity:.5} .act.reject .state{color:var(--bad)} .act.edit .state{color:var(--warn)}
+.act.accept .state{color:var(--ok)} .act.reject{opacity:.5} .act.reject .state{color:var(--t3)} .act.edit .state{color:var(--adv)}
 .act.accept .ctrl .btn,.act.reject .ctrl .btn:not([data-d=why]){display:none}
 .why{grid-column:2/4;margin:0;color:var(--t2);font-size:.85rem;display:none}
 .act.open .why{display:block}
@@ -295,6 +303,20 @@ td.num,th.num{text-align:right}
   .ringc{grid-template-columns:1fr}
   .brand small{display:none}
 }
+
+/* Mission Control: side menu like NASA Open MCT (select an item, the main area shows it) */
+body.mc .shell{display:grid;grid-template-columns:230px minmax(0,1fr);gap:24px;align-items:start}
+.mcnav{display:none;flex-direction:column;gap:2px;position:sticky;top:12px;background:var(--s1);border:1px solid var(--hair);border-radius:14px;padding:10px}
+body.mc .mcnav{display:flex}
+.mcnav .navh{font:500 .72rem var(--mono);color:var(--t3);letter-spacing:.08em;text-transform:uppercase;padding:6px 10px 8px}
+.mcnav button{display:flex;align-items:center;gap:10px;width:100%;background:none;border:0;border-left:3px solid transparent;border-radius:8px;padding:10px 10px;min-height:44px;color:var(--t2);text-align:left;font:inherit}
+.mcnav button svg{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.mcnav button:hover{background:var(--s2);color:var(--t1)}
+.mcnav button.on{background:var(--s2);border-left-color:var(--acc);color:var(--t1)}
+.mcnav .nb{margin-left:auto;font:500 .75rem var(--mono);border-radius:10px;padding:0 7px}
+.mcnav .nb:empty{display:none}
+.mcnav .nb.w{background:rgba(240,98,106,.2);color:var(--bad)}.mcnav .nb.c{background:rgba(245,197,66,.18);color:var(--caut)}.mcnav .nb.i{background:var(--s3);color:var(--t2)}
+@media (max-width:900px){body.mc .shell{grid-template-columns:1fr}.mcnav{position:static;flex-direction:row;overflow-x:auto}.mcnav .navh{display:none}.mcnav button{width:auto;white-space:nowrap}}
 </style>
 </head>
 <body>
@@ -309,11 +331,12 @@ td.num,th.num{text-align:right}
       <button data-v="mc">Mission Control</button>
     </nav>
     <div class="status">
-      <div class="ln"><span class="dot" id="linkDot"></span><span id="linkTxt">CONNECTED</span></div>
-      <div id="mdTxt">MD 14</div>
+      <div class="ln"><span class="dot" id="linkDot"></span><span id="linkTxt">Connected</span></div>
+      <div id="mdTxt">Mission day 14</div>
     </div>
   </header>
 
+  <div class="alertbar" id="alertbar" role="status" aria-live="polite"></div>
   <div class="bar">
     <div class="crew" id="crew"></div>
     <span class="spacer"></span>
@@ -322,8 +345,16 @@ td.num,th.num{text-align:right}
     <button class="btn" id="ftBtn" type="button">Take today's focus test</button>
   </div>
 
+  <div class="shell">
   <nav class="mcnav" id="mcnav" aria-label="Mission Control sections">
-    <a href="#v-overview">Crew</a><a href="#v-decide">Approvals</a><a href="#v-twin">Digital Twin</a><a href="#v-pred">Forecast</a><a href="#v-whatif">What-if</a><a href="#v-sched">Schedule</a><a href="#v-earth">Earth link</a>
+    <span class="navh">Mission Control</span>
+    <button type="button" data-sec="overview"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span>Crew overview</span><b class="nb" id="nb-overview"></b></button>
+    <button type="button" data-sec="decide"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12l4 4 10-10"/></svg><span>Approvals</span><b class="nb" id="nb-decide"></b></button>
+    <button type="button" data-sec="twin"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a3 3 0 110 6 3 3 0 010-6zM6 21v-4a6 6 0 0112 0v4"/></svg><span>Digital twin</span><b class="nb" id="nb-twin"></b></button>
+    <button type="button" data-sec="pred"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17l5-6 4 4 8-9"/></svg><span>Forecast</span><b class="nb" id="nb-pred"></b></button>
+    <button type="button" data-sec="whatif"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M12 9a3 3 0 110 6 3 3 0 010-6z"/></svg><span>What-if</span><b class="nb" id="nb-whatif"></b></button>
+    <button type="button" data-sec="sched"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v15H4zM4 10h16M9 3v4M15 3v4"/></svg><span>Schedule</span><b class="nb" id="nb-sched"></b></button>
+    <button type="button" data-sec="earth"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 110 18 9 9 0 010-18zM3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></svg><span>Earth link</span><b class="nb" id="nb-earth"></b></button>
   </nav>
   <main id="main">
   <!-- ASTRONAUT -->
@@ -505,6 +536,7 @@ td.num,th.num{text-align:right}
   </section>
   <p class="foot" style="margin:24px 0 8px">Built for NASA Space Apps Challenge 2026 · Create Health Monitoring Software for Astronauts on Space Missions · based on NASA Human Research Program risks</p>
   </main>
+  </div>
 
   <div class="fbar">
     <label class="switch">NOVA phrasing by Claude <input type="checkbox" id="useClaude"></label>
@@ -536,26 +568,33 @@ async function api(path, body){
   if(!r.ok) throw new Error((await r.text()) || r.status);
   return r.json();
 }
-const col = l => l === 'low' ? 'var(--ok)' : l === 'medium' ? 'var(--warn)' : l === 'high' ? 'var(--bad)' : 'var(--t3)';
+const col = (l, alert) => alert ? 'var(--bad)' : l === 'low' ? 'var(--ok)' : l === 'medium' ? 'var(--adv)' : l === 'high' ? 'var(--caut)' : 'var(--t3)';
 const word = l => l === 'low' ? 'Low' : l === 'medium' ? 'Moderate' : l === 'high' ? 'High' : 'Unknown';
-const dstamp = d => d <= today ? 'D' + d : 'D+' + (d - today);
+const dstamp = d => d === today ? 'Today' : d === today + 1 ? 'Tomorrow' : d < today ? 'Day ' + d : 'In ' + (d - today) + ' days';
+const dlow = d => { const t = dstamp(d); return t.startsWith('Day') ? 'day ' + d : t.toLowerCase(); };
+const PLACE = {iss:'ISS', moon:'Moon', mars:'Mars'};
 
 // ---------- tabs ----------
 const VIEWS = {astro:['astro','nova'], mc:['overview','decide','twin','pred','whatif','sched','earth']};
+let mcSec = 'overview';
 function show(v, scrollTo){
+  const asked = v;
   if(!VIEWS[v]) v = VIEWS.mc.includes(v) ? 'mc' : 'astro';
+  if(v === 'mc'){ const s = VIEWS.mc.includes(scrollTo) ? scrollTo : VIEWS.mc.includes(asked) ? asked : mcSec; mcSec = s; }
   document.body.classList.toggle('mc', v === 'mc');
   document.querySelectorAll('#tabs button').forEach(b => b.classList.toggle('on', b.dataset.v === v));
-  document.querySelectorAll('.view').forEach(s => s.classList.toggle('on', VIEWS[v].includes(s.id.slice(2))));
+  const on = v === 'mc' ? [mcSec] : VIEWS[v];
+  document.querySelectorAll('.view').forEach(s => s.classList.toggle('on', on.includes(s.id.slice(2))));
+  document.querySelectorAll('#mcnav [data-sec]').forEach(b => { b.classList.toggle('on', b.dataset.sec === mcSec); b.setAttribute('aria-current', b.dataset.sec === mcSec ? 'page' : 'false'); });
   if(location.hash !== '#' + v) history.replaceState(null, '', '#' + v);
   // 3D frames loaded while hidden have no size: reload them once they are visible
   document.querySelectorAll('.view.on iframe').forEach(f => { if(!f.dataset.shown){ f.dataset.shown = 1; f.src = f.src; } });
-  const el = scrollTo && document.getElementById('v-' + scrollTo);
+  const el = v === 'astro' && scrollTo && document.getElementById('v-' + scrollTo);
   if(el && VIEWS[v][0] !== scrollTo) el.scrollIntoView({behavior:'smooth'}); else window.scrollTo({top:0});
 }
 document.querySelectorAll('#tabs button').forEach(b => b.onclick = () => show(b.dataset.v));
 document.querySelectorAll('[data-go]').forEach(b => b.onclick = () => show(b.dataset.go, b.dataset.go));
-document.querySelectorAll('#mcnav a').forEach(a => a.onclick = e => { e.preventDefault(); document.querySelector(a.getAttribute('href')).scrollIntoView({behavior:'smooth'}); });
+document.querySelectorAll('#mcnav [data-sec]').forEach(b => b.onclick = () => show('mc', b.dataset.sec));
 
 // ---------- icons ----------
 const I = {
@@ -572,9 +611,12 @@ const svg = p => `<svg viewBox="0 0 24 24" aria-hidden="true">${p}</svg>`;
 async function loadCrew(){
   const s = await api('/mission-control/summary');
   today = s.today;
-  $('mdTxt').textContent = 'MD ' + today + ' · Crew ' + crew;
+  $('mdTxt').textContent = 'Mission day ' + today + ' · Crew ' + crew;
   const pend = s.crew.reduce((n,c) => n + (c.pending_changes ? c.pending_changes.length : 0), 0);
   $('pending').textContent = pend || 'Nothing';
+  const nw = s.crew.filter(c => c.alert).length, nc = s.crew.filter(c => !c.alert && c.level === 'high').length;
+  $('nb-overview').textContent = nw ? '▲ ' + nw : nc ? '▲ ' + nc : ''; $('nb-overview').className = 'nb ' + (nw ? 'w' : 'c');
+  $('nb-decide').textContent = pend || ''; $('nb-decide').className = 'nb i';
   $('crew').innerHTML = s.crew.map(c => c.status === 'unknown'
     ? `<button class="cp" data-c="${c.crew}"><span class="av">${c.crew}</span><span>Crew ${c.crew} <small>no data</small></span></button>`
     : `<button class="cp ${c.crew===crew?'sel':''}" data-c="${c.crew}" title="${c.alert ? esc(c.critical_tasks[0]) + ' at ' + dstamp(c.on_day) : word(c.level) + ' risk'}"><span class="av">${c.crew}</span>
@@ -624,7 +666,8 @@ const tag = k => isReal(k) ? '<span class="src real">real</span>' : '<span class
 const SIG = [['resting_hr','Heart rate','bpm',0,'heart'],['hrv_ms','HRV','ms',0,'hrv'],['skin_temp_c','Skin temperature','°C',1,'temp'],
              ['sleep_hours','Sleep, last night','h',1,'moon'],['active_minutes','Activity','min',0,'run'],['hours_awake','Hours awake','h',1,'clock'],['focus_rt_ms','Focus test','ms',0,'focus']];
 const sigs = () => SIG.filter(([k]) => twin.now.signals[k]);
-const zc = z => Math.abs(z) >= 2 ? 'var(--bad)' : Math.abs(z) >= 1 ? 'var(--warn)' : 'var(--ok)';
+const zw = z => Math.abs(z) < 1 ? 'Normal' : (Math.abs(z) >= 2 ? 'Well ' : '') + (z > 0 ? (Math.abs(z) >= 2 ? 'above' : 'Above') : (Math.abs(z) >= 2 ? 'below' : 'Below')) + ' normal';
+const zc = z => Math.abs(z) >= 2 ? 'var(--caut)' : Math.abs(z) >= 1 ? 'var(--adv)' : 'var(--ok)';
 
 function gauge(v, level, id){
   const r = 70, c = 2 * Math.PI * r, arc = c * .75, val = arc * Math.max(0, Math.min(100, v)) / 100, k = col(level);
@@ -649,17 +692,17 @@ function drawTwin(){
   $('twinA').innerHTML = gauge(now.readiness, now.level, 'g3') + side;
   $('twinT').innerHTML = gauge(now.readiness, now.level, 'g2') + side;
   const ok = !worst.alert && now.level !== 'high';
-  const pill = `<span class="ok" style="background:${ok?'var(--ok)':'var(--warn)'}">${ok?'✓':'!'}</span><span>${worst.alert
-      ? `${esc(worst.critical_tasks[0])} at ${dstamp(worst.day)} falls on a ${worst.readiness}% day`
+  const pill = `<span class="ok" style="background:${ok?'var(--ok)':worst.alert?'var(--bad)':'var(--caut)'}">${ok?'✓':'!'}</span><span>${worst.alert
+      ? `${esc(worst.critical_tasks[0])} ${dlow(worst.day)} falls on a ${worst.readiness}% day`
       : off.length ? `${off.length} signals off normal, keep an eye on the next days` : 'Fit for duty, all signals in normal range'}</span>`;
   $('twinPill').innerHTML = pill; $('twinPill2').innerHTML = pill; $('twinPill3').innerHTML = pill;
-  drawDaysA(); drawBrief();
+  drawDaysA(); drawBrief(); drawAlert();
   const lvl = ks => { const m = Math.max(0, ...ks.filter(k => sig[k]).map(k => Math.abs(sig[k].z))); return m >= 2 ? 'bad' : m >= 1 ? 'warn' : 'ok'; };
   const h = {head:lvl(['sleep_hours','hours_awake','focus_rt_ms']), heart:lvl(['resting_hr','hrv_ms']), hand:lvl(['skin_temp_c','active_minutes'])};
   const fr = $('holo'); fr.src = '../twin/?mini#' + new URLSearchParams(h);
   try{ fr.contentWindow.postMessage({twin:h}, '*'); }catch(e){}
 
-  $('ringSig').innerHTML = all.slice(0, 5).map(([k,name,unit,dp,ic]) => `<div class="si">${svg(I[ic])}<div><small>${name}${tag(k)}</small><b style="color:${Math.abs(sig[k].z) >= 2 ? 'var(--bad)' : 'var(--t1)'}">${Number(sig[k].value).toFixed(dp)}<span>${unit}</span></b></div></div>`).join('');
+  $('ringSig').innerHTML = all.slice(0, 5).map(([k,name,unit,dp,ic]) => `<div class="si">${svg(I[ic])}<div><small>${name}${tag(k)}</small><b style="color:${Math.abs(sig[k].z) >= 2 ? 'var(--caut)' : 'var(--t1)'}">${Number(sig[k].value).toFixed(dp)}<span>${unit}</span></b></div></div>`).join('');
 
   $('sigs').innerHTML = all.map(([k,name,unit,dp,ic]) => {
     const s = sig[k], z = Math.max(-3, Math.min(3, s.z)), c = zc(s.z);
@@ -669,7 +712,7 @@ function drawTwin(){
   }).join('');
   const pb = twin.personal_baseline;
   $('baseT').innerHTML = `<tr><th>Signal</th><th class="num">Personal normal</th><th class="num">Today</th><th class="num">Distance from normal</th><th>Source</th></tr>` +
-    all.map(([k,name,unit,dp]) => `<tr><td>${name}</td><td class="num">${pb[k] ? Number(pb[k].mean).toFixed(dp) + ' ± ' + Number(pb[k].sd).toFixed(dp || 1) : '–'} ${unit}</td><td class="num">${Number(sig[k].value).toFixed(dp)} ${unit}</td><td class="num" style="color:${zc(sig[k].z)}">${sig[k].z > 0 ? '+' : ''}${sig[k].z} SD</td><td>${isReal(k) ? 'Real Fitbit' : 'Simulated'}</td></tr>`).join('');
+    all.map(([k,name,unit,dp]) => `<tr><td>${name}</td><td class="num">${pb[k] ? Number(pb[k].mean).toFixed(dp) + ' ± ' + Number(pb[k].sd).toFixed(dp || 1) : '–'} ${unit}</td><td class="num">${Number(sig[k].value).toFixed(dp)} ${unit}</td><td style="color:${zc(sig[k].z)}">${zw(sig[k].z)}</td><td>${isReal(k) ? 'Real Fitbit' : 'Simulated'}</td></tr>`).join('');
 }
 
 async function loadTwin(){
@@ -685,7 +728,7 @@ async function loadTwin(){
 function drawDaysA(){
   const name = d => d === today + 1 ? 'Tomorrow' : dstamp(d);
   $('daysA').innerHTML = twin.forecast.map(f => `<div class="dt" style="${f.alert ? 'border-color:rgba(240,98,106,.55)' : ''}"><small>${name(f.day)} · day ${f.day}</small>
-    <b style="color:${col(f.level)}">${f.readiness}%</b><small style="color:${col(f.level)}">${word(f.level)} fatigue risk</small>
+    <b style="color:${col(f.level, f.alert)}">${f.readiness}%</b><small style="color:${col(f.level, f.alert)}">${f.alert ? '▲ Warning · ' : f.level === 'high' ? '▲ Caution · ' : ''}${word(f.level)} fatigue risk</small>
     <p>${f.critical_tasks.length ? (f.alert ? '<span class="badge b-crit">Critical</span> ' : '') + esc(f.critical_tasks.join(', ')) : 'No critical task'}</p></div>`).join('');
 }
 
@@ -707,13 +750,13 @@ function drawTasks(){
   const changes = last && last.changes ? last.changes : [];
   const list = Object.entries(sched).flatMap(([d, ts]) => ts.filter(t => t.load !== 'rest').map(t => ({...t, day:+d})))
     .filter(t => t.critical || t.load === 'heavy').slice(0, 4);
-  $('tasksO').innerHTML = list.length ? list.map(t => { const f = dayOf(t.day), c = f ? col(f.level) : 'var(--t3)';
+  $('tasksO').innerHTML = list.length ? list.map(t => { const f = dayOf(t.day), c = f ? col(f.level, f.alert && t.critical) : 'var(--t3)';
     return `<div class="ti"><span class="ring" style="border-color:${c};color:${c}">${t.critical ? '!' : ''}</span>
       <div><b>${esc(t.name)}</b><small>${dstamp(t.day)} · ${t.start}</small></div>${badge(t, f)}<span class="pc" style="color:${c}">${f ? f.readiness + '%' : ''}</span></div>`; }).join('')
     : '<p class="empty">No heavy or critical tasks in the next 3 days</p>';
   $('schedCols').innerHTML = Object.entries(sched).map(([d, ts]) => { const f = dayOf(+d);
     return `<div class="card c4"><div class="ch"><div><h2>${dstamp(+d)} <span class="num" style="color:var(--t3);font-weight:400">· mission day ${d}</span></h2><p>${f ? (f.critical_tasks.length ? 'Critical: ' + esc(f.critical_tasks.join(', ')) : 'No critical task') : ''}</p></div>
-      ${f ? `<span class="tag" style="color:${col(f.level)};border-color:${col(f.level)}">${f.readiness}% · ${word(f.level)}</span>` : ''}</div>
+      ${f ? `<span class="tag" style="color:${col(f.level, f.alert)};border-color:${col(f.level, f.alert)}">${f.readiness}% · ${word(f.level)}</span>` : ''}</div>
       ${ts.map(t => { const ch = changes.filter(c => c.task_id === t.id);
         return `<div class="task"><span class="tm">${t.start}</span><div><b>${esc(t.name)}</b> ${t.critical ? '<span class="badge b-crit" style="margin-left:6px">critical</span>' : ''}
           <small>${t.minutes} min · ${t.load} · simulated</small>${ch.map(c => `<span class="chg">Suggested: ${TITLE(c).replace(/<[^>]+>/g, '')} · ${stateText(c)}</span>`).join('')}</div></div>`; }).join('')}</div>`; }).join('');
@@ -727,7 +770,7 @@ function drawDays(){
     <div class="big" style="color:${col(d.level)}">${d.readiness}%</div><div style="color:var(--t2)">${word(d.level)} fatigue risk · ${d.score} of ${d.max_score} points${d.critical_tasks.length ? ' · ' + esc(d.critical_tasks.join(', ')) : ''}</div>
     <div class="chips">${Object.entries(d.points).map(([k,v]) => `<span class="chip p${v}">${FN[k] || k} ${v}</span>`).join('')}</div></div>`).join('');
   const w = last.forecast.days.find(d => d.alert);
-  $('predHead').textContent = w ? `${w.critical_tasks[0]} at ${dstamp(w.day)} is critical, and the forecast for that day is ${w.readiness}%` : 'The twin estimates readiness and checks it against the task schedule';
+  $('predHead').textContent = w ? `${w.critical_tasks[0]} ${dlow(w.day)} is critical, and the forecast for that day is ${w.readiness}%` : 'The twin estimates readiness and checks it against the task schedule';
 }
 
 // ---------- NOVA ----------
@@ -760,12 +803,40 @@ async function answer(text){
     await Promise.all([loadTwin(), loadCrew()]); runForecast(); loadLink();
   }catch(err){ say('<span class="err">The server is not reachable</span>'); }
 }
+// ---------- caution & warning bar (NASA-STD-3001 V2 10114 / 10175, Appendix F.6.4) ----------
+// Warning = red, Caution = yellow, Advisory = blue. Each has an icon and a word, not color alone.
+// The top alert stays until acknowledged; after that its text still shows.
+const acked = new Set();
+const AICON = {warning:'<path d="M12 3 2 21h20L12 3z"/><path d="M12 10v5M12 18h.01"/>', caution:'<path d="M12 3 2 21h20L12 3z"/><path d="M12 10v5M12 18h.01"/>',
+  advisory:'<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5h.01"/>', nominal:'<circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/>'};
+function topAlert(){
+  if(!twin || twin.unknown || !twin.forecast) return null;
+  const now = twin.history.at(-1), worst = [...twin.forecast].sort((a,b) => (b.alert - a.alert) || (a.readiness - b.readiness))[0];
+  const pend = last && last.changes ? last.changes.filter(c => c.status === 'pending').length : 0;
+  if(worst.alert) return {lvl:'warning', key:'w' + crew + worst.day, text:`${worst.critical_tasks[0]} ${dlow(worst.day)} (day ${worst.day}) falls on a ${worst.readiness}% readiness day`, act: pend ? `Review ${pend} suggested change${pend === 1 ? '' : 's'}` : ''};
+  if(now.level === 'high') return {lvl:'caution', key:'c' + crew + now.day, text:'High fatigue risk today', act: pend ? `Review ${pend} suggested change${pend === 1 ? '' : 's'}` : ''};
+  if(L && !L.online) return {lvl:'advisory', key:'a-link', text:'No link to Earth. Data is saved onboard and sent when the link returns', act:''};
+  if(pend) return {lvl:'advisory', key:'a' + crew + pend, text:`${pend} schedule change${pend === 1 ? '' : 's'} waiting for a decision`, act:'Review'};
+  return {lvl:'nominal', key:'n', text:'All crew readiness within normal range', act:''};
+}
+function drawAlert(){
+  const a = topAlert(), bar = $('alertbar'); if(!a){ bar.innerHTML = ''; return; }
+  const name = {warning:'Warning', caution:'Caution', advisory:'Advisory', nominal:'Nominal'}[a.lvl];
+  const isAck = acked.has(a.key) || a.lvl === 'nominal';
+  bar.className = 'alertbar ' + a.lvl + (isAck ? ' ack' : '');
+  bar.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true">${AICON[a.lvl]}</svg><b>${name}</b><span>Crew ${crew} · ${esc(a.text)}</span>
+    ${a.act ? `<button class="btn" type="button" id="alGo">${a.act}</button>` : ''}
+    ${a.lvl !== 'nominal' ? (isAck ? '<small>Acknowledged</small>' : '<button class="btn main" type="button" id="alAck">Acknowledge</button>') : ''}`;
+  if($('alAck')) $('alAck').onclick = () => { acked.add(a.key); drawAlert(); };
+  if($('alGo')) $('alGo').onclick = () => show(document.body.classList.contains('mc') ? 'decide' : 'nova', true);
+}
+
 // ---------- NOVA brief for the astronaut: built only from the model's numbers ----------
 function briefLines(){
   if(!twin || twin.unknown || !twin.forecast) return [];
   const L = [], sig = twin.now.signals, fc = twin.forecast;
   const worst = [...fc].sort((a,b) => (b.alert - a.alert) || (a.readiness - b.readiness))[0];
-  if(worst.alert) L.push(`${dstamp(worst.day)} is your hardest day. ${worst.critical_tasks[0]} falls on a ${worst.readiness}% readiness day`);
+  if(worst.alert) L.push(`Day ${worst.day} (${dlow(worst.day)}) is your hardest day. ${worst.critical_tasks[0]} falls on a ${worst.readiness}% readiness day`);
   else if(fc.every(f => f.level === 'high')) L.push('Your next 3 days look tiring');
   else if(fc.every(f => f.level === 'low')) L.push('Your next 3 days look good. You are fit for your tasks');
   else L.push(`Your lowest day is ${dstamp(worst.day)} at ${worst.readiness}% readiness`);
@@ -785,13 +856,68 @@ $('listen').onclick = () => {
   speechSynthesis.speak(u);
 };
 $('briefGo').onclick = e => { e.preventDefault(); $('v-nova').scrollIntoView({behavior:'smooth'}); };
-// voice answer: speech to text in the browser, then the same text path as typing
+// voice answer: speech to text in the browser, then the same text path as typing.
+// Experimental tone check: while the astronaut talks, the browser measures 4 numbers
+// (speed, pauses, pitch movement, loudness). No audio is kept or sent, only the numbers.
+let tone = null;
+function pitchHz(b, sr){
+  let e = 0; for(let i = 0; i < b.length; i++) e += b[i] * b[i];
+  if(e < 1e-4) return 0;
+  let best = 0, lag = 0;
+  for(let l = Math.floor(sr / 400); l <= Math.floor(sr / 70); l++){
+    let s = 0; for(let i = 0; i < b.length - l; i++) s += b[i] * b[i + l];
+    if(s > best){ best = s; lag = l; }
+  }
+  return lag && best / e > 0.3 ? sr / lag : 0;
+}
+async function startTone(){
+  try{
+    const stream = await navigator.mediaDevices.getUserMedia({audio:true});
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const an = ctx.createAnalyser(); an.fftSize = 2048; ctx.createMediaStreamSource(stream).connect(an);
+    const buf = new Float32Array(an.fftSize), frames = [];
+    const id = setInterval(() => { an.getFloatTimeDomainData(buf);
+      let s = 0; for(let i = 0; i < buf.length; i++) s += buf[i] * buf[i];
+      const db = 20 * Math.log10(Math.sqrt(s / buf.length) + 1e-9);
+      frames.push({db, f0: pitchHz(buf, ctx.sampleRate)}); }, 50);
+    tone = {stream, ctx, id, frames, t0: performance.now()};
+  }catch(e){ tone = null; }
+}
+function stopTone(words){
+  if(!tone) return null;
+  const t = tone; tone = null; clearInterval(t.id); t.stream.getTracks().forEach(k => k.stop()); t.ctx.close();
+  const secs = (performance.now() - t.t0) / 1000, fr = t.frames;
+  if(secs < 2 || fr.length < 20 || !words) return null;
+  const peak = Math.max(...fr.map(f => f.db)), floor = Math.max(-60, peak - 28);
+  const speech = fr.filter(f => f.db >= floor), voiced = speech.filter(f => f.f0 > 0);
+  if(voiced.length < 5) return null;
+  const st = voiced.map(f => 12 * Math.log2(f.f0 / 100)), m = st.reduce((a, b) => a + b, 0) / st.length;
+  return {speech_rate: Math.round(words / (secs / 60)), pause_ratio: +(1 - speech.length / fr.length).toFixed(3),
+    pitch_var: +Math.sqrt(st.reduce((a, b) => a + (b - m) ** 2, 0) / st.length).toFixed(3),
+    loudness_db: +(speech.reduce((a, f) => a + f.db, 0) / speech.length).toFixed(2)};
+}
+async function voiceNote(feat){
+  if(!feat) return;
+  try{
+    const r = await api('/voice', {crew, features: feat});
+    if(!r.ok) return;
+    const nums = `<div class="facts"><span>speed <b>${r.today.speech_rate} wpm</b></span><span>pauses <b>${Math.round(r.today.pause_ratio * 100)}%</b></span><span>pitch movement <b>${r.today.pitch_var}</b></span></div>`;
+    $('chat').insertAdjacentHTML('beforeend', `<div class="msg"><span class="av nova">N</span><div class="bub ${r.flag ? 'flag' : ''}"><div class="who">NOVA · voice check (experimental)</div>
+      ${r.flag ? `Your voice sounds more tired than your normal, so I sent a quiet note to Mission Control. Nothing changes in your score.<ul>${r.cues.map(c => `<li>${esc(c)}</li>`).join('')}</ul>`
+        : r.cues.length ? `One small change in your voice (${esc(r.cues[0].toLowerCase())}). That alone is not a concern.` : 'Your voice sounds like your normal.'}
+      ${nums}<div class="who" style="margin-top:6px">Compared with ${esc(r.normal.source)} · only numbers are kept, never audio</div></div></div>`);
+    $('chat').scrollTop = 1e6;
+    if(r.flag) loadLink();
+  }catch(e){}
+}
 (() => { const SR = window.SpeechRecognition || window.webkitSpeechRecognition; if(!SR) return;
   const b = $('micBtn'); b.hidden = false; let rec = null;
   b.onclick = () => { if(rec){ rec.stop(); return; }
-    rec = new SR(); rec.lang = 'en-US'; rec.interimResults = true;
+    rec = new SR(); rec.lang = 'en-US'; rec.interimResults = true; startTone();
     rec.onresult = e => { $('ans').value = [...e.results].map(r => r[0].transcript).join(' '); };
-    rec.onend = () => { b.classList.remove('on'); b.textContent = 'Speak'; rec = null; const t = $('ans').value.trim(); if(t){ $('ans').value = ''; answer(t); } };
+    rec.onend = () => { b.classList.remove('on'); b.textContent = 'Speak'; rec = null; const t = $('ans').value.trim();
+      const feat = stopTone(t.split(/\s+/).filter(Boolean).length);
+      if(t){ $('ans').value = ''; answer(t).then(() => voiceNote(feat)); } };
     rec.onerror = () => { $('ans').placeholder = 'Voice needs a microphone and internet in this browser. Type instead'; };
     b.classList.add('on'); b.textContent = 'Stop'; rec.start(); };
 })();
@@ -820,11 +946,11 @@ async function runForecast(){
   last = await api(`/forecast/${crew}?lang=en&use_claude=${$('useClaude').checked}`);
   whatIfPt = null;
   if(last.unknown || !last.changes){ $('sugg').innerHTML = `<p class="summary">${esc(last.message || '')}</p>`; $('novaSay').textContent = last.message || ''; drawCharts(); return; }
-  $('focusDay').textContent = 'Changes for ' + dstamp(last.focus_day); $('focusDay2').textContent = 'Changes for crew ' + crew + ' on ' + dstamp(last.focus_day);
+  $('focusDay').textContent = 'Changes for day ' + last.focus_day + ', ' + dlow(last.focus_day); $('focusDay2').textContent = 'Changes for crew ' + crew + ', ' + dlow(last.focus_day) + ' (day ' + last.focus_day + ')';
   $('wiDay').textContent = dstamp(last.focus_day);
   $('novaSay').textContent = last.summary;
   $('novaReview').textContent = pendText();
-  drawNovaList(); drawDays(); drawTasks(); drawBrief();
+  drawNovaList(); drawDays(); drawTasks(); drawBrief(); drawAlert();
   if(!last.changes.length){ $('sugg').innerHTML = $('sugg2').innerHTML = `<p class="summary">${esc(last.summary)}</p>`; $('wbtns').innerHTML = '<p class="empty">No changes needed</p>'; $('wList').innerHTML = ''; drawCharts(); return; }
   renderSugg();
   picked = new Set(last.changes.filter(c => c.status !== 'reject').map(c => c.id));
@@ -867,7 +993,7 @@ async function whatIf(){
   const r = await api('/whatif/' + crew, {day: last.focus_day, change_ids: ids});
   whatIfPt = {day: r.day, before: r.readiness_before, after: r.readiness_after};
   const d = r.readiness_after - r.readiness_before;
-  set(r.readiness_before + '%', r.readiness_after + '%', d > 0 ? `<span class="dot" style="margin-right:6px;vertical-align:0"></span>+${d} points on ${dstamp(r.day)}, model estimate` : 'No change on that day');
+  set(r.readiness_before + '%', r.readiness_after + '%', d > 0 ? `<span class="dot" style="margin-right:6px;vertical-align:0"></span>+${d} points ${dlow(r.day)}, model estimate` : 'No change on that day');
   drawCharts();
 }
 async function act(box, d){
@@ -879,7 +1005,11 @@ async function act(box, d){
   }
   let note = '';
   if(d === 'save'){ note = box.querySelector('.note').value.trim(); d = 'edit'; }
-  await api('/decision', {change_id:id, decision:d, note});
+  const st = box.querySelector('.state'), btns = box.querySelectorAll('button');
+  st.textContent = 'Sending'; btns.forEach(b => b.disabled = true);
+  try{ await api('/decision', {change_id:id, decision:d, note}); }
+  catch(e){ st.textContent = 'Not saved, try again'; btns.forEach(b => b.disabled = false); return; }
+  btns.forEach(b => b.disabled = false);
   box.classList.remove('pending','accept','reject','edit'); box.classList.add(d);
   box.querySelector('.state').textContent = STATE[d] + (note ? ': ' + note : '');
   box.querySelector('.note')?.remove(); box.querySelector('[data-d="save"]')?.remove();
@@ -891,13 +1021,14 @@ async function act(box, d){
 }
 
 // ---------- Earth link, outbox, Mission Control ----------
-const KIND = {decision:'Decision', hidden_fatigue:'Hidden fatigue note'};
+const KIND = {decision:'Decision', hidden_fatigue:'Hidden fatigue note', voice_fatigue:'Voice tone note'};
 async function loadLink(){
   L = await api('/link');
   document.querySelectorAll('#place button').forEach(b => b.classList.toggle('on', b.dataset.p === L.place));
   $('online').checked = L.online;
-  $('linkTxt').textContent = !L.online ? 'LINK LOST' : L.mars_mode ? 'MARS MODE · ' + L.delay_min + ' MIN' : 'CONNECTED · ' + L.place.toUpperCase();
-  $('linkDot').style.background = !L.online ? 'var(--bad)' : L.mars_mode ? 'var(--warn)' : 'var(--ok)';
+  $('linkTxt').textContent = !L.online ? 'Link to Earth lost' : L.mars_mode ? 'Mars mode · ' + L.delay_min + ' min delay' : 'Connected · ' + (PLACE[L.place] || L.place);
+  $('linkDot').style.background = !L.online ? 'var(--caut)' : L.mars_mode ? 'var(--adv)' : 'var(--ok)';
+  drawAlert();
   $('waiting').textContent = L.waiting;
   $('delay').textContent = L.delay_min >= 1 ? L.delay_min + ' min' : Math.round(L.delay_min * 60) + ' s';
   $('marsb').classList.toggle('on', L.mars_mode);
@@ -919,7 +1050,8 @@ async function loadLink(){
   });
 }
 const desc = i => i.kind === 'decision' ? `${i.data.by} ${i.data.decision} · ${i.data.task || i.data.change_id}${i.data.provisional ? ' (temporary)' : ''}`
-  : i.kind === 'hidden_fatigue' ? `crew ${i.data.crew} said "${i.data.text}"` : '';
+  : i.kind === 'hidden_fatigue' ? `crew ${i.data.crew} said "${i.data.text}"`
+  : i.kind === 'voice_fatigue' ? `crew ${i.data.crew} voice: ${(i.data.cues || []).join(', ').toLowerCase()} (experimental)` : '';
 document.querySelectorAll('#place button').forEach(b => b.onclick = async () => { await api('/link', {place: b.dataset.p}); await loadLink(); runForecast(); });
 $('online').onchange = async () => { await api('/link', {online: $('online').checked}); await loadLink(); runForecast(); };
 
@@ -950,7 +1082,7 @@ $('ftClose').onclick = () => { clearTimeout(ft && ft.timer); $('ft').classList.r
 async function select(c){
   crew = c;
   document.querySelectorAll('.cp').forEach(b => b.classList.toggle('sel', b.dataset.c === c));
-  $('mdTxt').textContent = 'MD ' + today + ' · Crew ' + crew;
+  $('mdTxt').textContent = 'Mission day ' + today + ' · Crew ' + crew;
   await Promise.all([loadTwin(), loadNova(), loadSched()]);
   runForecast();
 }

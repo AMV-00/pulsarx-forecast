@@ -1,0 +1,407 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FORECAST Mission Control</title>
+<style>
+:root{
+  --bg:#2f3134; --pane:#383a3e; --pane2:#414449; --line:rgba(255,255,255,.09); --line2:rgba(255,255,255,.16);
+  --t1:#e9eaec; --t2:#b3b6bb; --t3:#8a8e94; --sel:#4a5b70; --selln:#7fa8d6;
+  --ok:#5fbf7f; --adv:#6aa8ff; --caut:#f5c542; --bad:#ff5b57;
+  --cautbg:rgba(245,197,66,.16); --badbg:rgba(255,91,87,.16);
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+:root[data-theme="snow"]{
+  --bg:#e8e9eb; --pane:#f7f7f8; --pane2:#eceef0; --line:rgba(0,0,0,.09); --line2:rgba(0,0,0,.16);
+  --t1:#1d2024; --t2:#4d535a; --t3:#737a82; --sel:#d6e4f3; --selln:#3c78b8;
+  --ok:#2e8b4f; --adv:#2f6fd0; --caut:#a87800; --bad:#d23a36;
+  --cautbg:rgba(230,170,20,.16); --badbg:rgba(210,58,54,.12);
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--t1);font:13px/1.4 "Helvetica Neue",Arial,sans-serif;display:flex;flex-direction:column;min-height:100vh}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,a:focus-visible{outline:2px solid var(--selln);outline-offset:2px}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+
+/* status bar */
+.status{display:flex;align-items:center;gap:20px;padding:6px 14px;background:var(--pane);border-bottom:1px solid var(--line2);min-height:44px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px;margin-right:auto}
+.brand img{height:28px}
+.brand b{font-size:15px;letter-spacing:.06em}
+.brand span{color:var(--t3);font-size:12px}
+.ind{display:flex;align-items:center;gap:7px;color:var(--t2);font-size:12px;white-space:nowrap}
+.ind b{color:var(--t1);font-weight:500}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--t3);flex:none}
+.dot.ok{background:var(--ok)} .dot.caut{background:var(--caut)} .dot.bad{background:var(--bad)} .dot.adv{background:var(--adv)}
+.themebtn{background:var(--pane2);border:1px solid var(--line2);border-radius:6px;padding:4px 10px;font-size:12px;color:var(--t2)}
+
+/* alert bar (NASA-STD-3001: one top alert, stays until acknowledged) */
+.alert{display:flex;align-items:center;gap:12px;padding:8px 14px;border-bottom:1px solid var(--line2);background:var(--pane2);min-height:46px}
+.alert.warn{background:var(--badbg);border-bottom-color:var(--bad)}
+.alert.caut{background:var(--cautbg);border-bottom-color:var(--caut)}
+.alert .lvl{font-weight:600;min-width:74px}
+.alert.warn .lvl{color:var(--bad)} .alert.caut .lvl{color:var(--caut)} .alert.adv .lvl{color:var(--adv)} .alert.nom .lvl{color:var(--ok)}
+.alert .msg{flex:1}
+.alert .acked{color:var(--t3);font-size:12px}
+.btn{background:var(--pane);border:1px solid var(--line2);border-radius:6px;padding:7px 14px;min-height:36px}
+.btn:hover{border-color:var(--selln)}
+.btn.pri{background:var(--selln);border-color:var(--selln);color:#0e1620;font-weight:600}
+.btn:disabled{opacity:.5;cursor:default}
+
+/* main */
+.main{flex:1;display:grid;grid-template-columns:230px 1fr;min-height:0}
+.tree{background:var(--pane);border-right:1px solid var(--line2);padding:10px 0;overflow:auto}
+.tree h4{margin:12px 14px 6px;font-size:11px;color:var(--t3);font-weight:500;text-transform:uppercase;letter-spacing:.08em}
+.ti{display:flex;align-items:center;gap:9px;width:100%;background:none;border:0;border-left:3px solid transparent;padding:8px 14px;text-align:left;color:var(--t2);min-height:36px}
+.ti:hover{background:var(--pane2);color:var(--t1)}
+.ti.on{background:var(--sel);border-left-color:var(--selln);color:var(--t1)}
+.ti .r{margin-left:auto;font-family:var(--mono);font-size:12px}
+.ti svg{width:15px;height:15px;flex:none;stroke:currentColor;fill:none;stroke-width:1.6}
+
+.view{display:flex;flex-direction:column;min-width:0;overflow:auto}
+.objhead{display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid var(--line);background:var(--pane2);flex-wrap:wrap}
+.objhead h1{font-size:16px;font-weight:500;margin:0}
+.crumb{color:var(--t3);font-size:12px}
+.tag{font-size:11px;color:var(--t2);border:1px solid var(--line2);border-radius:4px;padding:2px 7px;font-family:var(--mono)}
+.objhead .tag:first-of-type{margin-left:auto}
+
+/* time conductor */
+.tc{display:flex;align-items:center;gap:14px;padding:8px 16px;border-bottom:1px solid var(--line);font-size:12px;color:var(--t2);flex-wrap:wrap}
+.tc b{color:var(--t1);font-weight:500}
+.tcbar{flex:1;min-width:200px;height:20px;position:relative;background:var(--pane);border:1px solid var(--line);border-radius:4px}
+.tcbar .past{position:absolute;top:0;bottom:0;left:0;background:var(--pane2)}
+.tcbar .now{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--selln)}
+.tcbar .lbl{position:absolute;top:2px;font-family:var(--mono);font-size:10px;color:var(--t3);transform:translateX(-50%)}
+
+/* display layout */
+.grid{display:grid;align-items:start;grid-template-columns:repeat(12,1fr);gap:10px;padding:12px 16px 24px}
+.pn{background:var(--pane);border:1px solid var(--line);border-radius:6px;min-width:0;display:flex;flex-direction:column;scroll-margin-top:12px}
+.pn>header{display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--line);font-size:12px;color:var(--t2)}
+.pn>header b{color:var(--t1);font-weight:500;font-size:13px}
+.pn>header .tag{margin-left:auto}
+.pn .bd{padding:10px 12px}
+.c12{grid-column:span 12} .c8{grid-column:span 8} .c7{grid-column:span 7} .c5{grid-column:span 5} .c4{grid-column:span 4} .c6{grid-column:span 6}
+
+table{width:100%;border-collapse:collapse}
+th{font-weight:500;color:var(--t3);font-size:11px;text-align:left;padding:6px 8px;border-bottom:1px solid var(--line2)}
+td{padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:middle}
+td.n,th.n{text-align:right;white-space:nowrap;font-family:var(--mono);font-variant-numeric:tabular-nums}
+tr.click{cursor:pointer} tr.click:hover td{background:var(--pane2)}
+tr.sel td{background:var(--sel)}
+.lim-caut{background:var(--cautbg);color:var(--caut)}
+.lim-bad{background:var(--badbg);color:var(--bad);font-weight:600}
+.st{display:inline-flex;align-items:center;gap:6px;font-size:12px}
+
+.plot svg{width:100%;height:auto;display:block}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:11px;color:var(--t3);padding:2px 12px 10px}
+.legend i{display:inline-block;width:18px;height:0;border-top:2px solid var(--t2);vertical-align:middle;margin-right:5px}
+.legend i.f{border-top-style:dashed}
+.legend i.l{border-top-color:var(--caut);border-top-style:dotted}
+
+.tl{display:grid;grid-template-columns:120px 1fr;font-size:12px}
+.tl .row{display:contents}
+.tl .rl{padding:8px 8px 8px 0;border-bottom:1px solid var(--line);color:var(--t2)}
+.tl .rl b{color:var(--t1);font-weight:500;display:block}
+.tl .lane{position:relative;border-bottom:1px solid var(--line);min-height:46px}
+.tl .ax{position:relative;height:18px;border-bottom:1px solid var(--line2)}
+.tl .ax span{position:absolute;transform:translateX(-50%);font-family:var(--mono);font-size:10px;color:var(--t3)}
+.bar{position:absolute;top:8px;height:30px;border-radius:4px;padding:3px 6px;font-size:11px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;background:var(--pane2);border:1px solid var(--line2);color:var(--t1)}
+.bar.heavy{background:rgba(127,168,214,.22);border-color:rgba(127,168,214,.5)}
+.bar.rest{background:repeating-linear-gradient(135deg,transparent 0 5px,var(--line) 5px 7px);color:var(--t2)}
+.bar.crit{border:2px solid var(--bad)}
+.bar.crit.alert{background:var(--badbg)}
+
+.chg{border:1px solid var(--line);border-radius:6px;padding:10px;margin-bottom:8px}
+.chg .t{font-weight:500}
+.chg .m{color:var(--t2);font-size:12px;margin:3px 0 8px}
+.chg .acts{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.chg .acts .btn{min-height:40px;padding:8px 16px}
+.chg .res{font-size:12px;color:var(--t2)}
+.empty{color:var(--t3);font-size:12px;padding:6px 0}
+.foot{color:var(--t3);font-size:11px;padding:0 16px 16px}
+
+@media (max-width:1000px){.c8,.c7,.c5,.c4,.c6{grid-column:span 12}.main{grid-template-columns:1fr}.tree{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="status" role="banner">
+  <div class="brand"><img src="../assets/pulsarx-logo.png" alt="PulsarX"><b>FORECAST</b><span>Mission Control</span></div>
+  <div class="ind" id="iLink"><span class="dot"></span><span>Earth link</span> <b>…</b></div>
+  <div class="ind" id="iSync"><span>Waiting to sync</span> <b class="mono">…</b></div>
+  <div class="ind" id="iAlerts"><span class="dot"></span><span>Alerts</span> <b class="mono">…</b></div>
+  <div class="ind"><span>Mission day</span> <b class="mono" id="iDay">…</b></div>
+  <div class="ind"><span>UTC</span> <b class="mono" id="iClock">--:--:--</b></div>
+  <button class="themebtn" id="theme" title="Switch light or dark theme">Light theme</button>
+</div>
+
+<div class="alert nom" id="alert" role="status" aria-live="polite">
+  <span class="lvl" id="aLvl">Nominal</span><span class="msg" id="aMsg">Loading…</span>
+  <span class="acked" id="aAck" hidden>Acknowledged</span>
+  <button class="btn" id="aGo" hidden>Review changes</button>
+  <button class="btn pri" id="aAckBtn" hidden>Acknowledge</button>
+</div>
+
+<div class="main">
+  <nav class="tree" aria-label="Objects">
+    <h4>Crew</h4>
+    <div id="crewTree"></div>
+    <h4>Views</h4>
+    <button class="ti" data-go="pCrew"><svg viewBox="0 0 16 16"><rect x="2" y="3" width="12" height="10" rx="1"/><path d="M2 7h12M6 7v6"/></svg>Crew status</button>
+    <button class="ti" data-go="pPlot"><svg viewBox="0 0 16 16"><path d="M2 13l4-5 3 3 5-7"/></svg>Readiness plot</button>
+    <button class="ti" data-go="pLad"><svg viewBox="0 0 16 16"><path d="M3 4h10M3 8h10M3 12h10"/></svg>Ring signals</button>
+    <button class="ti" data-go="pTl"><svg viewBox="0 0 16 16"><path d="M2 4h6M5 8h8M3 12h5"/></svg>Schedule</button>
+    <button class="ti" data-go="pAp"><svg viewBox="0 0 16 16"><path d="M3 8l3 3 7-7"/></svg>Approvals</button>
+    <button class="ti" data-go="pLog"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M2 8h12M8 2c2 2 2 10 0 12M8 2c-2 2-2 10 0 12"/></svg>Earth link log</button>
+    <h4>Other screens</h4>
+    <a class="ti" href="../dashboard/" style="text-decoration:none"><svg viewBox="0 0 16 16"><circle cx="8" cy="6" r="3"/><path d="M3 14c1-3 9-3 10 0"/></svg>Astronaut screen</a>
+  </nav>
+
+  <main class="view">
+    <div class="objhead">
+      <span class="crumb">Mission / Crew /</span><h1 id="title">Crew B</h1>
+      <span class="tag" id="dataTag">Real + simulated</span>
+      <span class="tag" id="confTag">Confidence …</span>
+    </div>
+
+    <div class="tc" aria-label="Time range">
+      <span>Fixed span</span><b class="mono" id="tcRange">Day 8 → Day 17</b>
+      <div class="tcbar" id="tcBar"></div>
+      <span>Now</span><b class="mono" id="tcNow">Day 14</b>
+    </div>
+
+    <div class="grid">
+      <section class="pn c12" id="pCrew">
+        <header><b>Crew status</b><span>lowest readiness in the next 3 days</span><span class="tag">Real + simulated</span></header>
+        <div class="bd"><table><thead><tr><th>Crew</th><th class="n">Today</th><th class="n">Lowest, next 3 days</th><th>On</th><th>Critical tasks</th><th>Risk</th><th class="n">Waiting approval</th></tr></thead><tbody id="crewRows"></tbody></table></div>
+      </section>
+
+      <section class="pn c7 plot" id="pPlot">
+        <header><b>Readiness</b><span>past 7 days and 3-day forecast</span><span class="tag">0–100%</span></header>
+        <div id="plot"></div>
+        <div class="legend"><span><i></i>Measured</span><span><i class="f"></i>Forecast</span><span><i class="l"></i>High risk limit</span><span>◆ Critical task</span></div>
+      </section>
+
+      <section class="pn c5" id="pLad">
+        <header><b>Ring signals today</b><span>vs this astronaut's normal</span></header>
+        <div class="bd"><table><thead><tr><th>Signal</th><th class="n">Now</th><th class="n">Normal</th><th>Status</th></tr></thead><tbody id="lad"></tbody></table></div>
+      </section>
+
+      <section class="pn c8" id="pTl">
+        <header><b>Schedule</b><span>next 3 days, 07:00 to 19:00</span><span class="tag">Simulated</span></header>
+        <div class="bd"><div class="tl" id="tl"></div></div>
+      </section>
+
+      <section class="pn c4" id="pAp">
+        <header><b>Approvals</b><span id="apSub">suggested changes</span></header>
+        <div class="bd" id="ap"></div>
+      </section>
+
+      <section class="pn c12" id="pLog">
+        <header><b>Earth link log</b><span>decisions made onboard and synced to Earth</span></header>
+        <div class="bd"><table><thead><tr><th>Made (UTC)</th><th>Synced (UTC)</th><th>By</th><th>Decision</th><th>Task</th><th>Status</th></tr></thead><tbody id="log"></tbody></table></div>
+      </section>
+    </div>
+    <div class="foot">NASA Space Apps 2026 · Create Health Monitoring Software for Astronauts on Space Missions · Layout follows NASA Open MCT conventions and NASA-STD-3001 alert colours. Schedule and HRV/skin temperature are simulated.</div>
+  </main>
+</div>
+
+<script>
+const API = location.origin;
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+async function api(p, body){
+  const r = await fetch(API + p, body ? {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)} : {});
+  if(!r.ok) throw new Error(r.status);
+  return r.json();
+}
+let crew = (location.hash.match(/crew=([ABC])/) || [])[1] || 'B';
+let S = {}; const acked = new Set();
+const PLACE = {iss:'ISS', moon:'Moon', mars:'Mars'};
+const LV = {low:'Low', medium:'Medium', high:'High'};
+const lvCls = (l, alert) => alert ? 'lim-bad' : l === 'high' ? 'lim-caut' : '';
+const dname = d => d === S.today ? 'Today' : d === S.today + 1 ? 'Tomorrow' : d < S.today ? 'Day ' + d : 'Day ' + d + ' (in ' + (d - S.today) + ' days)';
+const SIG = [
+  ['sleep_hours','Sleep','h',1,'real'], ['hours_awake','Hours awake','h',1,'real'], ['resting_hr','Resting heart rate','bpm',0,'real'],
+  ['hrv_ms','HRV','ms',0,'sim'], ['skin_temp_c','Skin temperature','°C',1,'sim'], ['active_minutes','Active minutes','min',0,'real'],
+  ['sleep_midpoint','Sleep timing (midpoint)','h',1,'sim'], ['focus_rt_ms','Focus test reaction','ms',0,'sim']];
+const zword = z => Math.abs(z) < 1 ? 'Normal' : (Math.abs(z) >= 2 ? 'Well ' : '') + (z > 0 ? 'above' : 'below') + ' normal';
+
+// theme (per-viewer convenience)
+function setTheme(t){ document.documentElement.dataset.theme = t; $('theme').textContent = t === 'snow' ? 'Dark theme' : 'Light theme'; try{localStorage.setItem('mcTheme', t)}catch(e){} }
+try{ setTheme(localStorage.getItem('mcTheme') || 'espresso') }catch(e){ setTheme('espresso') }
+$('theme').onclick = () => setTheme(document.documentElement.dataset.theme === 'snow' ? 'espresso' : 'snow');
+
+setInterval(() => { $('iClock').textContent = new Date().toISOString().slice(11,19) }, 1000);
+
+document.querySelectorAll('[data-go]').forEach(b => b.onclick = () => {
+  document.querySelectorAll('[data-go]').forEach(x => x.classList.toggle('on', x === b));
+  $(b.dataset.go).scrollIntoView({behavior:'smooth', block:'start'});
+});
+
+async function load(){
+  const [sum, link, inbox] = await Promise.all([api('/mission-control/summary'), api('/link'), api('/mission-control/inbox')]);
+  const twins = {}; await Promise.all(['A','B','C'].map(async c => twins[c] = await api('/twin/' + c)));
+  S.today = sum.today; S.sum = sum; S.link = link; S.inbox = inbox; S.twins = twins;
+  S.fc = await api('/forecast/' + crew + '?use_claude=false');
+  const days = [S.fc.forecast.days.map(d => d.day)].flat();
+  S.sched = {}; await Promise.all(days.map(async d => S.sched[d] = (await api('/schedule/' + crew + '/' + d)).tasks));
+  draw();
+}
+
+function draw(){
+  const t = S.twins[crew], fc = S.fc.forecast, sum = S.sum;
+  $('title').textContent = 'Crew ' + crew;
+  $('dataTag').textContent = sum.label;
+  $('confTag').textContent = 'Confidence ' + fc.confidence;
+  $('iDay').textContent = S.today;
+
+  // status bar
+  const L = S.link;
+  $('iLink').innerHTML = `<span class="dot ${L.online ? (L.mars_mode ? 'adv' : 'ok') : 'caut'}"></span><span>Earth link</span> <b>${L.online ? 'Connected' : 'Lost'} · ${PLACE[L.place] || L.place}${L.delay_min >= 1 ? ' · ' + L.delay_min + ' min delay' : ''}</b>`;
+  $('iSync').querySelector('b').textContent = L.waiting;
+  const nAl = sum.crew.filter(c => c.alert).length + sum.crew.filter(c => !c.alert && c.level === 'high').length;
+  $('iAlerts').innerHTML = `<span class="dot ${sum.crew.some(c => c.alert) ? 'bad' : nAl ? 'caut' : 'ok'}"></span><span>Alerts</span> <b class="mono">${nAl}</b>`;
+
+  // tree
+  $('crewTree').innerHTML = sum.crew.map(c => {
+    const today = S.twins[c.crew].history.at(-1).readiness;
+    const col = c.alert ? 'bad' : c.level === 'high' ? 'caut' : 'ok';
+    return `<button class="ti ${c.crew === crew ? 'on' : ''}" data-crew="${c.crew}"><span class="dot ${col}"></span>Crew ${c.crew}<span class="r">${today}%</span></button>`;
+  }).join('');
+  $('crewTree').querySelectorAll('[data-crew]').forEach(b => b.onclick = () => pick(b.dataset.crew));
+
+  // time conductor
+  const first = t.history[0].day, last = fc.days.at(-1).day, span = last - first;
+  $('tcRange').textContent = `Day ${first} → Day ${last}`; $('tcNow').textContent = 'Day ' + S.today;
+  const pct = d => (d - first) / span * 100;
+  $('tcBar').innerHTML = `<div class="past" style="width:${pct(S.today)}%"></div><div class="now" style="left:${pct(S.today)}%"></div>` +
+    [first, last].map(d => `<span class="lbl" style="left:${Math.min(96, Math.max(4, pct(d)))}%">${d}</span>`).join('');
+
+  // crew status table (Open MCT LAD style with limit colouring)
+  $('crewRows').innerHTML = sum.crew.map(c => {
+    const today = S.twins[c.crew].history.at(-1);
+    const st = c.alert ? '<span class="st" style="color:var(--bad)">▲ Warning</span>' : c.level === 'high' ? '<span class="st" style="color:var(--caut)">▲ Caution</span>' : '<span class="st" style="color:var(--ok)">● Nominal</span>';
+    return `<tr class="click ${c.crew === crew ? 'sel' : ''}" data-crew="${c.crew}"><td>Crew ${c.crew}</td>
+      <td class="n ${lvCls(today.level)}">${today.readiness}%</td><td class="n ${lvCls(c.level, c.alert)}">${c.lowest_readiness}%</td>
+      <td>${dname(c.on_day)}</td><td>${esc(c.critical_tasks.join(', ') || '—')}</td><td>${st} <span style="color:var(--t3)">· ${LV[c.level]} risk</span></td><td class="n">${c.pending_changes.length}</td></tr>`;
+  }).join('');
+  $('crewRows').querySelectorAll('[data-crew]').forEach(r => r.onclick = () => pick(r.dataset.crew));
+
+  drawPlot(t, fc); drawLad(t); drawTl(fc); drawAp(); drawLog(); drawAlert();
+}
+
+function drawPlot(t, fc){
+  const W = 760, H = 250, l = 44, r = 16, top = 14, b = 30;
+  const pts = t.history.map(h => ({d:h.day, v:h.readiness, lv:h.level}));
+  const fpts = fc.days.map(d => ({d:d.day, v:d.readiness, lv:d.level, crit:d.critical_tasks, al:d.alert}));
+  const d0 = pts[0].d, d1 = fpts.at(-1).d;
+  const X = d => l + (d - d0) / (d1 - d0) * (W - l - r), Y = v => top + (100 - v) / 100 * (H - top - b);
+  const css = getComputedStyle(document.documentElement), c = n => css.getPropertyValue(n).trim();
+  const lvc = (lv, al) => al ? c('--bad') : lv === 'high' ? c('--caut') : lv === 'medium' ? c('--adv') : c('--ok');
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Readiness plot">`;
+  [0,25,50,75,100].forEach(v => s += `<line x1="${l}" x2="${W-r}" y1="${Y(v)}" y2="${Y(v)}" stroke="${c('--line')}"/><text x="${l-8}" y="${Y(v)+4}" text-anchor="end" font-size="10" fill="${c('--t3')}" font-family="monospace">${v}</text>`);
+  for(let d = d0; d <= d1; d++) s += `<text x="${X(d)}" y="${H-10}" text-anchor="middle" font-size="10" fill="${d === S.today ? c('--t1') : c('--t3')}" font-family="monospace">${d === S.today ? 'Today' : d}</text>`;
+  // high-risk limit: readiness at or below 50% is "high" risk (score 7+ of 14)
+  s += `<line x1="${l}" x2="${W-r}" y1="${Y(53.5)}" y2="${Y(53.5)}" stroke="${c('--caut')}" stroke-dasharray="2 4" stroke-width="1.5"/><text x="${W-r}" y="${Y(53.5)-5}" text-anchor="end" font-size="10" fill="${c('--caut')}">High risk below this line</text>`;
+  s += `<line x1="${X(S.today)}" x2="${X(S.today)}" y1="${top}" y2="${H-b}" stroke="${c('--selln')}" stroke-width="1.5"/>`;
+  s += `<polyline fill="none" stroke="${c('--t2')}" stroke-width="2" points="${pts.map(p => X(p.d)+','+Y(p.v)).join(' ')}"/>`;
+  s += `<polyline fill="none" stroke="${c('--t2')}" stroke-width="2" stroke-dasharray="6 5" points="${[pts.at(-1), ...fpts].map(p => X(p.d)+','+Y(p.v)).join(' ')}"/>`;
+  [...pts, ...fpts].forEach(p => s += `<circle cx="${X(p.d)}" cy="${Y(p.v)}" r="4.5" fill="${lvc(p.lv, p.al)}" stroke="${c('--pane')}" stroke-width="1.5"><title>${dname(p.d)}: ${p.v}%</title></circle>`);
+  fpts.filter(p => p.crit.length).forEach(p => {
+    const x = X(p.d), y = Y(p.v) + 22, col = p.al ? c('--bad') : c('--t2');
+    s += `<path d="M${x} ${y-6}L${x+6} ${y}L${x} ${y+6}L${x-6} ${y}Z" fill="${col}"/><text x="${x}" y="${y+20}" text-anchor="middle" font-size="10" fill="${col}">${esc(p.crit[0])}</text>`;
+  });
+  $('plot').innerHTML = s + '</svg>';
+}
+
+function drawLad(t){
+  $('lad').innerHTML = SIG.map(([k, name, u, dp, src]) => {
+    const s = t.now.signals[k]; if(!s) return '';
+    const a = Math.abs(s.z), cls = a >= 2 ? 'lim-caut' : '';
+    return `<tr><td>${name} <span class="tag" style="font-size:10px;padding:0 4px">${src}</span></td><td class="n ${cls}">${(+s.value).toFixed(dp)} ${u}</td><td class="n" style="color:var(--t3)">${(+s.normal).toFixed(dp)}</td><td style="color:${a >= 2 ? 'var(--caut)' : a >= 1 ? 'var(--adv)' : 'var(--ok)'}">${zword(s.z)}</td></tr>`;
+  }).join('');
+}
+
+function drawTl(fc){
+  const h0 = 7, h1 = 19, P = hm => { const [h, m] = hm.split(':').map(Number); return (h + m/60 - h0) / (h1 - h0) * 100; };
+  let s = `<div></div><div class="ax">${[7,9,11,13,15,17,19].map(h => `<span style="left:${(h-h0)/(h1-h0)*100}%">${String(h).padStart(2,'0')}</span>`).join('')}</div>`;
+  fc.days.forEach(d => {
+    const col = d.alert ? 'var(--bad)' : d.level === 'high' ? 'var(--caut)' : 'var(--t2)';
+    s += `<div class="rl"><b>${dname(d.day).replace(/ \(.*/, '')}</b><span style="color:${col}" class="mono">${d.readiness}% ready</span></div><div class="lane">` +
+      (S.sched[d.day] || []).map(k => {
+        const x = P(k.start), w = k.minutes / 60 / (h1 - h0) * 100;
+        return `<div class="bar ${k.load} ${k.critical ? 'crit' : ''} ${k.critical && d.alert ? 'alert' : ''}" style="left:${x}%;width:${w}%" title="${esc(k.name)} · ${k.start} · ${k.minutes} min">${k.critical ? '! ' : ''}${esc(k.name)}</div>`;
+      }).join('') + '</div>';
+  });
+  $('tl').innerHTML = s;
+}
+
+const TYPE = c => c.type === 'reassign' ? `Give to crew ${c.to_crew}` : c.type === 'postpone' ? `Postpone to ${c.to}` : c.type === 'longer_rest' ? `Rest +${c.extra_minutes} min` : c.type;
+function drawAp(){
+  const ch = S.fc.changes || [], conf = (S.inbox.to_confirm || []).filter(c => c.id.startsWith(crew + '-'));
+  $('apSub').textContent = ch.length ? `${ch.filter(c => c.status === 'pending' || !c.status).length} waiting · ${dname(S.fc.focus_day).toLowerCase()}` : 'nothing to approve';
+  let s = '';
+  if(conf.length) s += `<div class="m" style="color:var(--t2);font-size:12px;margin-bottom:6px">Accepted onboard, needs Earth confirmation</div>` + conf.map(c => `
+    <div class="chg"><div class="t">${esc(c.task)} · ${TYPE(c)}</div><div class="m">Temporary decision by the commander</div>
+    <div class="acts"><button class="btn pri" data-cf="${c.id}" data-ok="1">Confirm</button><button class="btn" data-cf="${c.id}" data-ok="0">Overrule</button></div></div>`).join('');
+  s += ch.filter(c => !conf.some(x => x.id === c.id)).map(c => {
+    const done = c.status && c.status !== 'pending';
+    return `<div class="chg" data-id="${c.id}"><div class="t">${esc(c.task)} · ${TYPE(c)}</div>
+    <div class="m mono">Readiness ${c.effect.readiness_before}% → ${c.effect.readiness_after}%</div>
+    <div class="acts">${done ? `<span class="res">${c.status === 'accept' ? '✓ Accepted' : c.status === 'reject' ? '✕ Rejected' : 'Edited'}${c.provisional ? ' · temporary until Earth confirms' : ''}</span>`
+      : `<button class="btn pri" data-d="accept">Accept</button><button class="btn" data-d="reject">Reject</button><span class="res"></span>`}</div></div>`;
+  }).join('');
+  $('ap').innerHTML = s || '<div class="empty">No changes suggested for this crew member.</div>';
+  $('ap').querySelectorAll('[data-d]').forEach(b => b.onclick = async () => {
+    const box = b.closest('.chg'), res = box.querySelector('.res');
+    box.querySelectorAll('button').forEach(x => x.disabled = true); res.textContent = 'Sending';
+    try{ await api('/decision', {change_id: box.dataset.id, decision: b.dataset.d, note: ''}); await load(); }
+    catch(e){ res.textContent = 'Not saved, try again'; box.querySelectorAll('button').forEach(x => x.disabled = false); }
+  });
+  $('ap').querySelectorAll('[data-cf]').forEach(b => b.onclick = async () => {
+    b.closest('.chg').querySelectorAll('button').forEach(x => x.disabled = true);
+    try{ await api('/mission-control/confirm', {change_id: b.dataset.cf, confirm: b.dataset.ok === '1', note: ''}); await load(); }
+    catch(e){ b.closest('.chg').querySelectorAll('button').forEach(x => x.disabled = false); }
+  });
+}
+
+function drawLog(){
+  const rows = (S.inbox.received || []).slice().reverse().slice(0, 8);
+  const tm = s => s ? s.slice(11, 16) : '—';
+  $('log').innerHTML = rows.length ? rows.map(i => {
+    const d = i.data || {};
+    return `<tr><td class="mono">${tm(i.made)}</td><td class="mono">${tm(i.synced)}</td><td>${esc(d.by || '—')}</td><td>${esc(d.decision || i.kind)}</td><td>${esc(d.task || d.change_id || '')}</td><td>${d.provisional ? '<span style="color:var(--adv)">Temporary, needs Earth</span>' : 'Final'}</td></tr>`;
+  }).join('') : '<tr><td colspan="6" class="empty">No decisions synced yet.</td></tr>';
+}
+
+// one top alert, NASA levels: Warning > Caution > Advisory > Nominal
+function drawAlert(){
+  const sum = S.sum, w = sum.crew.find(c => c.alert), cHigh = sum.crew.find(c => c.level === 'high');
+  let lv = 'nom', word = 'Nominal', msg = 'All crew within normal range', key = 'nom';
+  if(w){ lv = 'warn'; word = 'Warning'; key = 'w' + w.crew + w.on_day;
+    const fd = S.twins[w.crew].forecast.find(d => d.day === w.on_day);
+    msg = `Crew ${w.crew} · ${w.critical_tasks[0]} ${dname(w.on_day).toLowerCase().replace('day ', 'on day ')} falls on a ${fd ? fd.readiness : w.lowest_readiness}% readiness day`; }
+  else if(cHigh){ lv = 'caut'; word = 'Caution'; key = 'c' + cHigh.crew; msg = `Crew ${cHigh.crew} · high fatigue risk in the next 3 days`; }
+  else if(!S.link.online){ lv = 'adv'; word = 'Advisory'; key = 'link'; msg = 'Link to Earth lost · decisions are queued onboard'; }
+  $('alert').className = 'alert ' + lv; $('aLvl').textContent = word; $('aMsg').textContent = msg;
+  const isAck = acked.has(key), needs = lv !== 'nom';
+  $('aAck').hidden = !isAck; $('aAckBtn').hidden = !needs || isAck;
+  const pend = w ? w.pending_changes.length : 0;
+  $('aGo').hidden = !w; $('aGo').textContent = pend ? `Review ${pend} waiting changes` : 'Review changes';
+  $('aAckBtn').onclick = () => { acked.add(key); drawAlert(); };
+  $('aGo').onclick = () => { if(w && w.crew !== crew) pick(w.crew, 'pAp'); else $('pAp').scrollIntoView({behavior:'smooth'}); };
+}
+
+async function pick(c, go){
+  crew = c; history.replaceState(null, '', '#crew=' + c);
+  await load(); if(go) $(go).scrollIntoView({behavior:'smooth'});
+}
+load().catch(e => { $('aMsg').textContent = 'Cannot reach the FORECAST server. Start it, then reload.'; });
+setInterval(() => load().catch(() => {}), 30000);
+</script>
+</body>
+</html>

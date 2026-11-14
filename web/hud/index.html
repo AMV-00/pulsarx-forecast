@@ -1,0 +1,1208 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Forecast Overview</title>
+<style>
+:root{
+  color-scheme:dark;
+  --bg:#02060d; --ink:#e8f4ff; --ink2:#a9c3d8; --ink3:#7d97ad;
+  --cyan:#3fd2ff; --cyan2:#20a8e6; --line:rgba(96,200,255,.30);
+  --red:#ff4f61; --amber:#ffae42; --green:#45e3a6;
+  --glass:linear-gradient(180deg,rgba(11,29,50,.74),rgba(5,15,29,.66));
+  --font:"Segoe UI",Inter,system-ui,-apple-system,Roboto,"Helvetica Neue",Arial,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:14px;overflow:hidden;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;cursor:pointer}
+
+/* ---------- background ---------- */
+#bg{position:fixed;inset:0;width:100%;height:100%;z-index:0;display:block}
+.fallback #bg{background:
+  radial-gradient(ellipse 220% 60% at 50% 128%,#0a2440 0 46%,#2a8fd8 46.3%,rgba(40,140,230,.25) 47.5%,transparent 56%),
+  radial-gradient(ellipse at 50% 0,#06121f,#02060d 70%)}
+.orbit{position:fixed;inset:0;width:100%;height:100%;z-index:1;pointer-events:none}
+.orbit path{fill:none;stroke:rgba(150,220,255,.55);stroke-width:1;vector-effect:non-scaling-stroke}
+.orbit .glow{stroke:rgba(80,190,255,.18);stroke-width:4}
+#iss{position:fixed;left:0;top:0;z-index:2;display:flex;gap:10px;align-items:flex-start;pointer-events:none;will-change:transform;transform:translate(14vw,62vh)}
+#iss .ic{width:46px;height:30px;will-change:transform}
+#iss svg{width:46px;height:30px;filter:drop-shadow(0 0 6px rgba(120,210,255,.8))}
+#iss .ic::after{content:"";position:absolute;width:6px;height:6px;margin:12px 0 0 20px;border-radius:50%;background:#fff;box-shadow:0 0 10px #8fe6ff,0 0 22px #3fd2ff;animation:pulse 1.6s ease-in-out infinite}
+#iss .t{font-size:12px;line-height:1.45;color:#cfe6f7;text-shadow:0 0 8px rgba(0,0,0,.9)}
+#iss b{font-weight:600;letter-spacing:.06em;color:#fff}
+
+/* ---------- header ---------- */
+header{position:fixed;top:0;left:0;right:0;height:56px;z-index:20;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:0 28px;
+  background:linear-gradient(180deg,rgba(3,9,18,.92),rgba(3,9,18,.55));border-bottom:1px solid rgba(90,190,255,.14)}
+.brand{display:flex;align-items:center;gap:14px}
+.brand img{height:42px;width:auto;display:block;filter:drop-shadow(0 0 10px rgba(70,170,255,.35))}
+.brand span{font-size:20px;font-weight:300;letter-spacing:.42em;color:#f2f8ff}
+.seg{display:flex;padding:3px;border-radius:9px;background:rgba(6,18,34,.75);border:1px solid rgba(90,190,255,.22)}
+.seg a{padding:6px 16px;border-radius:6px;font-size:13px;color:var(--ink2);transition:color .2s,background .2s}
+.seg a:hover{color:#fff}
+.seg a.on{color:#fff;background:linear-gradient(180deg,rgba(40,140,210,.32),rgba(20,80,140,.25));box-shadow:inset 0 0 0 1px rgba(90,210,255,.75),0 0 14px rgba(60,190,255,.35)}
+.stat{justify-self:end;display:flex;align-items:center;gap:10px;font-size:13px;color:var(--ink2);white-space:nowrap}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:pulse 2.4s ease-in-out infinite}
+.dot.off{background:var(--amber);box-shadow:0 0 8px var(--amber)}
+.stat .bar{width:1px;height:16px;background:rgba(120,190,240,.25);margin:0 6px}
+#clock{font-variant-numeric:tabular-nums;color:#d6e8f6;letter-spacing:.04em}
+
+/* ---------- warning strip ---------- */
+.strip{position:fixed;top:56px;left:0;right:0;height:30px;z-index:19;display:flex;align-items:center;justify-content:center;gap:10px;font-size:13px;
+  background:linear-gradient(90deg,transparent,rgba(120,14,28,.55) 18%,rgba(140,18,32,.62) 50%,rgba(120,14,28,.55) 82%,transparent);
+  border-top:1px solid rgba(255,80,96,.35);border-bottom:1px solid rgba(255,80,96,.35);color:#ffd9dd;transition:opacity .4s}
+.strip .w{color:#ff6b7b;font-weight:700;letter-spacing:.06em}
+.strip .w svg{vertical-align:-2px;margin-right:6px}
+.strip button{background:none;border:0;color:#fff;font-weight:600;text-decoration:underline;text-underline-offset:3px}
+.strip.ack{opacity:.55}
+.strip.ack button{text-decoration:none;cursor:default}
+.strip.calm{background:linear-gradient(90deg,transparent,rgba(16,70,100,.45) 30%,rgba(16,70,100,.45) 70%,transparent);border-color:rgba(90,200,255,.2);color:#bfe3f5}
+.strip.calm .w{color:var(--green)}
+
+/* ---------- stage ---------- */
+.stage{position:fixed;top:86px;left:0;right:0;bottom:0;z-index:5}
+.panel{position:absolute;background:var(--glass);border:1px solid var(--line);border-radius:10px;
+  box-shadow:inset 0 0 28px rgba(60,170,255,.07),inset 0 1px 0 rgba(160,230,255,.12),0 14px 44px rgba(0,0,0,.5),0 0 22px rgba(40,170,255,.08);
+  -webkit-backdrop-filter:blur(10px) saturate(1.2);backdrop-filter:blur(10px) saturate(1.2)}
+.panel::before{content:"";position:absolute;inset:-1px;border-radius:inherit;pointer-events:none;
+  background:linear-gradient(135deg,rgba(120,220,255,.55),transparent 22%,transparent 78%,rgba(120,220,255,.35)) border-box;
+  -webkit-mask:linear-gradient(#000 0 0) padding-box exclude,linear-gradient(#000 0 0);mask:linear-gradient(#000 0 0) padding-box exclude,linear-gradient(#000 0 0);
+  border:1px solid transparent}
+.ph{display:flex;justify-content:space-between;align-items:flex-start;padding:16px 18px 0}
+.ph h2{font-size:15px;font-weight:600;letter-spacing:.14em;color:#eaf6ff}
+.ph p{font-size:12.5px;color:var(--ink3);margin-top:4px}
+.ph .lnk{font-size:12.5px;color:#8fd9ff}
+.ph .lnk:hover{color:#fff}
+.chip{font-size:12px;color:var(--ink2);border:1px solid rgba(120,190,240,.3);border-radius:6px;padding:3px 9px;background:rgba(10,30,50,.5)}
+
+/* crew */
+
+.rows{padding:14px 12px 14px;display:flex;flex-direction:column;gap:10px}
+.row{display:grid;grid-template-columns:48px 76px 1fr 18px;align-items:center;gap:14px;padding:12px 12px;border-radius:8px;border:1px solid rgba(90,180,240,.12);
+  background:rgba(8,24,42,.35);cursor:pointer;transition:background .25s,border-color .25s,box-shadow .25s;text-align:left;width:100%}
+.row:hover{background:rgba(16,44,72,.45);border-color:rgba(90,200,255,.3)}
+.row.sel{border-color:rgba(90,210,255,.65);box-shadow:inset 0 0 18px rgba(60,180,255,.12),0 0 14px rgba(40,170,255,.12)}
+.row.risk{background:linear-gradient(90deg,rgba(120,18,32,.5),rgba(80,14,26,.32));border-color:rgba(255,90,105,.42)}
+.row.risk.sel{border-color:rgba(255,110,124,.85);box-shadow:inset 0 0 20px rgba(255,60,80,.14),0 0 18px rgba(255,60,80,.18)}
+.av{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font-size:17px;font-weight:600;color:#e6f4ff;border:1px solid rgba(140,200,240,.35);background:radial-gradient(circle at 35% 30%,rgba(60,120,170,.4),rgba(8,20,36,.8))}
+.ring{position:relative;width:72px;height:72px}
+.ring svg{width:100%;height:100%;transform:rotate(-90deg);overflow:visible}
+.ring .v{position:absolute;inset:0;display:grid;place-items:center;font-size:16px;font-weight:600;color:#fff}
+.ring circle{fill:none;stroke-width:6}
+.ring .tr{stroke:rgba(120,170,210,.13)}
+.ring .pr{stroke-linecap:round;transition:stroke-dashoffset 1s cubic-bezier(.2,.8,.2,1)}
+.st b{display:block;font-size:16px;font-weight:600}
+.st small{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--ink2);margin-top:4px}
+.chev{color:var(--ink3);font-size:18px}
+.empty{padding:22px 18px;color:var(--ink3);font-size:13px}
+
+/* twin note */
+.note{position:absolute;left:calc(50% - 21vw);top:6vh;font-size:12px;letter-spacing:.24em;line-height:1.85;color:rgba(170,205,230,.62);text-transform:uppercase;pointer-events:none;z-index:6}
+.note i{display:block;width:30px;height:1px;background:rgba(110,220,255,.6);margin-top:12px;box-shadow:0 0 6px var(--cyan)}
+
+/* hologram */
+.holo{position:absolute;top:-6px;height:calc(100% + 4px);aspect-ratio:900/1195;left:49%;transform:translateX(-50%);z-index:4;pointer-events:none}
+.holo .fig{position:absolute;inset:0;animation:float 7s ease-in-out infinite}
+.holo img{position:absolute;inset:0;width:100%;height:100%;mix-blend-mode:screen;opacity:.94;
+  filter:brightness(1.05) saturate(1.08) drop-shadow(0 0 14px rgba(50,180,255,.45));
+  animation:flick 5.5s steps(1) infinite}
+.holo .halo{position:absolute;left:8%;right:8%;top:4%;bottom:12%;border-radius:50%;pointer-events:none;mix-blend-mode:screen;
+  background:radial-gradient(ellipse 50% 50% at 50% 50%,rgba(30,140,230,.16),rgba(20,90,180,.06) 55%,transparent 75%)}
+.holo .msk{position:absolute;inset:0;mix-blend-mode:screen;-webkit-mask:url(../assets/twin-holo-key.png) center/100% 100% no-repeat;mask:url(../assets/twin-holo-key.png) center/100% 100% no-repeat}
+.holo .scan{position:absolute;left:0;right:0;top:0;height:14%;mix-blend-mode:screen;opacity:.7;
+  background:linear-gradient(180deg,transparent,rgba(170,240,255,.55) 50%,transparent);animation:scan 6.5s linear infinite}
+.holo .lines{position:absolute;inset:0;mix-blend-mode:screen;opacity:.35;background:repeating-linear-gradient(180deg,rgba(150,230,255,.28) 0 1px,transparent 1px 4px)}
+.pad{position:absolute;left:50%;top:84.6%;width:86%;aspect-ratio:1;transform:translate(-50%,-50%) perspective(900px) rotateX(77deg)}
+.pad b{position:absolute;inset:6%;border-radius:50%;background:conic-gradient(from 0deg,transparent 0 70%,rgba(120,230,255,.0) 70%,rgba(140,235,255,.55) 98%,transparent 100%);-webkit-mask:radial-gradient(closest-side,transparent 55%,#000 57%,#000 99%,transparent);mask:radial-gradient(closest-side,transparent 55%,#000 57%,#000 99%,transparent);animation:spin 9s linear infinite}
+.pad span{position:absolute;inset:0;margin:auto;border-radius:50%;border:1.5px solid rgba(110,220,255,.75);box-shadow:0 0 14px rgba(60,200,255,.6),inset 0 0 14px rgba(60,200,255,.4)}
+.pad span:nth-child(2){inset:14%;border-color:rgba(140,235,255,.9)}
+.pad span:nth-child(3){inset:28%;border:2px dashed rgba(140,235,255,.6);animation:spin 26s linear infinite}
+.pad span:nth-child(5){inset:4%;border:1px solid transparent;border-top-color:rgba(190,245,255,.95);border-bottom-color:rgba(190,245,255,.5);box-shadow:none;animation:spin 14s linear infinite reverse}
+.pad span:nth-child(4){inset:-10%;border-color:rgba(90,200,255,.28);box-shadow:0 0 30px rgba(40,170,255,.35)}
+.pad::after{content:"";position:absolute;inset:20% 12%;border-radius:50%;background:radial-gradient(closest-side,rgba(120,230,255,.55),rgba(40,160,255,.12) 60%,transparent)}
+.node{position:absolute;width:0;height:0;z-index:3}
+.node i{position:absolute;left:-8px;top:-8px;width:16px;height:16px;border-radius:50%;background:radial-gradient(circle,#fff 0 22%,var(--c) 42%,transparent 72%);box-shadow:0 0 14px var(--c),0 0 30px var(--c)}
+.node i::after{content:"";position:absolute;inset:-9px;border-radius:50%;border:1.5px solid var(--c);opacity:.0;animation:ping 2.2s ease-out infinite}
+.node.beat i{animation:beat var(--hb,1s) ease-in-out infinite}
+.node.beat i::after{animation-duration:var(--hb,1s)}
+.lead{position:absolute;height:0;border-top:1px solid var(--c);opacity:.85;box-shadow:0 0 6px var(--c);z-index:2}
+.lab{position:absolute;transform:translateY(-12px);z-index:3;white-space:nowrap;text-shadow:0 0 10px rgba(0,0,0,.95),0 0 3px rgba(0,0,0,.9)}
+.lab b{display:block;font-size:15px;font-weight:600;color:#fff}
+.lab em{display:block;font-style:normal;font-size:16px;font-weight:600;color:#fff;margin-top:2px}
+.lab small{display:block;font-size:12.5px;margin-top:2px;color:var(--c)}
+
+/* right column */
+.right{position:absolute;right:max(24px,1.9vw);top:3.6vh;width:clamp(360px,29.5vw,540px);display:flex;flex-direction:column;gap:16px}
+.right .panel{position:relative}
+.chart{padding:4px 12px 10px}
+.chart svg{width:100%;height:auto;display:block;overflow:visible}
+.chart text{font-family:var(--font)}
+.nova .hd{display:flex;align-items:center;gap:14px;padding:16px 18px 0}
+.nova .ic{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;border:1px solid rgba(110,210,255,.5);background:radial-gradient(circle,rgba(40,140,210,.35),rgba(6,18,34,.6));box-shadow:0 0 16px rgba(60,190,255,.3)}
+.nova .ic svg{animation:spin 30s linear infinite}
+.nova h3{font-size:15px;font-weight:600;letter-spacing:.2em}
+.nova .hd p{font-size:12.5px;color:var(--ink3);margin-top:3px}
+.nova .hd .chip{margin-left:auto}
+.nova .msg{padding:16px 18px 4px;font-size:16px;line-height:1.6;color:#eef7ff;min-height:72px}
+.nova .msg .bad{color:#ffb4bd}
+.nova .acts{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:12px 18px 18px}
+.btn{height:42px;border-radius:7px;display:grid;place-items:center;font-size:14px;font-weight:600;border:1px solid rgba(110,210,255,.45);background:rgba(10,30,52,.55);color:#dff3ff;transition:filter .2s,box-shadow .2s}
+.btn:hover{box-shadow:0 0 16px rgba(60,190,255,.3)}
+.btn.pri{background:linear-gradient(180deg,#5fe0ff,#2fb8ef);color:#03202f;border-color:#8eeaff;box-shadow:0 0 18px rgba(60,200,255,.45),inset 0 1px 0 rgba(255,255,255,.5)}
+.btn.pri:hover{filter:brightness(1.08)}
+.btn[disabled]{opacity:.45;cursor:default;box-shadow:none}
+
+
+/* ---------- Astronaut + Mission Control views ---------- */
+.side,.lcol{position:absolute;top:3.2vh;bottom:3.2vh;display:none;flex-direction:column;gap:14px;z-index:6}
+.side.l,.lcol{left:max(24px,1.9vw);width:clamp(320px,26.5vw,470px)}
+.side.r{right:max(24px,1.9vw);width:clamp(360px,29.5vw,540px)}
+.lcol .panel,.side .panel{position:relative;display:flex;flex-direction:column;min-height:0}
+.side .panel:not(.grow),.lcol .panel:not(.grow){flex:0 0 auto}
+.side .grow,.lcol .grow{flex:1 1 auto}
+.body{padding:12px 18px 16px;overflow:auto;min-height:0;scrollbar-width:none}
+.body::-webkit-scrollbar{display:none}
+.chatbox{flex:1 1 auto;-webkit-mask:linear-gradient(transparent,#000 22px);mask:linear-gradient(transparent,#000 22px)}
+.grow .body:not(.chatbox){-webkit-mask:linear-gradient(#000 calc(100% - 26px),transparent);mask:linear-gradient(#000 calc(100% - 26px),transparent)}
+body[data-v=ov] .lcol,body[data-v=astro] .v-astro,body[data-v=mc] .v-mc{display:flex}
+body:not([data-v=ov]) .right,body:not([data-v=ov]) .cap{display:none}
+.lcol .panel,.side .panel,.right .panel{animation:rise .7s cubic-bezier(.2,.8,.2,1) both}
+.lcol .panel:nth-child(2),.side .panel:nth-child(2),.right .panel:nth-child(2){animation-delay:.12s}
+.side .panel:nth-child(3){animation-delay:.24s}
+.side.r .panel{animation-name:riseR}.lcol .panel,.side.l .panel{animation-name:riseL}
+@keyframes riseL{from{opacity:0;transform:translateX(-26px)}}
+@keyframes riseR{from{opacity:0;transform:translateX(26px)}}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}}
+.crew .rows{padding:10px 12px 12px;gap:8px}
+.crew .row{grid-template-columns:40px 58px 1fr 14px;padding:8px 10px;gap:12px}
+.crew .av{width:38px;height:38px;font-size:15px}
+.crew .ring{width:56px;height:56px}.crew .ring .v{font-size:13.5px}
+/* smart ring panel */
+.rg{display:grid;grid-template-columns:160px 1fr;gap:6px;align-items:center;padding:4px 14px 12px 6px}
+.rg iframe{width:160px;height:150px;border:0;background:transparent;pointer-events:none}
+.sig{display:grid;grid-template-columns:1fr auto;gap:6px 10px;font-size:13px}
+.sig dt{color:var(--ink2)}.sig dd{text-align:right;font-variant-numeric:tabular-nums;color:#fff;font-weight:600}
+.sig dd small{display:block;font-size:11px;font-weight:400;color:var(--c)}
+.flow{height:2px;margin:0 18px 12px;border-radius:2px;background:linear-gradient(90deg,transparent,var(--cyan),transparent) 0 0/40% 100% no-repeat,rgba(63,210,255,.12);animation:flow 2.4s linear infinite}
+@keyframes flow{from{background-position:-60% 0,0 0}to{background-position:160% 0,0 0}}
+.pills{display:flex;gap:6px}
+.pills button{width:32px;height:28px;border-radius:6px;border:1px solid rgba(120,190,240,.3);background:rgba(10,30,50,.5);color:var(--ink2);font-weight:600}
+.pills button.on{color:#fff;border-color:rgba(90,210,255,.8);box-shadow:0 0 12px rgba(60,190,255,.35)}
+.big{display:flex;align-items:center;gap:18px}
+.big .ring{width:96px;height:96px}
+.big .ring .v{font-size:22px}
+.big .st b{font-size:19px}
+.big .btn{margin-left:auto;height:34px;padding:0 12px;font-size:12.5px;white-space:nowrap}
+/* NOVA chat */
+.chat{display:flex;flex-direction:column;gap:10px}
+.bub{max-width:92%;padding:10px 13px;border-radius:10px;font-size:14px;line-height:1.55;background:rgba(10,34,58,.6);border:1px solid rgba(90,200,255,.2);color:#eef7ff;animation:rise .4s both}
+.bub .who{font-size:11px;letter-spacing:.18em;color:#8fd9ff;margin-bottom:3px}
+.bub.me{align-self:flex-end;background:rgba(40,140,210,.28);border-color:rgba(90,210,255,.45)}
+.bub.flag{border-color:rgba(255,174,66,.5);background:rgba(70,44,10,.4)}
+.bub ul{margin:6px 0 0 18px;font-size:13px}
+.facts{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.facts span{font-size:12px;padding:2px 8px;border-radius:5px;background:rgba(63,210,255,.12);color:var(--ink2)}
+.facts b{color:#fff}
+.quick{display:flex;flex-wrap:wrap;gap:6px;padding:0 18px 8px}
+.quick button{font-size:12.5px;padding:5px 10px;border-radius:14px;border:1px solid rgba(90,200,255,.3);background:rgba(8,26,46,.55);color:var(--ink2)}
+.quick button:hover{color:#fff;border-color:rgba(90,210,255,.7)}
+.ask{display:flex;gap:8px;padding:0 18px 16px}
+.ask input{flex:1;min-width:0;height:38px;border-radius:7px;border:1px solid rgba(90,200,255,.3);background:rgba(4,14,26,.7);color:#fff;padding:0 12px;font:inherit}
+.ask input:focus{outline:none;border-color:var(--cyan);box-shadow:0 0 12px rgba(63,210,255,.3)}
+.ask .btn{height:38px;padding:0 14px}
+.mic.on{background:linear-gradient(180deg,#ff7a88,#e04656);color:#fff;border-color:#ff9aa5;animation:pulse 1.2s infinite}
+/* days + changes */
+.days{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.day{border-radius:8px;padding:10px 12px;border:1px solid rgba(90,180,240,.16);background:rgba(8,24,42,.4)}
+.day.bad{border-color:rgba(255,90,105,.5);background:linear-gradient(180deg,rgba(120,18,32,.45),rgba(60,10,20,.3))}
+.day.warn{border-color:rgba(255,174,66,.4)}
+.day small{display:block;font-size:12px;color:var(--ink3)}
+.day b{display:block;font-size:24px;font-weight:600;margin:4px 0 2px;font-variant-numeric:tabular-nums}
+.day span{display:block;font-size:12.5px;color:var(--ink2);line-height:1.45}
+.day .t{color:#ffb4bd;margin-top:4px}
+.chg{display:flex;flex-direction:column;gap:8px}
+.ci{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;border-radius:8px;padding:9px 12px;border:1px solid rgba(90,180,240,.16);background:rgba(8,24,42,.4);transition:border-color .25s,background .25s}
+.ci.tst{border-color:rgba(69,227,166,.55);background:rgba(10,50,44,.35)}
+.ci .top{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+.ci h4{font-size:14px;font-weight:600;color:#fff}
+.ci p.eff{color:var(--green);font-variant-numeric:tabular-nums}
+.ci p{font-size:12.5px;color:var(--ink2);margin-top:2px;line-height:1.4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ci .ab{display:flex;gap:6px;align-items:center}
+.ci .ab .btn{height:32px;font-size:12.5px;padding:0 12px}
+.ci .ab .btn.ic{width:36px;padding:0;font-size:16px}
+.ci p{white-space:normal!important}
+.ct th{white-space:nowrap}
+.ci .ab .tg{margin-right:4px;display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--ink2);cursor:pointer}
+.ci .ab .tg input{accent-color:var(--green);width:15px;height:15px}
+.ci .done{font-size:12px;color:var(--ink3);max-width:120px;text-align:right;line-height:1.35}
+.ci .done b{color:var(--green);font-weight:600}
+.ci .done b.no{color:var(--amber)}
+.tot{display:flex;justify-content:space-between;align-items:center;padding:4px 18px 14px;font-size:13px;color:var(--ink2);border-top:1px solid rgba(90,180,240,.12);margin:0 0 0}
+.tot b{font-size:20px;color:#fff;font-variant-numeric:tabular-nums;padding-top:8px}
+.tot span{padding-top:8px}
+.tot b em{font-style:normal;color:var(--green)}
+table.ct{width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed}
+.ct th{font-size:11px;letter-spacing:.12em;font-weight:500;color:var(--ink3);text-align:left;padding:0 6px 7px;border-bottom:1px solid rgba(90,180,240,.16)}
+.ct td{padding:9px 6px;border-bottom:1px solid rgba(90,180,240,.08);font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ct tr.r{cursor:pointer}.ct tr.r:hover td{background:rgba(16,44,72,.35)}
+.ct tr.sel td{background:rgba(30,90,140,.28)}
+.ct .lv{display:inline-flex;align-items:center;gap:6px}
+.ct .lv i{width:8px;height:8px;border-radius:50%;background:var(--c);box-shadow:0 0 8px var(--c)}
+/* schedule lane */
+.lane{position:relative;height:46px;border-radius:7px;background:rgba(4,14,26,.6);border:1px solid rgba(90,180,240,.14);overflow:hidden}
+.lane .tk{position:absolute;top:5px;bottom:5px;border-radius:5px;padding:4px 6px;font-size:11.5px;line-height:1.2;color:#dff3ff;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;
+  background:rgba(40,130,200,.35);border:1px solid rgba(90,200,255,.45);animation:rise .5s both}
+.lane .tk.crit{background:rgba(140,20,36,.45);border-color:#ff5f70;box-shadow:0 0 10px rgba(255,79,97,.35)}
+.lane .tk.rest{background:repeating-linear-gradient(135deg,rgba(69,227,166,.22) 0 6px,rgba(69,227,166,.08) 6px 12px);border-color:rgba(69,227,166,.55)}
+.lane .now{position:absolute;top:0;bottom:0;width:2px;background:#fff;box-shadow:0 0 8px var(--cyan);animation:pulse 2s infinite}
+.hrs{display:flex;justify-content:space-between;font-size:10.5px;color:var(--ink3);margin-top:5px;font-variant-numeric:tabular-nums}
+.lg{display:flex;gap:12px;font-size:11.5px;color:var(--ink3);margin-top:6px}
+.lg i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:13px}
+.kv dt{color:var(--ink3)}.kv dd{color:#eaf6ff;text-align:right}
+.kv dd.am{color:var(--amber)}
+/* focus test overlay */
+.ov{position:fixed;inset:0;z-index:50;display:none;place-items:center;background:rgba(2,6,13,.6);backdrop-filter:blur(6px)}
+.ov.on{display:grid}
+.ov .panel{position:relative;width:min(440px,92vw);padding:22px;text-align:center;animation:rise .4s both}
+.ov h2{font-size:15px;letter-spacing:.16em;margin-bottom:6px}
+.ov p{font-size:13px;color:var(--ink2)}
+.fpad{margin:18px auto;width:220px;height:220px;border-radius:50%;display:grid;place-items:center;border:1px solid rgba(90,210,255,.5);background:radial-gradient(circle,rgba(30,90,140,.35),rgba(4,14,26,.7));font-size:15px;color:#dff3ff;cursor:pointer;user-select:none}
+.fdot{width:70px;height:70px;border-radius:50%;background:radial-gradient(circle,#fff,var(--cyan) 50%,transparent 72%);box-shadow:0 0 30px var(--cyan)}
+
+
+@media (min-width:1181px) and (max-height:820px){
+  .cap{display:none}
+  .side,.lcol{top:2.2vh;bottom:2.2vh;gap:10px}
+  .right{top:2.2vh;gap:10px}
+  .ph{padding:11px 16px 0}.ph h2{font-size:13.5px}.ph p{font-size:12px;margin-top:2px}
+  .body{padding:8px 16px 10px}
+  .crew .rows{padding:8px 10px 10px;gap:6px}
+  .crew .row{padding:5px 10px;grid-template-columns:34px 48px 1fr 12px}
+  .crew .av{width:32px;height:32px;font-size:14px}
+  .crew .ring{width:46px;height:46px}.crew .ring .v{font-size:12px}
+  .st b{font-size:14.5px}.st small{font-size:12px;margin-top:2px}
+  .rg{grid-template-columns:128px 1fr;padding:0 14px 4px 4px}.rg iframe{width:128px;height:118px}
+  .sig{gap:3px 8px;font-size:12.5px}.sig dd small{display:inline;margin-left:6px}
+  .flow{margin-bottom:8px}
+  .big .ring{width:70px;height:70px}.big .ring .v{font-size:17px}.big .st b{font-size:16px}
+  .day{padding:8px 10px}.day b{font-size:20px;margin:2px 0}
+  .day span{font-size:12px}
+  .quick{padding:0 16px 6px}.quick button:nth-child(3){display:none}
+  .ask{padding:0 16px 12px}.ask input,.ask .btn{height:34px}
+  .bub{padding:8px 11px;font-size:13.5px}
+  .lane{height:38px}
+  .kv{gap:4px 12px;font-size:12.5px}
+  .ct td{padding:7px 6px}
+  .chart{padding:0 10px 6px}
+  .nova .msg{padding:10px 16px 2px;min-height:0;font-size:15px}
+  .nova .acts{padding:10px 16px 14px}
+}
+
+/* Mission Control rail + sections */
+.rail{position:absolute;left:max(16px,1.2vw);top:3.2vh;width:68px;display:none;flex-direction:column;gap:6px;z-index:7;padding:6px;border-radius:12px;
+  background:var(--glass);border:1px solid var(--line);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);animation:riseL .6s both}
+.rail button{position:relative;display:flex;flex-direction:column;align-items:center;gap:4px;padding:9px 2px 7px;border-radius:8px;border:1px solid transparent;background:none;color:var(--ink3);font-size:10.5px;letter-spacing:.04em}
+.rail button svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.rail button:hover{color:#fff}
+.rail button.on{color:#fff;border-color:rgba(90,210,255,.6);background:rgba(30,100,160,.25);box-shadow:0 0 14px rgba(60,190,255,.25)}
+.rail b{position:absolute;top:3px;right:5px;min-width:16px;height:16px;border-radius:8px;font-size:10px;line-height:16px;font-weight:700;background:var(--red);color:#fff;box-shadow:0 0 8px var(--red)}
+.rail b:empty{display:none}
+body[data-v=mc] .side.l{left:calc(max(16px,1.2vw) + 80px)}
+body[data-v=mc] .side [data-s]{display:none}
+body[data-s=overview] .side [data-s~=overview],body[data-s=twin] .side [data-s~=twin],body[data-s=forecast] .side [data-s~=forecast],body[data-s=earth] .side [data-s~=earth]{display:flex}
+.bigring{display:grid;place-items:center;padding:0 10px}
+.bigring iframe{width:clamp(150px,27vh,250px);height:clamp(150px,27vh,250px);border:0;background:transparent;cursor:grab}
+.st8 td:nth-child(4){color:var(--c)}
+.lanes-row{display:grid;grid-template-columns:62px 1fr;gap:8px;align-items:center;margin-bottom:6px}
+.lanes-row small{font-size:11.5px;color:var(--ink2);line-height:1.2}
+.lanes-row .lane{height:34px}
+.lanes-row .tk{top:4px;bottom:4px;padding:3px 5px;font-size:11px}
+.hrs{margin-left:70px}
+.segs{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:4px;padding:3px;border-radius:8px;background:rgba(4,14,26,.6);border:1px solid rgba(90,180,240,.16)}
+.segs button{height:30px;border-radius:6px;border:0;background:none;color:var(--ink2);font-size:12.5px}
+.segs button.on{color:#fff;background:rgba(40,140,210,.35);box-shadow:inset 0 0 0 1px rgba(90,210,255,.7)}
+.segs button.off.on{background:rgba(140,90,20,.4);box-shadow:inset 0 0 0 1px rgba(255,174,66,.8)}
+.ci .k{font-size:11px;color:var(--ink3);font-variant-numeric:tabular-nums}
+
+
+/* NOVA through the ring: the astronaut answers without opening a screen */
+.rcall{position:fixed;left:50%;bottom:22px;transform:translate(-50%,140%);z-index:30;width:min(600px,92vw);display:grid;grid-template-columns:64px 1fr auto;gap:14px;align-items:center;
+  padding:12px 14px 12px 12px;border-radius:14px;background:linear-gradient(180deg,rgba(11,32,56,.92),rgba(5,16,30,.9));border:1px solid rgba(90,210,255,.5);
+  box-shadow:0 0 30px rgba(40,170,255,.25),0 18px 50px rgba(0,0,0,.6);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);transition:transform .6s cubic-bezier(.2,.8,.2,1)}
+.rcall.on{transform:translate(-50%,0)}
+.rcall .rg2{position:relative;width:64px;height:64px;border-radius:50%;display:grid;place-items:center;cursor:pointer;border:0;background:none}
+.rcall .rg2 i{position:absolute;inset:14px;border-radius:50%;border:5px solid #b9cfe0;box-shadow:0 0 10px rgba(120,220,255,.7),inset 0 0 6px rgba(255,255,255,.5);transform:rotateX(62deg)}
+.rcall .rg2::before,.rcall .rg2::after{content:"";position:absolute;inset:6px;border-radius:50%;border:1.5px solid var(--cyan);opacity:0;animation:ping 2.2s ease-out infinite}
+.rcall .rg2::after{animation-delay:1.1s}
+.rcall.rec .rg2 i{border-color:#ff8a96;box-shadow:0 0 14px #ff4f61}
+.rcall.rec .rg2::before,.rcall.rec .rg2::after{border-color:var(--red);animation-duration:1s}
+.rcall small{display:block;font-size:11px;letter-spacing:.18em;color:#8fd9ff}
+.rcall p{font-size:15px;line-height:1.45;color:#fff;margin-top:2px}
+.rcall .live{display:block;font-size:13px;color:var(--ink2);margin-top:3px;min-height:18px;font-style:italic}
+.rcall .live .facts{font-style:normal}
+.rcall .btn{height:38px;padding:0 14px;font-size:13px;white-space:nowrap}
+.rcall .x{position:absolute;top:6px;right:8px;background:none;border:0;color:var(--ink3);font-size:14px}
+
+/* footer captions */
+.cap{position:fixed;bottom:18px;z-index:6;font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:rgba(185,212,232,.62);line-height:1.7;text-shadow:0 0 8px #000}
+.cap.l{left:max(24px,1.9vw)}
+.cap.r{right:max(24px,1.9vw);text-align:right}
+
+@keyframes pulse{50%{opacity:.45}}
+@keyframes beat{0%,40%,100%{transform:scale(1)}10%{transform:scale(1.45)}22%{transform:scale(1.05)}30%{transform:scale(1.3)}}
+@keyframes ping{0%{transform:scale(.5);opacity:.9}100%{transform:scale(1.7);opacity:0}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes float{50%{transform:translateY(-7px)}}
+@keyframes scan{0%{top:-16%}100%{top:96%}}
+@keyframes flick{0%,100%{opacity:1}47%{opacity:.93}48%{opacity:1}73%{opacity:.96}74%{opacity:1}}
+
+/* ---------- narrower screens: stack ---------- */
+@media (max-width:1180px){
+  body{overflow:auto}
+  header{position:sticky;grid-template-columns:auto 1fr;row-gap:6px;height:auto;padding:10px 16px}
+  .seg{grid-column:1/-1;grid-row:2;justify-self:center}
+  .stat{grid-column:2;grid-row:1}
+  .strip{position:relative;top:0;height:auto;min-height:30px;padding:6px 16px;flex-wrap:wrap}
+  .stage{position:relative;top:0;display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:16px}
+  .panel,.crew,.right,.lcol{position:relative;left:auto;right:auto;top:auto;bottom:auto;width:auto}
+  .holo{position:relative;grid-column:1/-1;grid-row:1;left:auto;transform:none;height:620px;justify-self:center;margin-right:180px}
+  .note{position:relative;grid-column:1/-1;grid-row:2;left:auto;top:auto;text-align:center}
+  .note i{margin:10px auto 0}
+  .lcol{grid-row:3}.right{grid-row:3}
+  .cap{position:relative;display:block;padding:8px 16px;bottom:auto}
+  .cap.l,.cap.r{left:auto;right:auto;text-align:left}
+  #iss,.orbit{display:none}
+}
+@media (max-width:1180px){.side{position:relative;left:auto!important;right:auto!important;top:auto;bottom:auto;width:auto!important;grid-row:3}}
+@media (max-width:760px){.stage{grid-template-columns:1fr}.right{grid-row:auto}.holo{height:520px;margin-right:120px}.stat .bar,#clock{display:none}}
+</style>
+</head>
+<body>
+<canvas id="bg" aria-hidden="true"></canvas>
+<svg class="orbit" viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true">
+  <path class="glow" d="M-20,742 C150,672 300,628 520,612 S880,606 1020,628"/>
+  <path id="orb" d="M-20,742 C150,672 300,628 520,612 S880,606 1020,628"/>
+</svg>
+<div id="iss" aria-label="International Space Station">
+  <div class="ic" id="issic"><svg viewBox="0 0 46 30" aria-hidden="true"><g fill="none" stroke="#cfeaff" stroke-width="1">
+    <rect x="1" y="4" width="11" height="9" fill="rgba(80,170,240,.35)"/><rect x="1" y="17" width="11" height="9" fill="rgba(80,170,240,.35)"/>
+    <rect x="34" y="4" width="11" height="9" fill="rgba(80,170,240,.35)"/><rect x="34" y="17" width="11" height="9" fill="rgba(80,170,240,.35)"/>
+    <path d="M6 13v4M40 13v4M6 15h34"/><rect x="18" y="11" width="10" height="8" fill="#9fd4ff" fill-opacity=".5"/><path d="M23 6v5M23 19v5"/></g></svg></div>
+</div>
+
+<header>
+  <a class="brand" href="./" aria-label="Forecast overview"><img src="../assets/pulsarx-logo-key.png" alt="PulsarX logo"><span>FORECAST</span></a>
+  <nav class="seg" aria-label="Views">
+    <a href="#overview" data-v="ov">Overview</a>
+    <a href="#astro" data-v="astro">Astronaut</a>
+    <a href="#mc" data-v="mc">Mission Control</a>
+  </nav>
+  <div class="stat"><span class="dot" id="ldot"></span><span id="ltxt">Connecting…</span><span class="bar"></span><span id="clock">UTC --</span></div>
+</header>
+
+<div class="strip calm" id="strip" style="opacity:0"></div>
+
+<main class="stage">
+  <div class="lcol">
+  <section class="panel crew" aria-label="Crew">
+    <div class="ph"><div><h2>CREW</h2><p>Physiological readiness · Today</p></div><a class="lnk" href="#mc">View all →</a></div>
+    <div class="rows" id="rows"><div class="empty">Loading crew…</div></div>
+  </section>
+  <section class="panel ringp" aria-label="Smart ring">
+    <div class="ph"><div><h2>SMART RING</h2><p id="r-sub">Live from the ring</p></div><span class="chip">Measures</span></div>
+    <div class="rg"><iframe src="../ring/?mini" title="3D smart ring" tabindex="-1" scrolling="no"></iframe><dl class="sig" id="r-sig"></dl></div>
+    <div class="flow" title="Ring data flows to the digital twin"></div>
+  </section>
+  </div>
+
+  <div class="note" id="note">Digital twin<br>Crew –<br>Today vs<br>own normal<i></i></div>
+
+  <div class="holo" id="holo">
+    <div class="fig">
+      <div class="pad"><b></b><span></span><span></span><span></span><span></span><span></span></div>
+      <div class="halo"></div>
+      <img src="../assets/twin-holo-key.png" alt="Hologram digital twin of the selected crew member">
+      <div class="msk"><div class="lines"></div><div class="scan"></div></div>
+      <div id="nodes"></div>
+    </div>
+  </div>
+
+  <div class="right">
+    <section class="panel fc" aria-label="Readiness forecast">
+      <div class="ph"><div><h2>READINESS FORECAST</h2><p id="fcsub">Crew – · Next 3 days</p></div><span class="chip">Readiness %</span></div>
+      <div class="chart" id="chart"></div>
+    </section>
+    <section class="panel nova" aria-label="NOVA advisor">
+      <div class="hd">
+        <div class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#7fe0ff" stroke-width="1.3"><path d="M12 1.5v21M1.5 12h21M4.6 4.6l14.8 14.8M19.4 4.6L4.6 19.4"/><circle cx="12" cy="12" r="3.2" fill="#0a2b44"/><circle cx="12" cy="12" r="1.2" fill="#bff1ff"/></svg></div>
+        <div><h3>NOVA</h3><p>AI mission advisor</p></div><span class="chip">On board</span>
+      </div>
+      <div class="msg" id="msg">Reading the latest crew data…</div>
+      <div class="acts"><button class="btn pri" id="accept" disabled>Accept</button><a class="btn" href="#mc">Review</a></div>
+    </section>
+  </div>
+
+  <!-- Astronaut view -->
+  <div class="side l v-astro">
+    <section class="panel" aria-label="My readiness today">
+      <div class="ph"><div><h2>MY DAY</h2><p id="a-sub">Today</p></div><div class="pills" id="a-pick"></div></div>
+      <div class="body"><div class="big" id="a-big"></div></div>
+    </section>
+    <section class="panel grow nova2" aria-label="Talk to NOVA">
+      <div class="ph"><div><h2>NOVA</h2><p>Morning check-in · type or speak</p></div><button class="btn" id="a-listen" style="height:30px;padding:0 12px;font-size:12.5px">▶ Listen</button></div>
+      <div class="body chatbox" id="a-chatbox"><div class="chat" id="a-chat"></div></div>
+      <div class="quick" id="a-quick"><button>Slept well, feeling good</button><button>Slept 5 hours, a bit tired</button><button>Very stressed today</button></div>
+      <form class="ask" id="a-ask"><input id="a-in" placeholder="Answer NOVA…" autocomplete="off" aria-label="Answer NOVA"><button type="button" class="btn mic" id="a-mic" hidden>Speak</button><button class="btn pri">Send</button></form>
+    </section>
+  </div>
+  <div class="side r v-astro">
+    <section class="panel" aria-label="Next 3 days">
+      <div class="ph"><div><h2>NEXT 3 DAYS</h2><p>Readiness forecast and tasks</p></div></div>
+      <div class="body"><div class="days" id="a-days"></div></div>
+    </section>
+    <section class="panel grow" aria-label="Changes to my day">
+      <div class="ph"><div><h2>CHANGES TO MY DAY</h2><p>Suggested by NOVA · you decide</p></div></div>
+      <div class="body"><div class="chg" id="a-chg"></div></div>
+    </section>
+  </div>
+
+  <!-- Mission Control view: NASA-style side rail with 4 sections -->
+  <nav class="rail v-mc" id="rail" aria-label="Mission Control sections">
+    <button data-s="overview" class="on"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>Overview<b id="rb-ov"></b></button>
+    <button data-s="twin"><svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="2.5"/><path d="M12 8v7M8 11h8M12 15l-3 6M12 15l3 6"/><circle cx="18.5" cy="11" r="2"/></svg>Twin</button>
+    <button data-s="forecast"><svg viewBox="0 0 24 24"><path d="M3 17l5-5 4 3 4-6 5 4"/><path d="M3 21h18" opacity=".5"/></svg>Forecast</button>
+    <button data-s="earth"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.6 2.6 2.6 14.4 0 17M12 3.5c-2.6 2.6-2.6 14.4 0 17"/></svg>Earth<b id="rb-earth"></b></button>
+  </nav>
+  <div class="side l v-mc">
+    <section class="panel" data-s="overview" aria-label="Crew status">
+      <div class="ph"><div><h2>CREW STATUS</h2><p id="m-sub">Lowest readiness in the next 3 days</p></div></div>
+      <div class="body"><table class="ct"><colgroup><col style="width:12%"><col style="width:16%"><col style="width:30%"><col style="width:26%"><col style="width:16%"></colgroup>
+        <thead><tr><th>CREW</th><th>TODAY</th><th>LOWEST</th><th>RISK</th><th>ASKS</th></tr></thead><tbody id="m-crew"></tbody></table></div>
+    </section>
+    <section class="panel" data-s="overview" aria-label="Mission schedule">
+      <div class="ph"><div><h2>MISSION SCHEDULE</h2><p id="m-ssub">Crew – · next 3 days</p></div></div>
+      <div class="body"><div id="m-lanes"></div><div class="hrs"><span>07</span><span>09</span><span>11</span><span>13</span><span>15</span><span>17</span><span>19</span></div>
+        <div class="lg"><span><i style="background:rgba(140,20,36,.6);border:1px solid #ff5f70"></i>Critical</span><span><i style="background:rgba(40,130,200,.5)"></i>Task</span><span><i style="background:rgba(69,227,166,.35)"></i>Rest</span></div></div>
+    </section>
+
+    <section class="panel" data-s="twin" aria-label="Smart ring">
+      <div class="ph"><div><h2>SMART RING</h2><p id="t-rsub">Crew – · measures every night</p></div><span class="chip">3D · drag to turn</span></div>
+      <div class="bigring"><iframe src="../ring/?mini" title="3D smart ring" tabindex="-1" scrolling="no"></iframe></div>
+      <div class="flow"></div>
+    </section>
+    <section class="panel grow" data-s="twin" aria-label="Today vs personal normal">
+      <div class="ph"><div><h2>TODAY VS OWN NORMAL</h2><p>Each signal compared with this astronaut's normal</p></div></div>
+      <div class="body"><table class="ct st8"><colgroup><col style="width:34%"><col style="width:20%"><col style="width:20%"><col style="width:26%"></colgroup>
+        <thead><tr><th>SIGNAL</th><th>TODAY</th><th>NORMAL</th><th>STATUS</th></tr></thead><tbody id="t-sig"></tbody></table></div>
+    </section>
+
+    <section class="panel" data-s="forecast" aria-label="Readiness forecast">
+      <div class="ph"><div><h2>READINESS FORECAST</h2><p id="f-sub">Crew –</p></div><span class="chip" id="f-wi">Try a change →</span></div>
+      <div class="chart" id="chart2"></div>
+    </section>
+    <section class="panel grow" data-s="forecast" aria-label="Upcoming tasks">
+      <div class="ph"><div><h2>UPCOMING TASKS</h2><p>Critical tasks against the forecast</p></div></div>
+      <div class="body"><div class="chg" id="f-tasks"></div></div>
+    </section>
+
+    <section class="panel" data-s="earth" aria-label="Earth link controls">
+      <div class="ph"><div><h2>EARTH LINK</h2><p>Simulate where the mission is and the link</p></div></div>
+      <div class="body">
+        <div class="segs" id="e-place"><button data-p="iss">ISS</button><button data-p="moon">Moon</button><button data-p="mars">Mars</button></div>
+        <div class="segs" id="e-online" style="margin-top:8px"><button data-o="1">Link online</button><button data-o="0">Link lost</button></div>
+        <dl class="kv" id="m-link" style="margin-top:12px"></dl>
+      </div>
+    </section>
+    <section class="panel grow" data-s="earth" aria-label="Onboard outbox">
+      <div class="ph"><div><h2>ONBOARD OUTBOX</h2><p>Saved onboard, sent when the link returns</p></div><button class="btn" id="e-sync" style="height:30px;padding:0 12px;font-size:12.5px">Sync now</button></div>
+      <div class="body"><div class="chg" id="e-out"></div></div>
+    </section>
+  </div>
+  <div class="side r v-mc">
+    <section class="panel grow" data-s="overview forecast" aria-label="Approvals">
+      <div class="ph"><div><h2>APPROVALS</h2><p id="m-asub">Crew –</p></div><span class="chip" id="m-cnt">0 waiting</span></div>
+      <div class="body"><div class="chg" id="m-chg"></div></div>
+      <div class="tot" id="m-tot"></div>
+    </section>
+
+    <section class="panel" data-s="twin" aria-label="Readiness today">
+      <div class="ph"><div><h2>DIGITAL TWIN · TODAY</h2><p id="t-sub">Crew –</p></div><a class="lnk" href="../model.html" target="_blank">How the model works →</a></div>
+      <div class="body"><div class="big" id="t-big"></div></div>
+    </section>
+    <section class="panel grow" data-s="twin" aria-label="Personal normal">
+      <div class="ph"><div><h2>PERSONAL NORMAL</h2><p>Learned from the first 7 days onboard, so it fits each astronaut in space</p></div></div>
+      <div class="body"><table class="ct"><colgroup><col style="width:46%"><col style="width:27%"><col style="width:27%"></colgroup>
+        <thead><tr><th>SIGNAL</th><th>AVERAGE</th><th>USUAL RANGE</th></tr></thead><tbody id="t-base"></tbody></table></div>
+    </section>
+
+    <section class="panel" data-s="earth" aria-label="Mission Control on Earth">
+      <div class="ph"><div><h2>MISSION CONTROL · EARTH</h2><p>Confirms or overrules the commander's temporary decisions</p></div></div>
+      <div class="body"><div class="chg" id="e-conf"></div></div>
+    </section>
+    <section class="panel grow" data-s="earth" aria-label="Received on Earth">
+      <div class="ph"><div><h2>RECEIVED ON EARTH</h2><p>Only what has synced</p></div></div>
+      <div class="body"><div class="chg" id="e-got"></div></div>
+    </section>
+  </div>
+</main>
+<div class="rcall" id="rcall" role="dialog" aria-live="polite" aria-label="NOVA through the smart ring">
+  <button class="rg2" id="rc-ring" title="Tap the ring to answer" aria-label="Tap the ring to answer"><i></i></button>
+  <div><small id="rc-who">NOVA · THROUGH YOUR RING</small><p id="rc-q">Good morning.</p><span class="live" id="rc-live">Tap the ring and answer by voice. No screen needed.</span></div>
+  <button class="btn pri" id="rc-btn">Tap ring to answer</button>
+  <button class="x" id="rc-x" aria-label="Close">✕</button>
+</div>
+<div class="ov" id="ft" role="dialog" aria-label="Focus test"><div class="panel">
+  <h2>FOCUS TEST</h2><p id="ftMsg">Tap the pad as soon as the circle appears</p>
+  <div class="fpad" id="fpad">Tap to start</div>
+  <button class="btn" id="ftClose" style="width:100%">Close</button></div></div>
+
+
+<div class="cap l">NASA Space Apps 2026<br>Health monitoring for astronauts</div>
+<div class="cap r" id="label">&nbsp;</div>
+
+<script>
+(() => {
+"use strict";
+const API = location.origin;
+const $ = id => document.getElementById(id);
+const RM = false; // the live scene is part of the product, keep it moving
+const C = {cyan:"#3fd2ff", red:"#ff4f61", amber:"#ffae42", green:"#45e3a6"};
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const S = {summary:null, link:null, twins:{}, fc:null, sel:null, ack:false, err:null, busy:false, sched3:{}, outbox:null, inbox:null, test:new Set(), wi:null, chatFor:null};
+
+/* ---------- clock ---------- */
+const tick = () => { $("clock").textContent = "UTC " + new Date().toISOString().slice(0,19).replace("T"," "); };
+tick(); setInterval(tick, 1000);
+
+/* ---------- data ---------- */
+async function j(path, opt){ const r = await fetch(API + path, opt); if(!r.ok) throw new Error(path + " " + r.status); return r.json(); }
+
+async function load(){
+  try{
+    const [summary, link] = await Promise.all([j("/mission-control/summary"), j("/link").catch(() => null)]);
+    S.summary = summary; S.link = link || {...summary.link, mars_mode: summary.mars_mode};
+    const crews = summary.crew.filter(c => c.status !== "unknown").map(c => c.crew);
+    const tw = await Promise.all(crews.map(c => j("/twin/" + c).catch(() => null)));
+    crews.forEach((c, i) => { if (tw[i]) S.twins[c] = tw[i]; });
+    if (!S.sel || !crews.includes(S.sel)) {
+      const al = summary.crew.find(c => c.alert);
+      S.sel = al ? al.crew : (crews.includes("B") ? "B" : crews[0]);
+    }
+    S.fc = await j(`/forecast/${S.sel}?use_claude=false`).catch(() => null);
+    const fdays = S.fc && S.fc.forecast ? S.fc.forecast.days.map(d => d.day) : [];
+    const [sch, ob, ib] = await Promise.all([Promise.all(fdays.map(d => j(`/schedule/${S.sel}/${d}`).catch(() => null))), j("/outbox").catch(() => null), j("/mission-control/inbox").catch(() => null)]);
+    S.sched3 = {}; fdays.forEach((d, i) => { S.sched3[d] = sch[i] ? sch[i].tasks : []; });
+    S.outbox = ob; S.inbox = ib;
+    S.err = null;
+  }catch(e){ S.err = e; }
+  render();
+}
+
+/* ---------- helpers ---------- */
+const crewSum = c => S.summary && S.summary.crew.find(x => x.crew === c);
+const atRisk = s => s && (s.level === "high" || s.alert);
+const todayR = c => { const h = S.twins[c] && S.twins[c].history; return h && h.length ? h[h.length-1].readiness : null; };
+const trend = c => { const h = S.twins[c] && S.twins[c].history; return h && h.length > 1 ? h[h.length-1].readiness - h[h.length-2].readiness : null; };
+const critName = t => /critical/i.test(t) ? t : t + " (critical)";
+
+/* ---------- render ---------- */
+function render(){
+  renderStatus(); renderStrip(); renderCrew(); renderTwin(); renderChart(); renderNova(); renderViews();
+  $("label").textContent = S.summary ? S.summary.label : "";
+}
+
+function renderStatus(){
+  const dot = $("ldot"), t = $("ltxt");
+  if (S.err || !S.link){ dot.className = "dot off"; t.textContent = "Server unreachable"; return; }
+  const L = S.link, place = (L.place || "iss").toUpperCase();
+  const day = S.summary ? ` · Mission day ${S.summary.today}` : "";
+  dot.className = "dot" + (L.online ? "" : " off");
+  let s = L.online ? `Connected · ${place}` : `<span style="color:${C.amber}">Link lost</span> · ${place}`;
+  if (L.mars_mode) s += ` · Mars mode · ${L.delay_min} min delay`;
+  t.innerHTML = s + day;
+  $("iss").style.visibility = (L.place || "iss") === "iss" ? "visible" : "hidden";
+}
+
+const warnIco = '<svg width="13" height="12" viewBox="0 0 13 12"><path d="M6.5 1L12 11H1z" fill="currentColor"/><path d="M6.5 4.5v3M6.5 9v.4" stroke="#2a0509" stroke-width="1.3"/></svg>';
+function renderStrip(){
+  const el = $("strip"); el.style.opacity = "";
+  const sm = S.summary;
+  if (!sm){ el.className = "strip calm"; el.innerHTML = S.err ? `<span class="w" style="color:${C.amber}">OFFLINE</span> Waiting for the onboard server…` : ""; return; }
+  const a = sm.crew.find(c => c.alert);
+  if (!a){ el.className = "strip calm"; el.innerHTML = `<span class="w">● NOMINAL</span> No crew alerts in the next 3 days`; return; }
+  const task = a.critical_tasks && a.critical_tasks.length ? critName(a.critical_tasks[0]) : "Critical task";
+  const n = a.on_day - sm.today;
+  el.className = "strip" + (S.ack ? " ack" : "");
+  el.innerHTML = `<span class="w">${warnIco}WARNING</span><span>· Crew ${esc(a.crew)} · ${esc(task)} in ${n} day${n===1?"":"s"} falls on a ${a.lowest_readiness}% readiness day ·</span>` +
+    (S.ack ? `<button disabled>Acknowledged</button>` : `<button id="ackb">Acknowledge →</button>`);
+  const b = $("ackb"); if (b) b.onclick = () => { S.ack = true; renderStrip(); };
+}
+
+function ring(v, col){
+  const r = 30, L = 2*Math.PI*r, off = v == null ? L : L*(1 - Math.max(0, Math.min(100, v))/100);
+  return `<div class="ring"><svg viewBox="0 0 72 72"><circle class="tr" cx="36" cy="36" r="${r}"/>
+    <circle class="pr" cx="36" cy="36" r="${r}" stroke="${col}" stroke-dasharray="${L.toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}" style="filter:drop-shadow(0 0 5px ${col})"/></svg>
+    <div class="v">${v == null ? "–" : v + "%"}</div></div>`;
+}
+function trendIco(d, col){
+  const p = d >= 0 ? "M1 9 L5 6 L8 7.5 L13 2 M10 2h3v3" : "M1 2 L5 6 L8 4.5 L13 9 M10 9h3V6";
+  return `<svg width="15" height="11" viewBox="0 0 15 11" fill="none" stroke="${col}" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="${p}"/></svg>`;
+}
+function renderCrew(){
+  const box = $("rows");
+  if (!S.summary){ box.innerHTML = `<div class="empty">${S.err ? "No crew data: the onboard server is not answering." : "Loading crew…"}</div>`; return; }
+  box.innerHTML = S.summary.crew.map(c => {
+    if (c.status === "unknown") return `<div class="row" style="cursor:default"><div class="av">${esc(c.crew)}</div>${ring(null, C.cyan)}<div class="st"><b style="color:var(--ink3)">No data</b></div><span></span></div>`;
+    const risk = atRisk(c), col = risk ? C.red : C.cyan, v = todayR(c.crew), d = trend(c.crew);
+    const tcol = d == null ? "" : d < 0 ? C.red : C.cyan;
+    return `<button class="row${risk ? " risk" : ""}${c.crew === S.sel ? " sel" : ""}" data-c="${esc(c.crew)}" aria-pressed="${c.crew === S.sel}">
+      <div class="av">${esc(c.crew)}</div>${ring(v, col)}
+      <div class="st"><b style="color:${risk ? "#ff8a96" : "#7fe0ff"}">${risk ? "At risk" : "Nominal"}</b>
+      <small>${d == null ? "Trend –" : `Trend ${d > 0 ? "+" : ""}${d}% ${trendIco(d, tcol)}`}</small></div>
+      <span class="chev">›</span></button>`;
+  }).join("");
+  box.querySelectorAll("button.row").forEach(b => b.onclick = () => selectCrew(b.dataset.c));
+}
+
+const SIG = [
+  {k:"sleep_hours", name:"Sleep", unit:" h", pos:[50,13], lab:[72,10.5], fmt:v => v.toFixed(1)},
+  {k:"hrv_ms", name:"HRV", unit:" ms", pos:[57,25.5], lab:[75,23.5], fmt:v => Math.round(v)},
+  {k:"skin_temp_c", name:"Skin temp", unit:" °C", pos:[70,49], lab:[80,46], fmt:v => v.toFixed(1)},
+];
+function renderTwin(){
+  $("note").innerHTML = `Digital twin<br>Crew ${esc(S.sel || "–")}<br>Today vs<br>own normal<i></i>`;
+  const t = S.twins[S.sel], sig = t && t.now && t.now.signals;
+  if (!sig){ $("nodes").innerHTML = ""; return; }
+  const rh = sig.resting_hr, bpm = +(rh && typeof rh === "object" ? rh.value : rh) || 60, hb = (60 / Math.min(150, Math.max(35, bpm))).toFixed(3);
+  const zs = SIG.map(s => sig[s.k] ? Math.abs(sig[s.k].z || 0) : 0), worst = Math.max(...zs);
+  $("nodes").innerHTML = SIG.map((s, i) => {
+    const g = sig[s.k]; if (!g) return "";
+    const z = zs[i], c = z >= 2 ? (z === worst ? C.red : C.amber) : z >= 1 ? C.amber : C.cyan;
+    let sub = g.status || "";
+    if (s.k === "sleep_hours" && z >= 1 && g.normal != null) sub = `${Math.abs(g.value - g.normal).toFixed(1)} h ${g.value < g.normal ? "below" : "above"} normal`;
+    const lx = s.lab[0], w = lx - s.pos[0] - 1;
+    const beat = s.k === "hrv_ms" ? ` beat" style="--hb:${hb}s;` : `" style="`;
+    return `<div class="node${beat}left:${s.pos[0]}%;top:${s.pos[1]}%;--c:${c}"><i style="animation-delay:${i*.6}s"></i></div>
+      <div class="lead" style="left:calc(${s.pos[0]}% + 9px);top:${s.pos[1]}%;width:calc(${w}% - 9px);--c:${c}"></div>
+      <div class="lab" style="left:${lx}%;top:${s.pos[1]}%;--c:${c}"><b>${s.name}</b><em>${s.fmt(g.value)}${s.unit}</em>${sub ? `<small>${esc(sub)}</small>` : ""}</div>`;
+  }).join("");
+}
+
+function renderChart(id = "chart"){
+  const el = $(id), t = S.twins[S.sel], u = id;
+  if (id === "chart") $("fcsub").textContent = `Crew ${S.sel || "–"} · Next 3 days`;
+  if (!t || !t.history || !t.history.length){ el.innerHTML = `<div class="empty">${S.err ? "Forecast unavailable while the server is unreachable." : "Loading forecast…"}</div>`; return; }
+  const past = t.history.slice(-7), fut = t.forecast || [];
+  const all = past.concat(fut), W = 420, H = 222, l = 34, r = 12, top = 34, bot = 46;
+  const d0 = all[0].day, d1 = all[all.length-1].day, today = past[past.length-1];
+  const X = d => l + (d - d0) / Math.max(1, d1 - d0) * (W - l - r), Y = v => top + (1 - v/100) * (H - top - bot);
+  const hot = fut.some(f => f.level === "high" || f.alert), fcol = hot ? C.red : C.amber;
+  const low = fut.length ? fut.reduce((a, b) => b.readiness < a.readiness ? b : a) : null;
+  const crit = fut.find(f => f.critical_tasks && f.critical_tasks.length);
+  const pPath = past.map((p, i) => `${i ? "L" : "M"}${X(p.day).toFixed(1)},${Y(p.readiness).toFixed(1)}`).join("");
+  const area = `${pPath}L${X(today.day)},${Y(0)}L${X(past[0].day)},${Y(0)}Z`;
+  const fPath = [today].concat(fut).map((p, i) => `${i ? "L" : "M"}${X(p.day).toFixed(1)},${Y(p.readiness).toFixed(1)}`).join("");
+  const tx = X(today.day);
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Readiness past 7 days and next 3 days">
+  <defs><linearGradient id="ga${u}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${C.cyan}" stop-opacity=".38"/><stop offset="1" stop-color="${C.cyan}" stop-opacity="0"/></linearGradient>
+  <linearGradient id="gf${u}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${fcol}" stop-opacity=".16"/><stop offset="1" stop-color="${fcol}" stop-opacity="0"/></linearGradient>
+  <filter id="gl${u}" x="-20%" y="-50%" width="140%" height="200%"><feGaussianBlur stdDeviation="2.4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>`;
+  for (const v of [0,25,50,75,100]) s += `<line x1="${l}" x2="${W-r}" y1="${Y(v)}" y2="${Y(v)}" stroke="rgba(130,190,235,${v ? .12 : .3})" stroke-dasharray="${v ? "2 4" : ""}"/><text x="${l-8}" y="${Y(v)+4}" text-anchor="end" font-size="12" fill="#7d97ad">${v}</text>`;
+  s += `<rect x="${tx}" y="${top-6}" width="${W-r-tx}" height="${H-top-bot+6}" fill="url(#gf${u})" opacity=".6"/>`;
+  s += `<line x1="${tx}" x2="${tx}" y1="${top-14}" y2="${Y(0)}" stroke="rgba(170,215,245,.55)" stroke-dasharray="3 4"/>`;
+  s += `<text x="${(l+tx)/2}" y="${top-16}" text-anchor="middle" font-size="12" fill="#a9c3d8">Past ${past.length} days</text>`;
+  if (fut.length) s += `<text x="${(tx+W-r)/2}" y="${top-16}" text-anchor="middle" font-size="12" fill="#a9c3d8">Next ${fut.length} days</text>`;
+  s += `<path d="${area}" fill="url(#ga${u})"/><path d="${pPath}" fill="none" stroke="${C.cyan}" stroke-width="2.2" filter="url(#gl${u})" stroke-linejoin="round"/>`;
+  s += past.map(p => `<circle cx="${X(p.day)}" cy="${Y(p.readiness)}" r="2.8" fill="#bff1ff"/>`).join("");
+  if (fut.length){
+    s += `<path d="${fPath}" fill="none" stroke="${fcol}" stroke-width="2" stroke-dasharray="5 5" filter="url(#gl${u})"/>`;
+    s += fut.map(p => `<circle cx="${X(p.day)}" cy="${Y(p.readiness)}" r="3" fill="${p === low ? fcol : "#ffc2c8"}"/>`).join("");
+    const lx = X(low.day), ly = Y(low.readiness);
+    s += `<circle cx="${lx}" cy="${ly}" r="9" fill="none" stroke="${fcol}" stroke-width="1.5" opacity=".9"><animate attributeName="r" values="7;11;7" dur="2.4s" repeatCount="indefinite"/></circle>
+      <circle cx="${lx}" cy="${ly}" r="5" fill="${fcol}" filter="url(#gl${u})"/>
+      <text x="${lx}" y="${ly+24}" text-anchor="middle" font-size="13" font-weight="700" fill="${fcol}">${low.readiness}%</text>`;
+  }
+  s += all.map(p => `<text x="${X(p.day)}" y="${H-bot+18}" text-anchor="middle" font-size="12" fill="${low && p.day === low.day ? fcol : p.day === today.day ? "#e8f4ff" : "#7d97ad"}" font-weight="${low && p.day === low.day ? 700 : 400}">${p.day}</text>`).join("");
+  if (crit){
+    const nm = crit.critical_tasks[0].replace(/\s*\(critical\)\s*/i, "");
+    s += `<text x="${Math.min(X(crit.day), W - 70)}" y="${H-6}" text-anchor="middle" font-size="12" font-weight="600" fill="${C.red}">▲ ${esc(nm)} · critical</text>`;
+  }
+  if (S.wi && id !== "chart"){ const wx = X(S.wi.day), wy = Y(S.wi.readiness_after);
+    s += `<line x1="${wx}" x2="${wx}" y1="${Y(S.wi.readiness_before)}" y2="${wy}" stroke="${C.green}" stroke-dasharray="3 3"/><circle cx="${wx}" cy="${wy}" r="6" fill="${C.green}" filter="url(#gl${u})"/><text x="${wx}" y="${wy-12}" text-anchor="middle" font-size="13" font-weight="700" fill="${C.green}">${S.wi.readiness_after}% if changed</text>`; }
+  el.innerHTML = s + "</svg>";
+}
+
+function renderNova(){
+  const m = $("msg"), b = $("accept");
+  if (S.err && !S.summary){
+    m.innerHTML = `<span class="bad">Can't reach the onboard server.</span><br>Showing nothing rather than old numbers. Retrying every 30 s.`;
+    b.disabled = true; return;
+  }
+  const cs = crewSum(S.sel), pend = S.fc && S.fc.changes ? S.fc.changes.filter(c => c.status === "pending") : [];
+  let txt = "";
+  if (cs && cs.on_day != null){
+    txt = atRisk(cs) ? `Day ${cs.on_day} is the hardest day for Crew ${esc(S.sel)}.` : `Crew ${esc(S.sel)} looks steady. Lowest day ahead: day ${cs.on_day} at ${cs.lowest_readiness}%.`;
+  }
+  txt += `<br>${pend.length ? `${pend.length} change${pend.length === 1 ? "" : "s"} suggested.` : S.fc ? "No changes waiting." : "Loading suggestions…"}`;
+  if (S.err) txt += `<br><span class="bad" style="font-size:13px">Last refresh failed. Retrying.</span>`;
+  m.innerHTML = txt;
+  b.disabled = !pend.length || S.busy;
+  b.textContent = S.busy ? "Saving…" : "Accept";
+  b.onclick = async () => {
+    if (!pend.length) return;
+    S.busy = true; renderNova();
+    try{ await j("/decision", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({change_id:pend[0].id, decision:"accept", note:""})}); }
+    catch(e){ m.innerHTML += `<br><span class="bad" style="font-size:13px">Could not save the decision.</span>`; }
+    S.busy = false; load();
+  };
+}
+
+
+/* ---------- views: Overview / Astronaut / Mission Control ---------- */
+const VIEWS = {overview:"ov", astro:"astro", mc:"mc"};
+function setView(){
+  const v = VIEWS[location.hash.slice(1)] || "ov";
+  document.body.dataset.v = v;
+  if (v === "mc") document.body.dataset.s = S.sec || "overview"; else delete document.body.dataset.s;
+  document.querySelectorAll(".seg a").forEach(a => { const on = a.dataset.v === v; a.classList.toggle("on", on); on ? a.setAttribute("aria-current","page") : a.removeAttribute("aria-current"); });
+  $("note").style.display = v === "ov" ? "" : "none";
+  if (v === "astro") initChat();
+}
+addEventListener("hashchange", setView);
+
+const post = (path, body) => j(path, {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(body)});
+const LVL = {high:["High risk",C.red], medium:["Watch",C.amber], low:["Ready",C.green]};
+const dayWord = d => { const n = d - (S.summary ? S.summary.today : d); return n === 0 ? "Today" : n === 1 ? "Tomorrow" : `In ${n} days`; };
+function chgTitle(c){
+  if (c.type === "longer_rest") return `${esc(c.task)} +${c.extra_minutes} min`;
+  if (c.type === "reassign") return `${esc(c.task)} → Crew ${esc(c.to_crew)}`;
+  if (c.type === "postpone") return `Move ${esc(c.task)} to ${esc(c.to)}`;
+  return esc(c.task || c.type);
+}
+function chgWhy(c){
+  if (c.type === "longer_rest") return "More recovery before the next task";
+  if (c.type === "reassign") return `Crew ${esc(c.to_crew)} is free and forecast ready`;
+  if (c.type === "postpone") return "Not critical, it can wait a day";
+  return "";
+}
+function selectCrew(c){ if (c === S.sel) return; S.sel = c; S.fc = null; S.sched3 = {}; S.test.clear(); S.wi = null; S.chatFor = null; render(); load(); if (document.body.dataset.v === "astro") initChat(); }
+async function decide(id, d){
+  S.busy = true; renderViews();
+  try{ await post("/decision", {change_id:id, decision:d, note:""}); S.test.delete(id); S.wi = null; }
+  catch(e){ alert("Not saved. Try again."); }
+  S.busy = false; load();
+}
+async function whatIf(){
+  if (!S.test.size || !S.fc){ S.wi = null; renderViews(); return; }
+  try{ S.wi = await post("/whatif/" + S.sel, {day:S.fc.focus_day, change_ids:[...S.test]}); }catch(e){ S.wi = null; }
+  renderViews();
+}
+function chgList(el, list, who){
+  if (!S.fc){ el.innerHTML = `<div class="empty">Loading…</div>`; return; }
+  if (!list.length){ el.innerHTML = `<div class="empty">No changes suggested.${who === "me" ? " Your plan stays as it is." : ""}</div>`; return; }
+  el.innerHTML = list.map(c => {
+    const e = c.effect || {}, pend = c.status === "pending";
+    const eff = e.readiness_before != null ? `Day ${e.day}: ${e.readiness_before}% → ${e.readiness_after}%` : "";
+    const tg = who === "mc" && pend ? `<label class="tg" title="Try this change in the forecast"><input type="checkbox" data-t="${esc(c.id)}" ${S.test.has(c.id) ? "checked" : ""}>Try</label>` : "";
+    const tail = pend
+      ? `${tg}<button class="btn pri ic" data-id="${esc(c.id)}" data-d="accept" title="Accept" aria-label="Accept" ${S.busy?"disabled":""}>✓</button><button class="btn ic" data-id="${esc(c.id)}" data-d="reject" title="Reject" aria-label="Reject" ${S.busy?"disabled":""}>✕</button>`
+      : `<span class="done">Decision: <b class="${c.status === "reject" ? "no" : ""}">${c.status === "accept" ? "Accepted" : c.status === "reject" ? "Rejected" : esc(c.status)}</b>${c.provisional ? " · by commander, Earth confirms later" : ""}</span>`;
+    return `<div class="ci ${S.test.has(c.id) ? "tst" : ""}"><div class="tx"><h4>${chgTitle(c)}</h4><p>${chgWhy(c)}</p><p class="eff">${eff}</p></div><div class="ab">${tail}</div></div>`;
+  }).join("");
+  el.querySelectorAll("button[data-id]").forEach(b => b.onclick = () => decide(b.dataset.id, b.dataset.d));
+  el.querySelectorAll("input[data-t]").forEach(i => i.onchange = () => { i.checked ? S.test.add(i.dataset.t) : S.test.delete(i.dataset.t); whatIf(); });
+}
+function pick(el){
+  const crews = S.summary ? S.summary.crew.filter(c => c.status !== "unknown").map(c => c.crew) : [];
+  el.innerHTML = crews.map(c => `<button class="${c === S.sel ? "on" : ""}" data-c="${esc(c)}" aria-label="Crew ${esc(c)}">${esc(c)}</button>`).join("");
+  el.querySelectorAll("button").forEach(b => b.onclick = () => selectCrew(b.dataset.c));
+}
+const RSIG = [["resting_hr","Resting HR"," bpm",0],["hrv_ms","HRV"," ms",0],["skin_temp_c","Skin temp"," °C",1],["sleep_hours","Sleep"," h",1]];
+function renderRing(){
+  const t = S.twins[S.sel], sig = t && t.now && t.now.signals;
+  $("r-sub").textContent = `Crew ${S.sel || "–"} · live from the ring`;
+  $("r-sig").innerHTML = sig ? RSIG.map(([k, n, u, d]) => { const g = sig[k]; if (!g) return "";
+    const z = Math.abs(g.z || 0), c = z >= 2 ? C.red : z >= 1 ? C.amber : C.green;
+    return `<dt>${n}</dt><dd style="--c:${c}">${(+g.value).toFixed(d)}${u}<small>${esc(g.status || "normal")}</small></dd>`; }).join("") : "";
+}
+function renderSched(){
+  const days = Object.keys(S.sched3).map(Number).sort((a, b) => a - b);
+  $("m-ssub").textContent = `Crew ${S.sel || "–"} · next 3 days`;
+  const m = x => { const [h, mi] = x.split(":").map(Number); return h*60 + mi; }, T0 = 7*60, SPAN = 12*60;
+  const fd = S.fc && S.fc.forecast ? S.fc.forecast.days : [];
+  $("m-lanes").innerHTML = days.map(d => { const f = fd.find(x => x.day === d) || {};
+    return `<div class="lanes-row"><small>${dayWord(d)}<br><b style="color:${f.alert ? C.red : "#e8f4ff"}">${f.readiness ?? "–"}%</b></small><div class="lane">${(S.sched3[d] || []).map((t, i) => { const a = (m(t.start) - T0)/SPAN*100, w = t.minutes/SPAN*100;
+      return `<div class="tk ${t.critical ? "crit" : t.load === "rest" ? "rest" : ""}" style="left:${a}%;width:calc(${w}% - 2px);animation-delay:${i*.06}s" title="${esc(t.name)} · ${t.start} · ${t.minutes} min">${t.minutes >= 120 ? esc(t.name.replace(/\s*\(critical\)/i, "")) : ""}</div>`; }).join("")}</div></div>`; }).join("") || `<div class="empty">Loading…</div>`;
+}
+function renderViews(){
+  const sel = S.sel, cs = crewSum(sel), changes = S.fc && S.fc.changes ? S.fc.changes : [];
+  renderRing();
+  /* astronaut */
+  pick($("a-pick"));
+  $("a-sub").textContent = `Crew ${sel || "–"} · Today${S.summary ? " · Mission day " + S.summary.today : ""}`;
+  const r = todayR(sel), col = r == null ? C.cyan : r < 50 ? C.red : r < 70 ? C.amber : C.cyan;
+  $("a-big").innerHTML = ring(r, col) + `<div class="st"><b style="color:${col}">${r == null ? "–" : r < 50 ? "Take it easy" : r < 70 ? "Watch your energy" : "Good to go"}</b><small>Readiness today</small></div><button class="btn" id="ftBtn">Focus test</button>`;
+  $("ftBtn").onclick = () => { ftReset(); $("ft").classList.add("on"); };
+  const days = S.fc && S.fc.forecast && S.fc.forecast.days || [];
+  $("a-days").innerHTML = days.length ? days.map(d => {
+    const [w, c] = LVL[d.level] || ["–", C.cyan];
+    return `<div class="day ${d.alert ? "bad" : d.level === "high" ? "warn" : ""}"><small title="Day ${d.day}">${dayWord(d.day)}</small><b style="color:${c}">${d.readiness}%</b><span>${w}</span>${d.critical_tasks.length ? `<span class="t">${d.critical_tasks.map(esc).join("<br>")}</span>` : `<span>No critical tasks</span>`}</div>`;
+  }).join("") : `<div class="empty">Loading…</div>`;
+  chgList($("a-chg"), changes, "me");
+  /* mission control */
+  if (S.summary){
+    $("m-sub").textContent = `Mission day ${S.summary.today} · lowest readiness in 3 days`;
+    $("m-crew").innerHTML = S.summary.crew.map(c => {
+      const [w, col2] = LVL[c.level] || ["–", C.cyan], t = todayR(c.crew);
+      return `<tr class="r ${c.crew === sel ? "sel" : ""}" data-c="${esc(c.crew)}" tabindex="0"><td><b>${esc(c.crew)}</b></td><td>${t == null ? "–" : t + "%"}</td><td>${c.lowest_readiness ?? "–"}% · d${c.on_day ?? "–"}</td><td><span class="lv" style="--c:${col2}"><i></i>${c.alert ? "Alert" : w}</span></td><td>${c.pending_changes.length || "–"}</td></tr>`;
+    }).join("");
+    $("m-crew").querySelectorAll("tr").forEach(tr => tr.onclick = () => selectCrew(tr.dataset.c));
+    const L = S.link || {};
+    $("m-link").innerHTML = `<dt>Location</dt><dd>${esc((L.place || "iss").toUpperCase())}</dd>
+      <dt>Link</dt><dd class="${L.online ? "" : "am"}">${L.online ? "Online" : "Lost · working offline"}${L.delay_min ? ` · ${L.delay_min} min delay` : ""}</dd>
+      <dt>Approves now</dt><dd>${L.mars_mode ? "Commander · Earth confirms later" : "Mission Control"}</dd>
+      <dt>Waiting to sync</dt><dd>${S.summary.waiting_to_sync ?? 0}${L.last_sync ? ` · last ${esc(L.last_sync.slice(11,16))} UTC` : ""}</dd>`;
+  }
+  renderSched();
+  $("m-asub").textContent = `Crew ${sel || "–"}${cs && cs.on_day ? " · Day " + cs.on_day : ""} · tick Try to test a change`;
+  $("m-cnt").textContent = `${changes.filter(c => c.status === "pending").length} waiting`;
+  chgList($("m-chg"), changes, "mc");
+  const all = S.fc && S.fc.all_changes_effect;
+  $("m-tot").innerHTML = S.wi ? `<span>Tested ${S.test.size} change${S.test.size === 1 ? "" : "s"} · Day ${S.wi.day}</span><b>${S.wi.readiness_before}% → <em>${S.wi.readiness_after}%</em></b>`
+    : all && changes.length ? `<span>If all are accepted · Day ${all.day}</span><b>${all.readiness_before}% → <em>${all.readiness_after}%</em></b>` : "";
+  renderMC();
+  if (document.body.dataset.v === "astro" && S.sel && S.chatFor !== S.sel) initChat(); else novaAlert();
+}
+
+/* ---------- NOVA chat (astronaut) ---------- */
+function say(html, me, cls){ const c = $("a-chat"); c.insertAdjacentHTML("beforeend", `<div class="bub ${me ? "me" : ""} ${cls || ""}"><div class="who">${me ? "CREW " + esc(S.sel) : "NOVA"}</div>${html}</div>`); $("a-chatbox").scrollTop = 1e6; }
+/* NOVA speaks up by itself when a new risk appears for this astronaut */
+S.heard = S.heard || {};
+function novaAlert(){
+  if (document.body.dataset.v !== "astro" || S.chatFor !== S.sel || !S.fc || !S.fc.forecast) return;
+  const d = S.fc.forecast.days.find(x => x.alert); if (!d) return;
+  const key = `${S.sel}-${d.day}-${d.readiness}`; if (S.heard[S.sel] === key) return;
+  S.heard[S.sel] = key;
+  const task = (d.critical_tasks[0] || "a critical task").replace(/\s*\(critical\)/i, "");
+  const pend = (S.fc.changes || []).filter(c => c.status === "pending").length;
+  const txt = `Heads up. ${dayWord(d.day)} you have ${task}, and your readiness that day looks like ${d.readiness}%.` + (pend ? ` I suggested ${pend} change${pend === 1 ? "" : "s"} to protect you. Want to see them?` : "");
+  say(`${esc(txt)}${pend ? `<div class="facts"><button class="btn" id="a-see" style="height:30px;padding:0 12px;font-size:12.5px">Show changes</button></div>` : ""}`, false, "flag");
+  talk(txt, true);
+  const b = $("a-see"); if (b){ b.removeAttribute("id"); b.onclick = () => { const c = $("a-chg"); c.scrollIntoView({behavior:"smooth", block:"nearest"}); c.closest(".panel").animate([{boxShadow:"0 0 0 2px #3fd2ff, 0 0 30px rgba(63,210,255,.6)"},{boxShadow:"none"}], {duration:1400}); }; }
+}
+async function initChat(){
+  if (!S.sel || S.chatFor === S.sel) return;
+  S.chatFor = S.sel; $("a-chat").innerHTML = "";
+  try{ const m = await j("/nova/morning/" + S.sel); say(esc(m.question)); setTimeout(novaAlert, 6000); }catch(e){ say('<span style="color:#ffb4bd">The onboard server is not reachable.</span>'); }
+}
+async function answer(text){
+  say(esc(text), true);
+  try{
+    const r = await post("/nova/answer", {crew:S.sel, text}), a = r.answers || {}, f = [];
+    if (a.sleep_hours != null) f.push(`<span>sleep <b>${a.sleep_hours} h</b></span>`);
+    if (a.fatigue != null) f.push(`<span>fatigue <b>${a.fatigue}/5</b></span>`);
+    if (a.stress != null) f.push(`<span>stress <b>${a.stress}/5</b></span>`);
+    if (a.mood != null) f.push(`<span>mood <b>${esc(a.mood)}</b></span>`);
+    say(`Thanks. I added this to your forecast.${f.length ? `<div class="facts">${f.join("")}</div>` : ""}${r.nova_note ? `<div style="margin-top:6px">${esc(r.nova_note)}</div>` : ""}`);
+    await load();
+    if (S.fc && S.fc.summary){ say(`<b>Your day in short</b><br>${esc(S.fc.summary)}`); talk("Thanks. " + S.fc.summary); }
+    S.lastAnswer = {r, f};
+    if (r.hidden_fatigue && r.hidden_fatigue.flag) say(`Your answer sounds better than what the ring shows, so I sent a quiet note to Mission Control. Your score does not change.<ul>${r.hidden_fatigue.why.map(w => `<li>${esc(w)}</li>`).join("")}</ul>`, false, "flag");
+  }catch(e){ say('<span style="color:#ffb4bd">Not sent. The onboard server is not reachable.</span>'); }
+}
+/* pick the most human voice the browser has: Edge's "Natural" voices (Ava, Aria, Jenny...) sound like a person */
+function bestVoice(){
+  const v = speechSynthesis.getVoices().filter(x => /^en[-_]/i.test(x.lang));
+  const rank = x => (/natural/i.test(x.name) ? 100 : 0) + (/online/i.test(x.name) ? 20 : 0) + (/google/i.test(x.name) ? 15 : 0)
+    + (/ava|aria|jenny|emma|sonia|libby|michelle/i.test(x.name) ? 10 : 0) + (/en-us/i.test(x.lang) ? 5 : 0);
+  return v.sort((a, b) => rank(b) - rank(a))[0] || null;
+}
+if ("speechSynthesis" in window) speechSynthesis.onvoiceschanged = () => { S.voice = bestVoice(); };
+function talk(t, queue){ if (!("speechSynthesis" in window) || !t) return; S.lastTalk = t;
+  if (!queue) speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(t); S.voice = S.voice || bestVoice();
+  if (S.voice) u.voice = S.voice; u.lang = S.voice ? S.voice.lang : "en-US"; u.rate = 1; u.pitch = 1; speechSynthesis.speak(u); }
+$("a-listen").onclick = () => talk(S.lastTalk || (S.fc && S.fc.summary) || "Good morning.");
+$("a-ask").onsubmit = e => { e.preventDefault(); const t = $("a-in").value.trim(); if (t){ $("a-in").value = ""; answer(t); } };
+document.querySelectorAll("#a-quick button").forEach(b => b.onclick = () => answer(b.textContent));
+
+/* voice: speech to text + experimental tone check (only 4 numbers are sent, never audio) */
+let tone = null;
+function pitchHz(b, sr){
+  let e = 0; for (let i = 0; i < b.length; i++) e += b[i]*b[i];
+  if (e < 1e-4) return 0;
+  let best = 0, lag = 0;
+  for (let l = Math.floor(sr/400); l <= Math.floor(sr/70); l++){ let s = 0; for (let i = 0; i < b.length - l; i++) s += b[i]*b[i+l]; if (s > best){ best = s; lag = l; } }
+  return lag && best/e > 0.3 ? sr/lag : 0;
+}
+async function startTone(){
+  try{
+    const stream = await navigator.mediaDevices.getUserMedia({audio:true}), ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const an = ctx.createAnalyser(); an.fftSize = 2048; ctx.createMediaStreamSource(stream).connect(an);
+    const buf = new Float32Array(an.fftSize), frames = [];
+    const id = setInterval(() => { an.getFloatTimeDomainData(buf); let s = 0; for (let i = 0; i < buf.length; i++) s += buf[i]*buf[i];
+      frames.push({db:20*Math.log10(Math.sqrt(s/buf.length) + 1e-9), f0:pitchHz(buf, ctx.sampleRate)}); }, 50);
+    tone = {stream, ctx, id, frames, t0:performance.now()};
+  }catch(e){ tone = null; }
+}
+function stopTone(words){
+  if (!tone) return null;
+  const t = tone; tone = null; clearInterval(t.id); t.stream.getTracks().forEach(k => k.stop()); t.ctx.close();
+  const secs = (performance.now() - t.t0)/1000, fr = t.frames;
+  if (secs < 2 || fr.length < 20 || !words) return null;
+  const peak = Math.max(...fr.map(f => f.db)), floor = Math.max(-60, peak - 28), sp = fr.filter(f => f.db >= floor), vo = sp.filter(f => f.f0 > 0);
+  if (vo.length < 5) return null;
+  const st = vo.map(f => 12*Math.log2(f.f0/100)), m = st.reduce((a, b) => a + b, 0)/st.length;
+  return {speech_rate:Math.round(words/(secs/60)), pause_ratio:+(1 - sp.length/fr.length).toFixed(3),
+    pitch_var:+Math.sqrt(st.reduce((a, b) => a + (b - m)**2, 0)/st.length).toFixed(3), loudness_db:+(sp.reduce((a, f) => a + f.db, 0)/sp.length).toFixed(2)};
+}
+async function voiceNote(feat){
+  if (!feat) return;
+  try{ const r = await post("/voice", {crew:S.sel, features:feat}); if (!r.ok) return;
+    say(`${r.flag ? `Your voice sounds more tired than your normal, so I sent a quiet note to Mission Control. Your score does not change.<ul>${r.cues.map(c => `<li>${esc(c)}</li>`).join("")}</ul>`
+      : r.cues.length ? `One small change in your voice (${esc(r.cues[0].toLowerCase())}). That alone is not a concern.` : "Your voice sounds like your normal."}
+      <div class="facts"><span>speed <b>${r.today.speech_rate} wpm</b></span><span>pauses <b>${Math.round(r.today.pause_ratio*100)}%</b></span></div>`, false, r.flag ? "flag" : "");
+  }catch(e){}
+}
+(() => { const SR = window.SpeechRecognition || window.webkitSpeechRecognition; if (!SR) return;
+  const b = $("a-mic"); b.hidden = false; let rec = null;
+  b.onclick = () => { if (rec){ rec.stop(); return; }
+    if ("speechSynthesis" in window) speechSynthesis.cancel(); rec = new SR(); rec.lang = "en-US"; rec.interimResults = true; startTone();
+    rec.onresult = e => { $("a-in").value = [...e.results].map(x => x[0].transcript).join(" "); };
+    rec.onend = () => { b.classList.remove("on"); b.textContent = "Speak"; rec = null; const t = $("a-in").value.trim();
+      const feat = stopTone(t.split(/\s+/).filter(Boolean).length); if (t){ $("a-in").value = ""; answer(t).then(() => voiceNote(feat)); } };
+    rec.onerror = () => { $("a-in").placeholder = "Voice needs a microphone. Type instead"; };
+    b.classList.add("on"); b.textContent = "Stop"; rec.start(); };
+})();
+
+/* ---------- focus test ---------- */
+let ft = null;
+function ftReset(){ ft = {n:0, times:[], state:"idle", timer:null}; $("fpad").innerHTML = "Tap to start"; $("ftMsg").textContent = "Tap the pad as soon as the circle appears"; }
+function ftNext(){ ft.state = "wait"; $("fpad").innerHTML = "Wait for the circle";
+  ft.timer = setTimeout(() => { ft.state = "go"; ft.t0 = performance.now(); $("fpad").innerHTML = '<span class="fdot"></span>'; }, 900 + Math.random()*1800); }
+$("fpad").onclick = async () => {
+  if (ft.state === "idle"){ ftNext(); return; }
+  if (ft.state === "wait"){ clearTimeout(ft.timer); $("ftMsg").textContent = "Too early, wait for the circle"; ftNext(); return; }
+  if (ft.state === "go"){
+    ft.times.push(performance.now() - ft.t0); ft.n++;
+    if (ft.n < 5){ $("ftMsg").textContent = `${ft.n} of 5`; ftNext(); return; }
+    ft.state = "done"; const mean = ft.times.reduce((a, b) => a + b, 0)/ft.times.length;
+    try{ const r = await post("/focus", {crew:S.sel, mean_rt_ms:mean});
+      $("fpad").innerHTML = `<span><b style="font-size:26px">${r.mean_rt_ms} ms</b><br>your normal ${Math.round(r.normal_ms)} ms</span>`; $("ftMsg").textContent = "Saved for today. The forecast is updated"; load(); }
+    catch(e){ $("ftMsg").textContent = "Not saved. The onboard server is not reachable"; }
+  }
+};
+$("ftClose").onclick = () => { clearTimeout(ft && ft.timer); $("ft").classList.remove("on"); };
+
+/* ---------- Mission Control sections ---------- */
+S.sec = "overview";
+document.querySelectorAll("#rail button").forEach(b => b.onclick = () => {
+  S.sec = b.dataset.s; document.body.dataset.s = S.sec;
+  document.querySelectorAll("#rail button").forEach(x => x.classList.toggle("on", x === b));
+  renderViews();
+});
+const SIG8 = [["sleep_hours","Sleep"," h",1],["sleep_midpoint","Sleep timing"," h",1],["resting_hr","Resting HR"," bpm",0],["hrv_ms","HRV"," ms",0],
+  ["skin_temp_c","Skin temp"," °C",2],["active_minutes","Activity"," min",0],["hours_awake","Hours awake"," h",1],["focus_rt_ms","Focus reaction"," ms",0]];
+const KIND = {decision:"Decision", hidden_fatigue:"Hidden fatigue note", voice_fatigue:"Voice tone note", checkin:"Check-in", focus:"Focus test"};
+const desc = i => i.kind === "decision" ? `${i.data.by || ""} ${i.data.decision} · ${i.data.task || i.data.change_id}${i.data.provisional ? " (temporary)" : ""}`
+  : i.kind === "hidden_fatigue" ? `Crew ${i.data.crew}: "${i.data.text}"` : i.kind === "voice_fatigue" ? `Crew ${i.data.crew}: ${(i.data.cues || []).join(", ").toLowerCase()}` : (i.data && i.data.crew ? "Crew " + i.data.crew : "");
+function renderMC(){
+  const sel = S.sel, t = S.twins[sel], sig = t && t.now && t.now.signals;
+  /* rail badges */
+  $("rb-ov").textContent = S.summary ? (S.summary.crew.filter(c => c.alert).length || "") : "";
+  $("rb-earth").textContent = S.inbox && S.inbox.to_confirm.length ? S.inbox.to_confirm.length : "";
+  /* twin */
+  $("t-rsub").textContent = `Crew ${sel || "–"} · measures every night`;
+  $("t-sub").textContent = `Crew ${sel || "–"} · today vs own normal`;
+  $("t-sig").innerHTML = sig ? SIG8.map(([k, n, u, d]) => { const g = sig[k]; if (!g) return "";
+    const z = Math.abs(g.z || 0), c = z >= 2 ? C.red : z >= 1 ? C.amber : C.green;
+    return `<tr><td>${n}</td><td><b>${(+g.value).toFixed(d)}</b>${u}</td><td>${g.normal != null ? (+g.normal).toFixed(d) : "–"}</td><td style="--c:${c}">${esc((g.status || "normal").replace(/ normal$/,"").replace(/^./, m => m.toUpperCase()))}</td></tr>`; }).join("") : "";
+  const pb = t && t.personal_baseline;
+  $("t-base").innerHTML = pb ? SIG8.map(([k, n, u, d]) => { const b = pb[k]; if (!b) return "";
+    return `<tr><td>${n}</td><td>${(+b.mean).toFixed(d)}${u}</td><td>${(b.mean - b.sd).toFixed(d)}–${(b.mean + b.sd).toFixed(d)}</td></tr>`; }).join("") : "";
+  const r = todayR(sel), off = sig ? Object.values(sig).filter(g => Math.abs(g.z || 0) >= 1).length : 0, col = r == null ? C.cyan : r < 50 ? C.red : r < 70 ? C.amber : C.cyan;
+  $("t-big").innerHTML = ring(r, col) + `<div class="st"><b style="color:${col}">${off} of ${sig ? Object.keys(sig).length : 8} signals off normal</b><small>Readiness today · the forecast starts from here</small></div>`;
+  /* forecast */
+  $("f-sub").textContent = `Crew ${sel || "–"} · past 7 and next 3 days · model estimate`;
+  $("f-wi").textContent = S.wi ? `Tested: day ${S.wi.day} ${S.wi.readiness_before}% → ${S.wi.readiness_after}%` : "Try a change →";
+  renderChart("chart2");
+  const days = S.fc && S.fc.forecast && S.fc.forecast.days || [];
+  const tasks = days.flatMap(d => (S.sched3[d.day] || []).filter(x => x.critical).map(x => ({...x, r:d.readiness, lv:d.level, alert:d.alert})));
+  $("f-tasks").innerHTML = tasks.length ? tasks.map(x => { const [w, c] = LVL[x.lv] || ["–", C.cyan];
+    return `<div class="ci"><div class="tx"><h4>${esc(x.name)}</h4><p>${dayWord(x.day)} · ${x.start} · ${x.minutes} min</p></div><div class="ab"><span style="color:${c};font-weight:600;white-space:nowrap">${x.r}% · ${x.alert ? "At risk" : w}</span></div></div>`; }).join("")
+    : `<div class="empty">No critical tasks in the next 3 days.</div>`;
+  /* earth */
+  const L = S.link || {};
+  document.querySelectorAll("#e-place button").forEach(b => { b.classList.toggle("on", b.dataset.p === (L.place || "iss")); b.onclick = () => setLink({place:b.dataset.p}); });
+  document.querySelectorAll("#e-online button").forEach(b => { b.classList.toggle("on", (b.dataset.o === "1") === !!L.online); b.classList.toggle("off", b.dataset.o === "0"); b.onclick = () => setLink({online:b.dataset.o === "1"}); });
+  $("e-sync").onclick = async () => { try{ await post("/sync", {}); }catch(e){} load(); };
+  const out = S.outbox || [];
+  $("e-out").innerHTML = out.length ? out.slice().reverse().slice(0, 12).map(i => `<div class="ci"><div class="tx"><h4>${KIND[i.kind] || esc(i.kind)}</h4><p>${esc(desc(i))}</p></div><div class="ab"><span class="k" style="color:${i.synced ? C.green : C.amber}">${i.synced ? "Sent" : "Waiting"}</span></div></div>`).join("")
+    : `<div class="empty">Nothing yet. Decisions and notes land here.</div>`;
+  const ib = S.inbox || {to_confirm:[], received:[]};
+  $("e-conf").innerHTML = ib.to_confirm.length ? ib.to_confirm.map(c => `<div class="ci"><div class="tx"><h4>${chgTitle(c)}</h4><p>Commander accepted · temporary until Earth answers</p></div><div class="ab">
+      <button class="btn pri" data-cf="${esc(c.id)}" data-ok="1" ${L.online ? "" : "disabled"}>Confirm</button><button class="btn" data-cf="${esc(c.id)}" data-ok="0" ${L.online ? "" : "disabled"}>Overrule</button></div></div>`).join("")
+    : `<div class="empty">Nothing to confirm. In Mars mode the commander's decisions arrive here after sync.</div>`;
+  $("e-conf").querySelectorAll("[data-cf]").forEach(b => b.onclick = async () => { try{ await post("/mission-control/confirm", {change_id:b.dataset.cf, confirm:b.dataset.ok === "1", note:""}); }catch(e){ alert("No link to Earth yet."); } load(); });
+  $("e-got").innerHTML = ib.received.length ? ib.received.slice().reverse().slice(0, 12).map(i => `<div class="ci"><div class="tx"><h4>${KIND[i.kind] || esc(i.kind)}</h4><p>${esc(desc(i))}</p></div><div class="ab"><span class="k">${i.synced ? new Date(i.synced).toISOString().slice(11,16) + " UTC" : ""}</span></div></div>`).join("")
+    : `<div class="empty">Nothing received yet.</div>`;
+}
+async function setLink(b){ try{ await post("/link", b); }catch(e){} load(); }
+
+/* ---------- NOVA through the ring ----------
+   The astronaut does not open a screen: NOVA asks out loud, the astronaut taps the ring and answers.
+   The ring's microphone is simulated here with the computer's microphone. Same answer path as typing. */
+S.asked = S.asked || {};
+const RC = {open:false, rec:null};
+async function ringAsk(){
+  if (!S.sel || S.asked[S.sel] === "ring") return;
+  let q = "Good morning. How did you sleep, and how are you feeling today?";
+  try{ q = (await j("/nova/morning/" + S.sel)).question; }catch(e){}
+  S.asked[S.sel] = "ring";
+  $("rc-who").textContent = `NOVA · THROUGH CREW ${S.sel}'S RING`;
+  $("rc-q").textContent = q; $("rc-live").textContent = "Tap the ring and answer by voice. No screen needed.";
+  $("rcall").classList.remove("rec"); $("rcall").classList.add("on"); RC.open = true;
+  $("rc-btn").textContent = "Tap ring to answer"; $("rc-btn").disabled = false;
+  // browsers only let a page speak after the first click, so wait for it if needed
+  if (navigator.userActivation && !navigator.userActivation.hasBeenActive)
+    addEventListener("pointerdown", e => { if (RC.open && !RC.rec && !e.target.closest("#rcall")) talk(q); }, {once:true});
+  else talk(q);
+}
+function ringListen(){
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (RC.rec){ RC.rec.stop(); return; }
+  if (!SR){ $("rc-live").textContent = "This browser has no voice input. Use the Astronaut screen to type."; return; }
+  if ("speechSynthesis" in window) speechSynthesis.cancel();
+  const rec = RC.rec = new SR(); rec.lang = "en-US"; rec.interimResults = true; startTone();
+  let said = "";
+  rec.onresult = e => { said = [...e.results].map(x => x[0].transcript).join(" "); $("rc-live").textContent = "“" + said + "”"; };
+  rec.onerror = () => { $("rc-live").textContent = "Microphone not available. Allow the mic and try again."; };
+  rec.onend = async () => {
+    RC.rec = null; $("rcall").classList.remove("rec"); const t = said.trim();
+    const feat = stopTone(t.split(/\s+/).filter(Boolean).length);
+    if (!t){ $("rc-btn").textContent = "Tap ring to answer"; return; }
+    $("rc-btn").textContent = "Sending…"; $("rc-btn").disabled = true;
+    S.chatFor = S.sel; if (!$("a-chat").children.length) say(esc($("rc-q").textContent));
+    await answer(t); voiceNote(feat);
+    const f = S.lastAnswer ? S.lastAnswer.f : [];
+    $("rc-q").textContent = "Got it. I added this to your forecast.";
+    $("rc-live").innerHTML = f.length ? `<span class="facts">${f.join("")}</span>` : "";
+    $("rc-btn").textContent = "Done"; $("rc-btn").disabled = false;
+    $("rc-btn").onclick = closeRing;
+    setTimeout(() => { if (!RC.rec) closeRing(); }, 14000);
+  };
+  $("rcall").classList.add("rec"); $("rc-btn").textContent = "Listening… tap to stop"; $("rc-live").textContent = "Listening…";
+  rec.start();
+}
+function closeRing(){ $("rcall").classList.remove("on"); RC.open = false; $("rc-btn").onclick = ringListen; }
+$("rc-btn").onclick = ringListen; $("rc-ring").onclick = () => RC.open && $("rc-btn").textContent !== "Done" ? ringListen() : null; $("rc-x").onclick = closeRing;
+
+setView(); load().then(() => setTimeout(ringAsk, 1800)); setInterval(load, 30000);
+
+/* ---------- ISS moving along the orbit arc ---------- */
+const orb = $("orb"), iss = $("iss"), issIc = $("issic"), OL = orb.getTotalLength(), ORBIT_S = 80;
+function placeISS(f){
+  const a = orb.getPointAtLength(f*OL), b = orb.getPointAtLength(Math.min(OL, f*OL + 4));
+  const x = a.x/1000*innerWidth, y = a.y/1000*innerHeight;
+  const ang = Math.atan2((b.y-a.y)/1000*innerHeight, (b.x-a.x)/1000*innerWidth || 1e-6)*180/Math.PI;
+  iss.style.transform = `translate(${(x-23).toFixed(1)}px,${(y-15).toFixed(1)}px)`;
+  issIc.style.transform = `rotate(${ang.toFixed(1)}deg)`;
+}
+if (RM) placeISS(.17);
+else { const t0 = performance.now() - .17*ORBIT_S*1000; const step = now => { placeISS(((now - t0)/1000 % ORBIT_S)/ORBIT_S); requestAnimationFrame(step); }; requestAnimationFrame(step); }
+addEventListener("resize", () => RM && placeISS(.17));
+
+/* ---------- WebGL background: stars, Earth limb, city lights, atmosphere ---------- */
+const cv = $("bg"), gl = cv.getContext("webgl", {antialias:false, alpha:false, powerPreference:"low-power"});
+if (!gl){ document.body.classList.add("fallback"); return; }
+const VS = "attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}";
+const FS = `precision highp float;
+uniform vec2 uR;uniform float uT,uD;
+float h(vec2 p){p=fract(p*vec2(123.34,456.21));p+=dot(p,p+45.32);return fract(p.x*p.y);}
+float h3(vec3 p){p=fract(p*.3183099+.1);p*=17.;return fract(p.x*p.y*p.z*(p.x+p.y+p.z));}
+float n2(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(h(i),h(i+vec2(1,0)),f.x),mix(h(i+vec2(0,1)),h(i+1.),f.x),f.y);}
+float n3(vec3 x){vec3 i=floor(x),f=fract(x);f=f*f*(3.-2.*f);
+ return mix(mix(mix(h3(i),h3(i+vec3(1,0,0)),f.x),mix(h3(i+vec3(0,1,0)),h3(i+vec3(1,1,0)),f.x),f.y),
+            mix(mix(h3(i+vec3(0,0,1)),h3(i+vec3(1,0,1)),f.x),mix(h3(i+vec3(0,1,1)),h3(i+1.),f.x),f.y),f.z);}
+float fb3(vec3 p){float s=0.,a=.5;for(int i=0;i<5;i++){s+=a*n3(p);p=p*2.02+vec3(17.1,9.2,4.7);a*=.5;}return s;}
+float fb2(vec2 p){float s=0.,a=.5;for(int i=0;i<4;i++){s+=a*n2(p);p=p*2.03+vec2(17.1,9.2);a*=.5;}return s;}
+vec3 rot(vec3 v,vec3 k,float a){float c=cos(a),s=sin(a);return v*c+cross(k,v)*s+k*dot(k,v)*(1.-c);}
+float star(vec2 p,float sc,float th,float t){vec2 sp=p/sc,c=floor(sp),f=fract(sp)-.5;float r=h(c);if(r<th)return 0.;
+ vec2 o=(vec2(h(c+1.3),h(c+2.7))-.5)*.5;float tw=.5+.5*sin(t*(.6+2.8*h(c+9.1))+r*90.);
+ return (.25+.75*h(c+7.))*tw*tw*smoothstep(.5,0.,length(f-o)*2.);}
+void main(){
+ vec2 p=gl_FragCoord.xy/uD;p.y=uR.y-p.y;float W=uR.x,H=uR.y;
+ vec3 col=vec3(.004,.010,.020)+vec3(.006,.02,.045)*fb2(p/H*2.2+vec2(uT*.004,0.))*(.35+p.y/H);
+ col+=vec3(.70,.85,1.)*star(p+vec2(uT*1.6,0.),2.6,.9955,uT)*.9;
+ col+=vec3(.80,.92,1.)*star(p+vec2(uT*.6,0.),7.,.9962,uT*.8)*1.1;
+ col+=vec3(1.,.95,.85)*star(p+vec2(uT*.25,0.),16.,.9975,uT*.5)*1.3;
+ /* camera 0.05 radii above a unit sphere, pitched 10.3 deg down */
+ float k=.93,cp=cos(.155),spi=sin(.155);
+ vec3 r0=normalize(vec3((p.x-W*.5)/H*k,(H*.5-p.y)/H*k,-1.));
+ vec3 rd=vec3(r0.x,r0.y*cp+r0.z*spi,-r0.y*spi+r0.z*cp);
+ vec3 ro=vec3(0.,1.05,0.);
+ float b=dot(ro,rd),c=dot(ro,ro)-1.,disc=b*b-c;
+ vec3 sun=normalize(vec3(.6,-.45,-.66));
+ if(disc>0.&&b<0.){
+  float t=-b-sqrt(disc);vec3 n=ro+rd*t;
+  float mu=clamp(dot(n,-rd),0.,1.);
+  vec3 q=rot(n,normalize(vec3(.12,.2,1.)),-uT*6.2831853/150.);
+  float cont=fb3(q*3.2+3.);
+  float land=smoothstep(.45,.53,cont);
+  float cl=smoothstep(.47,.74,fb3(q*vec3(4.5,8.,4.5)+vec3(uT*.012,0.,0.)));
+  cl*=.55+.7*fb3(q*26.+5.);cl=clamp(cl,0.,1.);
+  vec3 e=mix(vec3(.010,.032,.072),vec3(.026,.046,.066),land);
+  float lon=atan(q.z,q.x),lat=asin(clamp(q.y,-1.,1.));
+  float dens=land*smoothstep(.36,.62,fb3(q*7.+11.));
+  vec2 base=vec2(lon*cos(lat),lat);
+  /* two layers of city-light speckles: large towns + fine scatter */
+  vec2 lm=base*230.;vec2 lc=floor(lm);float lr=h(lc);
+  vec2 lf=fract(lm)-.5-(vec2(h(lc+1.),h(lc+2.))-.5)*.55;
+  float lt=step(1.-dens*.9,lr)*smoothstep(.36,0.,length(lf))*(.5+.5*h(lc+5.));
+  vec2 lm2=base*520.;vec2 lc2=floor(lm2);float lr2=h(lc2+31.);
+  vec2 lf2=fract(lm2)-.5-(vec2(h(lc2+3.),h(lc2+4.))-.5)*.55;
+  lt+=step(1.-dens*.75,lr2)*smoothstep(.4,0.,length(lf2))*(.35+.4*h(lc2+6.));
+  float glow=dens*(.2+fb3(q*36.+2.))*.55;
+  float day=dot(n,sun),night=smoothstep(.12,-.15,day);
+  float vis=smoothstep(.0,.04,mu);
+  e+=vec3(1.,.64,.3)*(lt*2.4+glow*.8)*(1.-cl*.75)*night*vis;
+  e+=vec3(.05,.16,.3)*max(day,0.)*(1.+land)*.8;
+  e=mix(e,vec3(.12,.2,.31)*(.8+max(day+.2,0.)),cl*.6);
+  float haze=pow(1.-mu,3.);
+  e=mix(e,vec3(.08,.34,.82),haze*.6);
+  e+=vec3(.1,.45,1.)*pow(1.-mu,9.)*.8*(.7+.6*max(dot(n,sun)+.3,0.))+vec3(.55,.88,1.)*pow(1.-mu,40.)*1.3;
+  col=e;
+ }else{
+  float dc=b<0.?sqrt(max(dot(ro,ro)-b*b,0.)):length(ro);
+  float dd=max(dc-1.,0.)*H/.3;
+  float sd=.75+.5*max(rd.x,0.);
+  col+=(vec3(.35,.76,1.)*exp(-dd/2.5)*1.+vec3(.1,.45,.95)*exp(-dd/16.)*.6+vec3(.05,.22,.55)*exp(-dd/90.)*.4+vec3(.03,.1,.25)*exp(-dd/380.)*.3)*sd;
+ }
+ vec2 g=(p-vec2(W*.49,H*.9))/vec2(W*.26,H*.13);col+=vec3(.03,.16,.36)*exp(-dot(g,g));
+ vec2 v=p/uR-.5;col*=1.-dot(v,v)*.45;
+ gl_FragColor=vec4(col,1.);
+}`;
+const sh = (t, s) => { const o = gl.createShader(t); gl.shaderSource(o, s); gl.compileShader(o); return o; };
+const pr = gl.createProgram(); gl.attachShader(pr, sh(gl.VERTEX_SHADER, VS)); gl.attachShader(pr, sh(gl.FRAGMENT_SHADER, FS)); gl.linkProgram(pr);
+if (!gl.getProgramParameter(pr, gl.LINK_STATUS)){ document.body.classList.add("fallback"); return; }
+gl.useProgram(pr);
+gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
+gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1,3,-1,-1,3]), gl.STATIC_DRAW);
+const loc = gl.getAttribLocation(pr, "p"); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+const uR = gl.getUniformLocation(pr, "uR"), uT = gl.getUniformLocation(pr, "uT"), uD = gl.getUniformLocation(pr, "uD");
+let dpr = 1;
+function size(){ dpr = Math.min(devicePixelRatio || 1, 1.25); cv.width = innerWidth*dpr; cv.height = innerHeight*dpr; gl.viewport(0, 0, cv.width, cv.height); draw(0); }
+function draw(t){ gl.uniform2f(uR, innerWidth, innerHeight); gl.uniform1f(uD, dpr); gl.uniform1f(uT, t); gl.drawArrays(gl.TRIANGLES, 0, 3); }
+addEventListener("resize", size); size();
+if (!RM){
+  const t0 = performance.now(); let last = 0;
+  const loop = now => { requestAnimationFrame(loop); if (now - last < 15 || document.hidden) return; last = now; draw((now - t0)/1000 + 20); };
+  requestAnimationFrame(loop);
+} else draw(20);
+})();
+</script>
+</body>
+</html>
