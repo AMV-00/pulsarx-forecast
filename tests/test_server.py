@@ -95,7 +95,7 @@ def test_digital_twin():
 def test_model_view_is_checkable():
     client.post("/simulate")
     m = client.get("/model/B").json()
-    assert len(m["ring"]) == 14 and m["max_points"] == 12
+    assert len(m["ring"]) == 14 and m["max_points"] == 14
     for d in m["days"]:
         assert d["score"] == sum(d["points"].values())
-        assert d["readiness"] == round(100 - 100 * d["score"] / 12)
+        assert d["readiness"] == round(100 - 100 * d["score"] / m["max_points"])

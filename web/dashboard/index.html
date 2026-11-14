@@ -138,6 +138,7 @@ main{padding:24px 32px 40px;display:flex;flex-direction:column;gap:24px;min-widt
 .ctrl{grid-column:2/4;display:flex;flex-wrap:wrap;align-items:center;gap:8px}
 .btn{background:transparent;border:1px solid var(--hair2);border-radius:8px;padding:4px 12px;font-size:.8rem;transition:border-color .15s var(--ease),background-color .15s var(--ease)}
 .btn:hover{border-color:var(--t3)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
 .btn.main{background:var(--t1);color:#151a26;border-color:var(--t1)}
 .pick{display:inline-flex;align-items:center;gap:6px;font-size:.8rem;color:var(--t2);margin-left:auto;cursor:pointer}
 .pick input{accent-color:var(--acc)}
@@ -156,7 +157,7 @@ footer{font-size:.75rem;color:var(--t3)}
 
 
 /* story steps */
-.flow{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.flow{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
 .flow a{display:grid;grid-template-columns:28px 1fr;gap:4px 10px;align-items:center;padding:12px;border:1px solid var(--hair);border-radius:12px;background:var(--s1);color:inherit;text-decoration:none;position:relative;transition:border-color .15s var(--ease)}
 .flow a:hover{border-color:var(--hair2)}
 .flow a:not(:last-child)::after{content:"";position:absolute;right:-7px;top:50%;width:6px;height:1px;background:var(--t3)}
@@ -191,6 +192,31 @@ footer{font-size:.75rem;color:var(--t3)}
 @media (max-width:1180px){.flow{grid-template-columns:repeat(2,minmax(0,1fr))}.flow a::after{display:none}.s1grid,.s2grid{grid-template-columns:1fr}.ringbox iframe{max-width:320px;margin:0 auto}}
 @media (max-width:560px){.flow{grid-template-columns:1fr}.raw{grid-template-columns:repeat(2,minmax(0,1fr))}.raw div{border-left:0!important;padding-left:0!important;border-top:1px solid var(--hair)}}
 
+/* onboard / Earth link */
+.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;background:var(--s2);border-radius:8px;padding:2px}
+.seg button{background:transparent;border:0;border-radius:6px;padding:4px 0;font-size:.75rem;color:var(--t2)}
+.seg button.on{background:var(--s3);color:var(--t1)}
+.linkst{display:flex;align-items:center;gap:6px}
+.marsb{display:none;font-size:.75rem;color:var(--warn);border:1px solid rgba(217,166,72,.4);border-radius:6px;padding:4px 8px;line-height:1.35}
+.marsb.on{display:block}
+.banner{border:1px solid rgba(217,166,72,.4);background:rgba(217,166,72,.08);color:var(--t1);border-radius:10px;padding:10px 12px;margin:0 0 16px;font-size:.85rem}
+.banner b{color:var(--warn);font-weight:500}
+.flag{border:1px solid rgba(217,166,72,.45);background:rgba(217,166,72,.08)}
+.flag ul{margin:6px 0 0;padding-left:18px;color:var(--t2);font-size:.82rem}
+.s5grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
+.qi{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:baseline;padding:8px 0;border-top:1px solid var(--hair);font-size:.85rem}
+.qi:first-child{border-top:0}
+.qi .k{font:500 .72rem var(--mono);color:var(--t3)}
+.qi .st{font:500 .75rem var(--mono);white-space:nowrap}
+.empty{color:var(--t3);font-size:.85rem;margin:0}
+.earth{display:flex;justify-content:space-between;align-items:baseline;margin:0 0 12px;font-size:.85rem;color:var(--t2)}
+/* focus test */
+.ftest{position:fixed;inset:0;background:rgba(10,14,22,.72);display:none;place-items:center;z-index:50}
+.ftest.on{display:grid}
+.fbox{background:var(--s1);border:1px solid var(--hair2);border-radius:16px;padding:24px;width:min(440px,92vw);text-align:center}
+.fpad{height:200px;border-radius:12px;background:var(--s2);margin:16px 0;display:grid;place-items:center;cursor:pointer;user-select:none;color:var(--t2)}
+.fdot{width:64px;height:64px;border-radius:50%;background:var(--acc)}
+@media (max-width:900px){.s5grid{grid-template-columns:1fr}}
 @media (max-width:1180px){.top{grid-template-columns:1fr}.ringp{flex-direction:row}.ringp iframe{width:260px;flex:none}.ringcap{border-top:0;flex-direction:column;justify-content:center;gap:4px}.sigs{grid-template-columns:1fr}}
 @media (max-width:900px){.shell{grid-template-columns:1fr}aside{position:static;height:auto;border-right:0;border-bottom:1px solid var(--hair)}.bottom{grid-template-columns:1fr}main{padding:20px 16px 32px}}
 @media (max-width:560px){.ringp{flex-direction:column}.ringp iframe{width:100%}.sig{grid-template-columns:96px 64px minmax(0,1fr)}.sig .st{display:none}}
@@ -211,6 +237,14 @@ footer{font-size:.75rem;color:var(--t3)}
       <div class="row"><span>Report to Mission Control</span><span id="pending">0 to review</span></div>
     </div>
     <div class="meta">
+      <div class="glabel" style="padding:0">Earth link · simulate the mission</div>
+      <div class="seg" id="place"><button data-p="iss">ISS</button><button data-p="moon">Moon</button><button data-p="mars">Mars</button></div>
+      <label class="switch"><span class="linkst"><span class="dot" id="linkDot"></span><span id="linkTxt">Link online</span></span><input type="checkbox" id="online" checked></label>
+      <div class="row"><span>Waiting to send</span><span class="num" id="waiting">0</span></div>
+      <div class="row"><span>One-way delay</span><span class="num" id="delay">0 s</span></div>
+      <div class="marsb" id="marsb">Mars mode: the commander approves now, Mission Control confirms later</div>
+    </div>
+    <div class="meta">
       <label class="switch">NOVA phrasing by Claude <input type="checkbox" id="useClaude"></label>
       <a class="textbtn" href="../model.html?crew=B" target="_blank" rel="noopener">How the model works</a>
       <a class="textbtn" href="../ring/" target="_blank" rel="noopener">Open the ring in 3D</a>
@@ -226,10 +260,11 @@ footer{font-size:.75rem;color:var(--t3)}
     </div>
 
     <nav class="flow" aria-label="How FORECAST works">
-      <a href="#s1"><span class="n">1</span><b>Ring measures</b><small id="f1">6 signals every night</small></a>
+      <a href="#s1"><span class="n">1</span><b>Ring measures</b><small id="f1">7 signals every day</small></a>
       <a href="#s2"><span class="n">2</span><b>Digital Twin compares</b><small id="f2">Today vs personal normal</small></a>
       <a href="#s3" id="f3a"><span class="n">3</span><b>Forecast warns</b><small id="f3">Next 3 days</small></a>
       <a href="#s4"><span class="n">4</span><b>NOVA suggests, you decide</b><small id="f4">Changes to approve</small></a>
+      <a href="#s5"><span class="n">5</span><b>Syncs with Earth</b><small id="f5">When the link is up</small></a>
     </nav>
 
     <section class="step" id="s1">
@@ -243,6 +278,7 @@ footer{font-size:.75rem;color:var(--t3)}
           <div class="ptitle"><h2 id="rawTitle">Last reading</h2><span>Raw values, before any model</span></div>
           <div class="raw" id="raw"></div>
           <p class="how" id="rawSrc" style="color:var(--t2)"></p>
+          <p class="how"><button class="btn" id="ftBtn" type="button">Take today's focus test</button> 5 taps, about 30 seconds. Slower reactions than your own normal add points to the forecast</p>
           <p class="how">Light sensor for heart rate and HRV, thermometer for skin temperature, motion sensor for sleep and activity. Data stays onboard and syncs to Mission Control when the link returns</p>
         </div>
       </div>
@@ -291,8 +327,31 @@ footer{font-size:.75rem;color:var(--t3)}
         </div>
       </div>
     </section>
+    <section class="step" id="s5">
+      <div class="shead"><span class="n">5</span><h2>Syncs with Earth</h2><p>Everything works onboard. Decisions and alerts wait in the outbox and go to Mission Control when the link returns. Turn the link off or pick Mars on the left to see it</p></div>
+      <div class="s5grid">
+        <div class="panel">
+          <div class="ptitle"><h2>Onboard outbox</h2><span id="obInfo"></span></div>
+          <div id="outbox"></div>
+        </div>
+        <div class="panel">
+          <div class="ptitle"><h2>Mission Control, Earth</h2><span id="mcInfo"></span></div>
+          <div id="mcConfirm"></div>
+          <div id="mcGot"></div>
+        </div>
+      </div>
+    </section>
     <footer>FORECAST · PulsarX · NASA Space Apps 2026 · transparent points model · real Fitbit data (Furberg et al. 2016) + simulated HRV, temperature and schedule</footer>
   </main>
+</div>
+
+<div class="ftest" id="ft" role="dialog" aria-modal="true" aria-labelledby="ftTitle">
+  <div class="fbox">
+    <h2 id="ftTitle" style="font:500 1.1rem var(--sans);margin:0">Focus test</h2>
+    <p class="how" id="ftMsg" style="margin:6px 0 0">Tap the pad as soon as the circle appears</p>
+    <div class="fpad" id="fpad">Tap to start</div>
+    <div style="display:flex;justify-content:center;gap:8px"><button class="btn" id="ftClose" type="button">Close</button></div>
+  </div>
 </div>
 
 <script>
@@ -365,9 +424,10 @@ const REAL = new Set(['sleep_hours','hours_awake','resting_hr','active_minutes']
 const isReal = k => twin && twin.label === 'Real + simulated' && REAL.has(k);
 const tag = k => isReal(k) ? '<span class="src real">real</span>' : '<span class="src">sim</span>';
 const SIG = [['sleep_hours','Sleep','h',1],['hrv_ms','HRV','ms',0],['resting_hr','Resting heart rate','bpm',0],
-             ['skin_temp_c','Skin temperature','°C',1],['hours_awake','Hours awake','h',1],['active_minutes','Activity','min',0]];
+             ['skin_temp_c','Skin temperature','°C',1],['hours_awake','Hours awake','h',1],['active_minutes','Activity','min',0],['focus_rt_ms','Focus test','ms',0]];
+const sigs = () => SIG.filter(([k]) => twin.now.signals[k]);
 function drawSignals(){
-  $('sigs').innerHTML = SIG.map(([k,name,unit,dp]) => {
+  $('sigs').innerHTML = sigs().map(([k,name,unit,dp]) => {
     const s = twin.now.signals[k], z = Math.max(-3, Math.min(3, s.z));
     const c = Math.abs(s.z) >= 2 ? 'var(--bad)' : Math.abs(s.z) >= 1 ? 'var(--warn)' : 'var(--ok)';
     const st = s.status.charAt(0).toUpperCase() + s.status.slice(1);
@@ -389,20 +449,20 @@ const TWIN_SVG = c => `<svg viewBox="0 0 180 200" aria-hidden="true">
   <circle cx="90" cy="140" r="4" fill="${c}"/>
 </svg>`;
 function drawTwinExtras(){
-  const sig = twin.now.signals, off = SIG.filter(([k]) => Math.abs(sig[k].z) >= 1);
-  const bad = SIG.some(([k]) => Math.abs(sig[k].z) >= 2);
+  const sig = twin.now.signals, off = sigs().filter(([k]) => Math.abs(sig[k].z) >= 1);
+  const bad = sigs().some(([k]) => Math.abs(sig[k].z) >= 2);
   const c = bad ? 'var(--bad)' : off.length ? 'var(--warn)' : 'var(--ok)';
-  const verdict = off.length ? `${off.length} of 6 signals off normal` : 'All signals in normal range';
+  const verdict = off.length ? `${off.length} of ${sigs().length} signals off normal` : 'All signals in normal range';
   $('twinCard').innerHTML = `<b>Twin of crew ${crew}</b><p>Normal learned from days 1 to 7</p>
     <div class="verdict" style="color:${c}">${verdict}</div>
     <p>${off.map(([,n]) => n).join(', ') || 'Nothing unusual today'}</p>`;
   $('f2').textContent = verdict;
-  const lvl = ks => { const m = Math.max(...ks.map(k => Math.abs(sig[k].z))); return m >= 2 ? 'bad' : m >= 1 ? 'warn' : 'ok'; };
-  const h = {head:lvl(['sleep_hours','hours_awake']), heart:lvl(['resting_hr','hrv_ms']), hand:lvl(['skin_temp_c','active_minutes'])};
+  const lvl = ks => { const m = Math.max(0, ...ks.filter(k => sig[k]).map(k => Math.abs(sig[k].z))); return m >= 2 ? 'bad' : m >= 1 ? 'warn' : 'ok'; };
+  const h = {head:lvl(['sleep_hours','hours_awake','focus_rt_ms']), heart:lvl(['resting_hr','hrv_ms']), hand:lvl(['skin_temp_c','active_minutes'])};
   const fr = $('holo'); fr.src = '../twin/?mini#' + new URLSearchParams(h);
   try{ fr.contentWindow.postMessage({twin:h}, '*'); }catch(e){}
   $('rawTitle').textContent = 'Last reading, ' + dstamp(twin.now.day);
-  $('raw').innerHTML = SIG.map(([k,name,unit,dp]) => `<div><small>${name}${tag(k)}</small><b class="num">${Number(sig[k].value).toFixed(dp)}<span>${unit}</span></b><em>normal ${Number(sig[k].normal).toFixed(dp)} ${unit}</em></div>`).join('');
+  $('raw').innerHTML = sigs().map(([k,name,unit,dp]) => `<div><small>${name}${tag(k)}</small><b class="num">${Number(sig[k].value).toFixed(dp)}<span>${unit}</span></b><em>normal ${Number(sig[k].normal).toFixed(dp)} ${unit}</em></div>`).join('');
   const worst = [...twin.forecast].sort((a,b) => (b.alert - a.alert) || (a.readiness - b.readiness))[0];
   $('f3').textContent = worst.alert ? `${worst.critical_tasks[0]} at ${dstamp(worst.day)}: ${worst.readiness}%` : `Lowest ${worst.readiness}% at ${dstamp(worst.day)}`;
   $('f3a').classList.toggle('hot', !!worst.alert);
@@ -449,7 +509,13 @@ async function answer(text){
     if(a.mood != null) f.push(`mood <b>${esc(a.mood)}</b>`);
     say(`Thanks. I added this to your forecast.${f.length?`<div class="facts">${f.join('')}</div>`:''}${r.nova_note?`<p style="margin:8px 0 0">${esc(r.nova_note)}</p>`:''}
       <div class="who" style="margin-top:6px">Understood ${a.source === 'claude' ? 'by Claude' : 'offline'}${a.claude_error?' · '+esc(a.claude_error):''}</div>`);
-    await Promise.all([loadTwin(), loadCrew()]); runForecast();
+    if(r.hidden_fatigue && r.hidden_fatigue.flag){
+      $('chat').insertAdjacentHTML('beforeend', `<div class="msg"><span class="av nova">N</span><div class="bub flag"><div class="who">NOVA · for human review</div>
+        Your answer sounds better than what the ring shows, so I sent a quiet note to Mission Control. Nothing changes in your score.
+        <ul>${r.hidden_fatigue.why.map(w => `<li>${esc(w)}</li>`).join('')}</ul></div></div>`);
+      $('chat').scrollTop = 1e6;
+    }
+    await Promise.all([loadTwin(), loadCrew()]); runForecast(); loadLink();
   }catch(err){ say('<span class="err">The server is not reachable</span>'); }
 }
 $('askForm').onsubmit = e => { e.preventDefault(); const t = $('ans').value.trim(); if(t){ $('ans').value = ''; answer(t); } };
@@ -465,6 +531,7 @@ const TITLE = c => c.type === 'longer_rest' ? `Longer rest <span>+${c.extra_minu
   : c.type === 'postpone' ? `Postpone ${esc(c.task)} <span>to ${esc(c.to)}</span>`
   : `Move ${esc(c.task)} <span>${esc(c.from)} to ${esc(c.to)}</span>`;
 const STATE = {pending:'Waiting for approval', accept:'Accepted', reject:'Rejected', edit:'Edited'};
+const stateText = c => c.provisional ? (STATE[c.status] || c.status) + ' by commander, waiting for Earth' : c.confirmed ? (STATE[c.status] || c.status) + ', confirmed by Earth' : (STATE[c.status] || c.status);
 
 async function runForecast(){
   $('sugg').innerHTML = '<p class="summary">Checking the schedule</p>';
@@ -474,14 +541,15 @@ async function runForecast(){
   $('focusDay').textContent = 'for ' + dstamp(last.focus_day);
   $('f4').textContent = last.changes.length ? last.changes.length + ' changes to approve' : 'No changes needed';
   if(!last.changes.length){ $('sugg').innerHTML = `<p class="summary">${esc(last.summary)}</p>`; drawChart(); return; }
-  $('sugg').innerHTML = `<p class="summary">${esc(last.summary)}</p><div class="acts">${last.changes.map(c => `
+  const banner = last.mars_mode ? `<p class="banner"><b>Mars mode.</b> ${last.link.online ? `Earth is ${last.link.delay_min} min away each way, so an answer takes ${Math.round(last.link.delay_min*2)} min.` : 'No link to Earth right now.'} The commander approves now, and Mission Control confirms when the message arrives</p>` : '';
+  $('sugg').innerHTML = banner + `<p class="summary">${esc(last.summary)}</p><div class="acts">${last.changes.map(c => `
     <div class="act ${c.status}" data-id="${c.id}">
       <svg viewBox="0 0 24 24" aria-hidden="true">${ICON[c.type] || ''}</svg>
       <span class="t">${TITLE(c)}</span>
       <span class="fx">${c.effect.readiness_before}% → <b>${c.effect.readiness_after}%</b></span>
       <div class="ctrl">
         <button class="btn main" data-d="accept">Accept</button><button class="btn" data-d="edit">Edit</button><button class="btn" data-d="reject">Reject</button><button class="btn" data-d="why">Why</button>
-        <span class="state">${STATE[c.status] || c.status}</span>
+        <span class="state">${stateText(c)}</span>
         <label class="pick"><input type="checkbox" value="${c.id}" checked> In what-if</label>
       </div>
       <p class="why">${esc(c.reason)} Approver: ${esc(c.approver)}</p>
@@ -512,8 +580,68 @@ async function act(box, d){
   box.classList.remove('pending','accept','reject','edit'); box.classList.add(d);
   box.querySelector('.state').textContent = STATE[d] + (note ? ': ' + note : '');
   box.querySelector('.note')?.remove(); box.querySelector('[data-d="save"]')?.remove();
-  loadCrew();
+  if(last.mars_mode && d !== 'reject') box.querySelector('.state').textContent += ' by commander, waiting for Earth';
+  loadCrew(); loadLink();
 }
+
+// ---------- Earth link, outbox, Mission Control ----------
+const KIND = {decision:'Decision', hidden_fatigue:'Hidden fatigue note'};
+async function loadLink(){
+  const L = await api('/link');
+  document.querySelectorAll('#place button').forEach(b => b.classList.toggle('on', b.dataset.p === L.place));
+  $('online').checked = L.online;
+  $('linkTxt').textContent = L.online ? 'Link online' : 'Link lost';
+  $('linkDot').style.background = L.online ? 'var(--ok)' : 'var(--bad)';
+  $('waiting').textContent = L.waiting;
+  $('delay').textContent = L.delay_min >= 1 ? L.delay_min + ' min' : Math.round(L.delay_min * 60) + ' s';
+  $('marsb').classList.toggle('on', L.mars_mode);
+  $('f5').textContent = L.waiting ? L.waiting + ' waiting for the link' : (L.online ? 'All sent' : 'Link lost');
+  const ob = await api('/mission-control/inbox');
+  $('obInfo').textContent = L.online ? 'link up' : 'link lost, saving onboard';
+  const all = await api('/outbox');
+  $('outbox').innerHTML = all.length ? all.slice().reverse().map(i => `<div class="qi"><span class="k">${i.id}</span>
+      <span>${KIND[i.kind] || i.kind}: ${esc(desc(i))}</span>
+      <span class="st" style="color:${i.synced ? 'var(--ok)' : 'var(--warn)'}">${i.synced ? 'sent' : 'waiting'}</span></div>`).join('')
+    : '<p class="empty">Nothing yet. Accept a change in step 4</p>';
+  $('mcInfo').textContent = L.online ? (L.delay_min ? 'reply in ' + Math.round(L.delay_min * 2) + ' min' : 'live') : 'not reachable';
+  $('mcConfirm').innerHTML = ob.to_confirm.length ? ob.to_confirm.map(c => `<div class="qi"><span class="k">${c.id}</span>
+      <span>Commander ${c.status === 'edit' ? 'edited' : 'accepted'}: ${esc(c.task)} (${c.type.replace('_',' ')})</span>
+      <span><button class="btn main" data-cf="${c.id}" data-ok="1" ${L.online?'':'disabled'}>Confirm</button> <button class="btn" data-cf="${c.id}" data-ok="0" ${L.online?'':'disabled'}>Overrule</button></span></div>`).join('') : '';
+  $('mcGot').innerHTML = ob.received.length ? `<p class="earth"><span>Received</span><span class="num">${ob.received.length}</span></p>` + ob.received.slice().reverse().slice(0,6).map(i => `<div class="qi"><span class="k">${i.id}</span><span>${KIND[i.kind] || i.kind}: ${esc(desc(i))}</span><span class="st" style="color:var(--t3)">${new Date(i.synced).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span></div>`).join('')
+    : (ob.to_confirm.length ? '' : '<p class="empty">Nothing received yet</p>');
+  document.querySelectorAll('[data-cf]').forEach(b => b.onclick = async () => {
+    await api('/mission-control/confirm', {change_id: b.dataset.cf, confirm: b.dataset.ok === '1', note: ''});
+    await loadLink(); runForecast();
+  });
+}
+const desc = i => i.kind === 'decision' ? `${i.data.by} ${i.data.decision} · ${i.data.task || i.data.change_id}${i.data.provisional ? ' (temporary)' : ''}`
+  : i.kind === 'hidden_fatigue' ? `crew ${i.data.crew} said "${i.data.text}"` : '';
+document.querySelectorAll('#place button').forEach(b => b.onclick = async () => { await api('/link', {place: b.dataset.p}); await loadLink(); runForecast(); });
+$('online').onchange = async () => { await api('/link', {online: $('online').checked}); await loadLink(); runForecast(); };
+
+// ---------- focus test (simple reaction time test) ----------
+let ft = null;
+function ftReset(){ ft = {n:0, times:[], state:'idle', timer:null}; $('fpad').innerHTML = 'Tap to start'; $('ftMsg').textContent = 'Tap the pad as soon as the circle appears'; }
+function ftNext(){
+  ft.state = 'wait'; $('fpad').innerHTML = 'Wait for the circle';
+  ft.timer = setTimeout(() => { ft.state = 'go'; ft.t0 = performance.now(); $('fpad').innerHTML = '<span class="fdot"></span>'; }, 900 + Math.random() * 1800);
+}
+$('fpad').onclick = async () => {
+  if(ft.state === 'idle'){ ftNext(); return; }
+  if(ft.state === 'wait'){ clearTimeout(ft.timer); $('ftMsg').textContent = 'Too early, wait for the circle'; ftNext(); return; }
+  if(ft.state === 'go'){
+    ft.times.push(performance.now() - ft.t0); ft.n++;
+    if(ft.n < 5){ $('ftMsg').textContent = `${ft.n} of 5`; ftNext(); return; }
+    ft.state = 'done';
+    const mean = ft.times.reduce((a,b) => a + b, 0) / ft.times.length;
+    const r = await api('/focus', {crew, mean_rt_ms: mean});
+    $('fpad').innerHTML = `<span><b class="num" style="font-size:1.6rem">${r.mean_rt_ms} ms</b><br>your normal ${Math.round(r.normal_ms)} ms · ${r.points} point${r.points === 1 ? '' : 's'} in the forecast</span>`;
+    $('ftMsg').textContent = 'Saved for today. The forecast is updated';
+    await Promise.all([loadTwin(), loadCrew()]); runForecast();
+  }
+};
+$('ftBtn').onclick = () => { ftReset(); $('ft').classList.add('on'); };
+$('ftClose').onclick = () => { clearTimeout(ft && ft.timer); $('ft').classList.remove('on'); };
 
 async function select(c){
   crew = c;
@@ -521,14 +649,14 @@ async function select(c){
   await Promise.all([loadTwin(), loadNova()]);
   runForecast();
 }
-$('reset').onclick = async () => { await fetch(API + '/simulate', {method:'POST'}); await loadCrew(); select(crew); };
+$('reset').onclick = async () => { await fetch(API + '/simulate', {method:'POST'}); await loadCrew(); await select(crew); loadLink(); };
 $('useClaude').onchange = runForecast;
 
 (async () => {
   try{
     const s = await api('/mission-control/summary').catch(() => null);
     if(!s || s.crew.every(c => c.status === 'unknown')) await fetch(API + '/simulate', {method:'POST'});
-    await loadCrew(); await select(crew);
+    await loadCrew(); await select(crew); loadLink();
   }catch(err){
     document.querySelector('main').insertAdjacentHTML('afterbegin', '<p class="err">The server is not running. In VS Code run: python -m uvicorn app.main:app --reload</p>');
   }

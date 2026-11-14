@@ -18,9 +18,9 @@ FORECAST_DAYS = 3  # days we look ahead
 
 # Each astronaut has their own normal (personal baseline).
 PERSONAL = {
-    "A": {"sleep": 7.2, "mid": 3.0, "hr": 58, "hrv": 62, "temp": 33.8, "active": 70},
-    "B": {"sleep": 6.8, "mid": 3.5, "hr": 64, "hrv": 48, "temp": 34.1, "active": 55},
-    "C": {"sleep": 7.8, "mid": 2.5, "hr": 61, "hrv": 55, "temp": 33.6, "active": 80},
+    "A": {"sleep": 7.2, "mid": 3.0, "hr": 58, "hrv": 62, "temp": 33.8, "active": 70, "rt": 265},
+    "B": {"sleep": 6.8, "mid": 3.5, "hr": 64, "hrv": 48, "temp": 34.1, "active": 55, "rt": 280},
+    "C": {"sleep": 7.8, "mid": 2.5, "hr": 61, "hrv": 55, "temp": 33.6, "active": 80, "rt": 255},
 }
 
 TASK_POOL = [
@@ -83,6 +83,8 @@ def _simulated_ring(days: int = DAYS, seed: int = 1) -> list[dict]:
                 "skin_temp_c": round(p["temp"] + rng.gauss(0, 0.1) + 0.12 * drift, 2),
                 "active_minutes": round(p["active"] + rng.gauss(0, 6) - 6 * drift),
                 "hours_awake": round(24 - sleep - 1.5 + rng.gauss(0, 0.4) + 0.3 * drift, 1),
+                # daily 3-minute reaction test on the tablet (cognitive performance, NASA HRP)
+                "focus_rt_ms": round(p["rt"] + rng.gauss(0, 8) + 15 * drift),
             })
     return out
 

@@ -49,14 +49,15 @@ a{color:var(--acc)}footer{color:var(--t3);font-size:.8rem}
 
   <section class="panel">
     <h2>القاعدة</h2>
-    <p class="sub">كل عامل ياخذ من 0 إلى 2 نقطة. مجموع النقاط يحدد مستوى الخطر، والجاهزية تنحسب من المجموع. العوامل مأخوذة من مخاطر NASA للرحلات البشرية (قلة النوم، اضطراب الساعة البيولوجية، ضغط العمل)</p>
-    <div class="formula">readiness = 100 − 100 × points / 12</div>
+    <p class="sub">كل عامل ياخذ من 0 إلى 2 نقطة. مجموع النقاط يحدد مستوى الخطر، والجاهزية تنحسب من المجموع. العوامل مأخوذة من مخاطر NASA للرحلات البشرية (قلة النوم، اضطراب الساعة البيولوجية، ضغط العمل، تراجع الأداء الإدراكي)</p>
+    <div class="formula">readiness = 100 − 100 × points / 14</div>
     <div class="sc"><table>
       <tr><th>العامل</th><th>يقيس</th><th class="c">0</th><th class="c">1</th><th class="c">2</th></tr>
       <tr><td>دين النوم</td><td>نقص النوم عن طبيعة الرائد في آخر 3 ليالي</td><td class="c num">&lt; 1.5 h</td><td class="c num">1.5 – 3 h</td><td class="c num">≥ 3 h</td></tr>
       <tr><td>الساعة البيولوجية</td><td>تغير وقت منتصف النوم عن طبيعته</td><td class="c num">&lt; 1 h</td><td class="c num">1 – 2 h</td><td class="c num">≥ 2 h</td></tr>
       <tr><td>الجسم</td><td>نبض أعلى / HRV أقل / حرارة أعلى (z ≥ 2 عن طبيعته)</td><td class="c">ولا إشارة</td><td class="c">إشارة وحدة</td><td class="c">إشارتين أو أكثر</td></tr>
       <tr><td>السهر</td><td>ساعات اليقظة</td><td class="c num">≤ 16 h</td><td class="c num">≤ 18 h</td><td class="c num">&gt; 18 h</td></tr>
+      <tr><td>التركيز</td><td>اختبار رد فعل يومي 3 دقائق: أبطأ من طبيعته (z)</td><td class="c num">z &lt; 1</td><td class="c num">1 – 2</td><td class="c num">z ≥ 2</td></tr>
       <tr><td>ضغط المهام</td><td>دقائق المهام الثقيلة في اليوم</td><td class="c num">&lt; 150</td><td class="c num">150 – 299</td><td class="c num">≥ 300</td></tr>
       <tr><td>إحساس الرائد</td><td>التعب والتوتر من سؤال نوفا (اختياري)</td><td class="c">مرتاح</td><td class="c">تعب متوسط</td><td class="c">تعبان أو متوتر</td></tr>
     </table></div>
@@ -107,9 +108,9 @@ a{color:var(--acc)}footer{color:var(--t3);font-size:.8rem}
 const API = location.protocol === 'file:' ? 'http://127.0.0.1:8000' : '';
 const $ = id => document.getElementById(id);
 const REAL = new Set(['sleep_hours','hours_awake','resting_hr','active_minutes']);
-const AR = {sleep:'دين النوم', circadian:'الساعة البيولوجية', body:'الجسم', wake:'السهر', workload:'ضغط المهام', self_report:'إحساس الرائد'};
+const AR = {sleep:'دين النوم', circadian:'الساعة البيولوجية', body:'الجسم', wake:'السهر', focus:'التركيز', workload:'ضغط المهام', self_report:'إحساس الرائد'};
 const LV = {low:['منخفض','rgba(108,199,168,.18)','var(--ok)'], medium:['متوسط','rgba(217,166,72,.18)','var(--warn)'], high:['مرتفع','rgba(224,106,114,.2)','var(--bad)']};
-const SIG = [['sleep_hours','النوم','h',1],['hours_awake','ساعات اليقظة','h',1],['resting_hr','نبض الراحة','bpm',0],['hrv_ms','HRV','ms',0],['skin_temp_c','حرارة الجلد','°C',2],['active_minutes','النشاط','min',0],['sleep_midpoint','منتصف النوم','h',1]];
+const SIG = [['sleep_hours','النوم','h',1],['hours_awake','ساعات اليقظة','h',1],['resting_hr','نبض الراحة','bpm',0],['hrv_ms','HRV','ms',0],['skin_temp_c','حرارة الجلد','°C',2],['active_minutes','النشاط','min',0],['sleep_midpoint','منتصف النوم','h',1],['focus_rt_ms','اختبار التركيز','ms',0]];
 let crew = new URLSearchParams(location.search).get('crew') || 'B', M = null;
 const lvl = l => `<span class="lv" style="background:${LV[l][1]};color:${LV[l][2]}">${LV[l][0]}</span>`;
 const dd = d => d <= M.mission_day ? "D" + d : "D+" + (d - M.mission_day);
@@ -148,7 +149,7 @@ async function load(){
 
   const checks = [
     ['كل عامل بين 0 و 2', M.days.every(d => Object.values(d.points).every(p => p >= 0 && p <= 2))],
-    ['الجاهزية = 100 − 100 × النقاط / 12 لكل يوم', M.days.every(d => d.readiness === Math.round(100 - 100 * d.score / 12))],
+    ['الجاهزية = 100 − 100 × النقاط / ' + M.max_points + ' لكل يوم', M.days.every(d => d.readiness === Math.round(100 - 100 * d.score / M.max_points))],
     ['المجموع = جمع نقاط العوامل', M.days.every(d => d.score === Object.values(d.points).reduce((a,b) => a + b, 0))],
     ['المستوى يطابق المجموع (0-3، 4-6، 7+)', M.days.every(d => d.level === (d.score <= 3 ? 'low' : d.score <= 6 ? 'medium' : 'high'))],
     ['التنبيه فقط إذا الخطر مرتفع ومعه مهمة حرجة', M.days.every(d => d.alert === (d.level === 'high' && d.critical_tasks.length > 0))],

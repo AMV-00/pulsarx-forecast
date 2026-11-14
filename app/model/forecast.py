@@ -7,13 +7,14 @@ circadian desynchronization and work overload:
   circadian   shift of sleep timing vs own normal
   body        resting HR up / HRV down / skin temp up vs own normal (ring)
   wake        long time awake
+  focus       slower reaction time in the daily 3-minute focus test vs own normal (cognitive performance)
   workload    heavy task minutes on that day (from the schedule)
   self_report what the astronaut told NOVA (optional; the ring can't measure mood/stress)
 Readiness = 100 - 100 * points / max points.
 """
 from app.model.baseline import baseline, deviation
 
-MAX_POINTS = 12
+MAX_POINTS = 14
 
 
 def _level(total: int) -> str:
@@ -50,6 +51,7 @@ def forecast(readings: list[dict], schedule: dict, today: int, days_ahead: int =
         "circadian": 0 if shift < 1 else (1 if shift < 2 else 2),
         "body": _body_points(dev),
         "wake": 0 if last["hours_awake"] <= 16 else (1 if last["hours_awake"] <= 18 else 2),
+        "focus": 0 if dev.get("focus_rt_ms", 0) < 1 else (1 if dev.get("focus_rt_ms", 0) < 2 else 2),
     }
     if self_report:
         f, st = self_report.get("fatigue"), self_report.get("stress")
