@@ -90,6 +90,16 @@ def ring(crew: str):
     return {"label": LABEL, "source": REAL_SOURCE if load_real() else "FORECAST Smart Ring (simulated)", "days": _ring(crew)}
 
 
+@app.get("/model/{crew}")
+def model_view(crew: str):
+    """Everything the transparent model used for one crew: ring days, personal baseline,
+    today's inputs and the points of every factor per forecast day."""
+    readings = _ring(crew)
+    f = forecast(readings, _schedules().get(crew, {}), DAYS, self_report=_self_report(crew))
+    return {**f, "label": LABEL, "crew": crew, "mission_day": DAYS, "max_points": 12,
+            "ring": sorted(readings, key=lambda r: r["day"])}
+
+
 @app.get("/twin/{crew}")
 def twin(crew: str):
     """Readiness Digital Twin: personal baseline + today's signals + 3-day readiness forecast."""

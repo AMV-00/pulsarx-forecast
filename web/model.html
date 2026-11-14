@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>النموذج الشفاف</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{--bg:#1b2130;--s1:#212838;--s2:#283044;--s3:#30394f;--hair:rgba(226,234,250,.09);--hair2:rgba(226,234,250,.16);
+--t1:#e9edf5;--t2:#a7b0c2;--t3:#727c92;--acc:#56d6b6;--ok:#6cc7a8;--warn:#d9a648;--bad:#e06a72;
+--sans:"IBM Plex Sans Arabic","Segoe UI",Tahoma,sans-serif;--mono:"IBM Plex Mono",Consolas,monospace;color-scheme:dark}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--t1);font:15px/1.6 var(--sans)}
+.wrap{max-width:1200px;margin:0 auto;padding:24px 32px 48px;display:flex;flex-direction:column;gap:24px}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums;direction:ltr;unicode-bidi:isolate}
+header{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:16px}
+h1{font:600 1.6rem var(--sans);margin:0}header p{margin:4px 0 0;color:var(--t2)}
+.crew{display:flex;gap:8px}.crew button{font:inherit;background:var(--s1);color:var(--t2);border:1px solid var(--hair2);border-radius:8px;padding:6px 14px;cursor:pointer}
+.crew button.sel{background:var(--t1);color:#151a26;border-color:var(--t1)}
+.stamp{font:500 .78rem var(--mono);color:var(--warn);border:1px solid rgba(217,166,72,.4);border-radius:6px;padding:4px 8px}
+.panel{background:var(--s1);border:1px solid var(--hair);border-radius:16px;padding:20px;min-width:0}
+h2{font:500 1.1rem var(--sans);margin:0 0 4px}.sub{margin:0 0 16px;color:var(--t2);font-size:.9rem}
+.formula{font:500 1.05rem var(--mono);direction:ltr;text-align:center;padding:16px;background:var(--s2);border-radius:12px;margin-bottom:16px}
+.sc{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:.9rem}
+th{font-weight:500;color:var(--t3);text-align:right;padding:8px 10px;border-bottom:1px solid var(--hair2);white-space:nowrap}
+td{padding:8px 10px;border-bottom:1px solid var(--hair);vertical-align:top}
+td.c,th.c{text-align:center}
+.pt{display:inline-block;min-width:26px;text-align:center;border-radius:6px;padding:0 6px;font:500 .85rem var(--mono)}
+.p0{background:rgba(108,199,168,.15);color:var(--ok)}.p1{background:rgba(217,166,72,.15);color:var(--warn)}.p2{background:rgba(224,106,114,.18);color:var(--bad)}
+.lv{display:inline-block;border-radius:6px;padding:0 8px;font-size:.82rem}
+.grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
+.kv{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.kv div{background:var(--s2);border-radius:12px;padding:12px}.kv small{display:block;color:var(--t3);font-size:.8rem}.kv b{font:500 1.4rem var(--mono)}
+.src{font:500 .65rem var(--mono);border:1px solid var(--hair2);border-radius:4px;padding:0 4px;margin-inline-start:6px;color:var(--t3)}
+.src.real{color:var(--ok);border-color:rgba(108,199,168,.4)}
+ul.tests{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+ul.tests li{display:flex;gap:10px}.ok{color:var(--ok)}.no{color:var(--bad)}
+pre{background:var(--s2);border-radius:12px;padding:12px;max-height:260px;overflow:auto;direction:ltr;text-align:left;font:12px/1.5 var(--mono);color:var(--t2);margin:0}
+.btn{font:inherit;font-size:.85rem;background:transparent;color:var(--t1);border:1px solid var(--hair2);border-radius:8px;padding:4px 12px;cursor:pointer;margin-bottom:8px}
+a{color:var(--acc)}footer{color:var(--t3);font-size:.8rem}
+@media (max-width:900px){.grid{grid-template-columns:1fr}.kv{grid-template-columns:1fr 1fr}.wrap{padding:16px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div><h1>النموذج الشفاف</h1><p>كيف يحسب FORECAST جاهزية الرائد، خطوة بخطوة، بدون صندوق أسود</p></div>
+    <div style="display:flex;gap:12px;align-items:center"><span class="stamp" id="stamp">…</span><div class="crew" id="crew"></div></div>
+  </header>
+
+  <section class="panel">
+    <h2>القاعدة</h2>
+    <p class="sub">كل عامل ياخذ من 0 إلى 2 نقطة. مجموع النقاط يحدد مستوى الخطر، والجاهزية تنحسب من المجموع. العوامل مأخوذة من مخاطر NASA للرحلات البشرية (قلة النوم، اضطراب الساعة البيولوجية، ضغط العمل)</p>
+    <div class="formula">readiness = 100 − 100 × points / 12</div>
+    <div class="sc"><table>
+      <tr><th>العامل</th><th>يقيس</th><th class="c">0</th><th class="c">1</th><th class="c">2</th></tr>
+      <tr><td>دين النوم</td><td>نقص النوم عن طبيعة الرائد في آخر 3 ليالي</td><td class="c num">&lt; 1.5 h</td><td class="c num">1.5 – 3 h</td><td class="c num">≥ 3 h</td></tr>
+      <tr><td>الساعة البيولوجية</td><td>تغير وقت منتصف النوم عن طبيعته</td><td class="c num">&lt; 1 h</td><td class="c num">1 – 2 h</td><td class="c num">≥ 2 h</td></tr>
+      <tr><td>الجسم</td><td>نبض أعلى / HRV أقل / حرارة أعلى (z ≥ 2 عن طبيعته)</td><td class="c">ولا إشارة</td><td class="c">إشارة وحدة</td><td class="c">إشارتين أو أكثر</td></tr>
+      <tr><td>السهر</td><td>ساعات اليقظة</td><td class="c num">≤ 16 h</td><td class="c num">≤ 18 h</td><td class="c num">&gt; 18 h</td></tr>
+      <tr><td>ضغط المهام</td><td>دقائق المهام الثقيلة في اليوم</td><td class="c num">&lt; 150</td><td class="c num">150 – 299</td><td class="c num">≥ 300</td></tr>
+      <tr><td>إحساس الرائد</td><td>التعب والتوتر من سؤال نوفا (اختياري)</td><td class="c">مرتاح</td><td class="c">تعب متوسط</td><td class="c">تعبان أو متوتر</td></tr>
+    </table></div>
+    <p class="sub" style="margin:12px 0 0">المستوى: 0 – 3 نقاط منخفض، 4 – 6 متوسط، 7 فأكثر مرتفع. التنبيه يطلع إذا الخطر مرتفع وفيه مهمة حرجة في نفس اليوم</p>
+  </section>
+
+  <section class="panel">
+    <h2>مدخلات اليوم</h2>
+    <p class="sub" id="todaySub"></p>
+    <div class="kv" id="kv"></div>
+  </section>
+
+  <section class="panel">
+    <h2>التوقع: نقاط كل عامل لكل يوم</h2>
+    <p class="sub">هنا تقدرين تتأكدين من الحساب بنفسك: اجمعي النقاط وطبقي القاعدة</p>
+    <div class="sc"><table id="fc"></table></div>
+  </section>
+
+  <div class="grid">
+    <section class="panel">
+      <h2>بيانات الخاتم يوم بيوم</h2>
+      <p class="sub" id="ringSub"></p>
+      <div class="sc"><table id="days"></table></div>
+    </section>
+    <section class="panel">
+      <h2>طبيعة الرائد (خط الأساس الشخصي)</h2>
+      <p class="sub">من أول 7 أيام. كل قراءة جديدة تنقارن بهذي الأرقام، مو بمتوسط الناس</p>
+      <div class="sc"><table id="base"></table></div>
+    </section>
+  </div>
+
+  <div class="grid">
+    <section class="panel">
+      <h2>فحوصات مباشرة</h2>
+      <p class="sub">تنفذ الحين على نفس الأرقام اللي فوق</p>
+      <ul class="tests" id="tests"></ul>
+    </section>
+    <section class="panel">
+      <h2>المخرج (JSON)</h2>
+      <p class="sub">نفس اللي يستلمه نوفا والواجهة من <span class="num">/model/{crew}</span></p>
+      <button class="btn" id="cp">نسخ</button>
+      <pre id="out"></pre>
+    </section>
+  </div>
+  <footer><a href="dashboard/">الرجوع للواجهة</a> · FORECAST · PulsarX · NASA Space Apps 2026</footer>
+</div>
+<script>
+const API = location.protocol === 'file:' ? 'http://127.0.0.1:8000' : '';
+const $ = id => document.getElementById(id);
+const REAL = new Set(['sleep_hours','hours_awake','resting_hr','active_minutes']);
+const AR = {sleep:'دين النوم', circadian:'الساعة البيولوجية', body:'الجسم', wake:'السهر', workload:'ضغط المهام', self_report:'إحساس الرائد'};
+const LV = {low:['منخفض','rgba(108,199,168,.18)','var(--ok)'], medium:['متوسط','rgba(217,166,72,.18)','var(--warn)'], high:['مرتفع','rgba(224,106,114,.2)','var(--bad)']};
+const SIG = [['sleep_hours','النوم','h',1],['hours_awake','ساعات اليقظة','h',1],['resting_hr','نبض الراحة','bpm',0],['hrv_ms','HRV','ms',0],['skin_temp_c','حرارة الجلد','°C',2],['active_minutes','النشاط','min',0],['sleep_midpoint','منتصف النوم','h',1]];
+let crew = new URLSearchParams(location.search).get('crew') || 'B', M = null;
+const lvl = l => `<span class="lv" style="background:${LV[l][1]};color:${LV[l][2]}">${LV[l][0]}</span>`;
+const dd = d => d <= M.mission_day ? "D" + d : "D+" + (d - M.mission_day);
+
+async function load(){
+  $('crew').innerHTML = ['A','B','C'].map(c => `<button class="${c===crew?'sel':''}" data-c="${c}">${c}</button>`).join('');
+  document.querySelectorAll('.crew button').forEach(b => b.onclick = () => { crew = b.dataset.c; load(); });
+  let r = await fetch(API + '/model/' + crew);
+  if(!r.ok){ await fetch(API + '/simulate', {method:'POST'}); r = await fetch(API + '/model/' + crew); }
+  M = await r.json();
+  const real = M.label === 'Real + simulated';
+  $('stamp').textContent = real ? 'بيانات Fitbit حقيقية + محاكاة' : 'محاكاة';
+  if(M.unknown){ $('todaySub').textContent = 'ما فيه بيانات كافية، فالنموذج يقول: ما أعرف'; return; }
+  const t = M.today;
+  $('todaySub').innerHTML = `الطاقم ${crew}، اليوم <span class="num">${dd(t.day)}</span> · الثقة: ${M.confidence === 'high' ? 'عالية (3 ليالي)' : 'متوسطة'}`;
+  $('kv').innerHTML = [
+    ['النوم الليلة', t.sleep_hours + ' h'], ['دين النوم (3 ليالي)', t.sleep_debt_hours + ' h'], ['تغير وقت النوم', t.timing_shift_hours + ' h']
+  ].map(([k,v]) => `<div><small>${k}</small><b class="num">${v}</b></div>`).join('');
+
+  const keys = Object.keys(M.days[0].points);
+  $('fc').innerHTML = `<tr><th>اليوم</th>${keys.map(k => `<th class="c">${AR[k]||k}</th>`).join('')}<th class="c">المجموع</th><th class="c">الجاهزية</th><th>المستوى</th><th>مهام حرجة</th></tr>` +
+    M.days.map(d => `<tr><td class="num">${dd(d.day)}</td>${keys.map(k => `<td class="c"><span class="pt p${d.points[k]}">${d.points[k]}</span></td>`).join('')}
+      <td class="c num">${d.score} / ${d.max_score}</td><td class="c num">${d.readiness}%</td><td>${lvl(d.level)}</td>
+      <td style="color:${d.alert?'var(--bad)':'var(--t2)'}">${d.critical_tasks.join('، ') || '–'}${d.alert?' ⚠':''}</td></tr>`).join('');
+
+  const mean = M.baseline.sleep_hours.mean;
+  $('ringSub').innerHTML = real ? 'النوم والنبض والنشاط واليقظة <span class="src real">real</span> من Fitbit (Furberg et al. 2016). HRV والحرارة <span class="src">sim</span>' : 'كل القيم محاكاة';
+  $('days').innerHTML = `<tr><th>اليوم</th><th>التاريخ الحقيقي</th><th class="c">النوم</th><th class="c">نقص عن طبيعته</th><th class="c">النبض</th><th class="c">HRV</th></tr>` +
+    M.ring.map(r => `<tr><td class="num">${dd(r.day)}</td><td class="num" style="color:var(--t3)">${r.real_date || '–'}</td>
+      <td class="c num">${r.sleep_hours}</td><td class="c num">${Math.max(0, mean - r.sleep_hours).toFixed(1)}</td>
+      <td class="c num">${r.resting_hr}</td><td class="c num">${r.hrv_ms}</td></tr>`).join('');
+
+  $('base').innerHTML = `<tr><th>الإشارة</th><th class="c">طبيعته (المتوسط)</th><th class="c">التذبذب الطبيعي (sd)</th></tr>` +
+    SIG.map(([k,n,u,dp]) => `<tr><td>${n}${real && REAL.has(k) ? '<span class="src real">real</span>' : '<span class="src">sim</span>'}</td>
+      <td class="c num">${M.baseline[k].mean.toFixed(dp)} ${u}</td><td class="c num">± ${M.baseline[k].sd.toFixed(dp)}</td></tr>`).join('');
+
+  const checks = [
+    ['كل عامل بين 0 و 2', M.days.every(d => Object.values(d.points).every(p => p >= 0 && p <= 2))],
+    ['الجاهزية = 100 − 100 × النقاط / 12 لكل يوم', M.days.every(d => d.readiness === Math.round(100 - 100 * d.score / 12))],
+    ['المجموع = جمع نقاط العوامل', M.days.every(d => d.score === Object.values(d.points).reduce((a,b) => a + b, 0))],
+    ['المستوى يطابق المجموع (0-3، 4-6، 7+)', M.days.every(d => d.level === (d.score <= 3 ? 'low' : d.score <= 6 ? 'medium' : 'high'))],
+    ['التنبيه فقط إذا الخطر مرتفع ومعه مهمة حرجة', M.days.every(d => d.alert === (d.level === 'high' && d.critical_tasks.length > 0))],
+    ['خط الأساس من 7 أيام على الأقل', M.ring.length >= 7],
+  ];
+  $('tests').innerHTML = checks.map(([n, ok]) => `<li><span class="${ok?'ok':'no'}">${ok?'✓ نجح':'✗ فشل'}</span><span>${n}</span></li>`).join('');
+  const out = {crew, label: M.label, confidence: M.confidence, today: M.today, days: M.days};
+  $('out').textContent = JSON.stringify(out, null, 2);
+}
+$('cp').onclick = async () => { try{ await navigator.clipboard.writeText($('out').textContent); $('cp').textContent = 'تم النسخ'; }catch(e){ $('cp').textContent = 'تعذر النسخ'; } };
+load().catch(() => { document.querySelector('.wrap').insertAdjacentHTML('afterbegin', '<p class="no">السيرفر مو شغال. في VS Code: python -m uvicorn app.main:app --reload</p>'); });
+</script>
+</body>
+</html>

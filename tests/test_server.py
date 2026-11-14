@@ -90,3 +90,12 @@ def test_digital_twin():
     assert any(d["alert"] for d in t["forecast"])
     assert t["now"]["signals"]["sleep_hours"]["status"].endswith("below normal")
     assert not client.get("/twin/A").json()["forecast"][1]["alert"]
+
+
+def test_model_view_is_checkable():
+    client.post("/simulate")
+    m = client.get("/model/B").json()
+    assert len(m["ring"]) == 14 and m["max_points"] == 12
+    for d in m["days"]:
+        assert d["score"] == sum(d["points"].values())
+        assert d["readiness"] == round(100 - 100 * d["score"] / 12)
