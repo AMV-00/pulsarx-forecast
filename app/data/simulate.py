@@ -4,9 +4,14 @@ The ring stands for a wearable that records sleep, heart rate, HRV, skin
 temperature and activity on its own, so the astronaut types nothing.
 Same seed -> same data, so the demo and video always look the same.
 """
+import csv
 import random
+from pathlib import Path
 
 LABEL = "Simulated"
+REAL_FILE = Path(__file__).resolve().parent.parent.parent / "data" / "real" / "fitbit_daily.csv"
+REAL_SOURCE = "Fitbit, 30 real users (Furberg et al. 2016, Zenodo 53894)"
+REAL_FIELDS = ("sleep_hours", "hours_awake", "resting_hr", "active_minutes")
 CREW = ["A", "B", "C"]
 DAYS = 14          # days of ring history ("today" = day 14)
 FORECAST_DAYS = 3  # days we look ahead
@@ -33,7 +38,33 @@ def _hhmm(total: int) -> str:
     return f"{total // 60:02d}:{total % 60:02d}"
 
 
-def generate_ring(days: int = DAYS, seed: int = 1) -> list[dict]:
+def load_real() -> dict:
+    """{(crew, day): row} from data/real/fitbit_daily.csv, or {} if the file is missing."""
+    if not REAL_FILE.is_file():
+        return {}
+    with REAL_FILE.open(newline="") as f:
+        return {(r["crew"], int(r["day"])): r for r in csv.DictReader(f)}
+
+
+def generate_ring(days: int = DAYS, seed: int = 1, real: bool = True) -> list[dict]:
+    """Daily ring readings. When data/real/fitbit_daily.csv exists, sleep, hours awake,
+    resting heart rate and activity are REAL Fitbit values; HRV, skin temperature and
+    sleep midpoint stay simulated (that dataset has none)."""
+    out = _simulated_ring(days, seed)
+    rows = load_real() if real else {}
+    for r in out:
+        x = rows.get((r["crew"], r["day"]))
+        if x:
+            for k in REAL_FIELDS:
+                r[k] = float(x[k]) if "." in x[k] else int(x[k])
+            r["label"] = "Real + simulated"
+            r["source"] = REAL_SOURCE
+            r["real_fields"] = list(REAL_FIELDS)
+            r["real_date"] = x["date"]
+    return out
+
+
+def _simulated_ring(days: int = DAYS, seed: int = 1) -> list[dict]:
     """Daily ring readings. Demo story: crew B slowly loses sleep in the last
     4 days; A and C stay near their own normal."""
     rng = random.Random(seed)

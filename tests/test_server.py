@@ -22,7 +22,14 @@ def crew(c):
 
 def test_ring_data_labeled_and_repeatable():
     assert generate_ring() == generate_ring()
-    assert all(r["label"] == "Simulated" for r in generate_ring())
+    assert all(r["label"] in ("Simulated", "Real + simulated") for r in generate_ring())
+    assert all(r["label"] == "Simulated" for r in generate_ring(real=False))
+
+
+def test_real_fitbit_values_used():
+    b14 = [r for r in generate_ring() if r["crew"] == "B" and r["day"] == 14][0]
+    assert b14["label"] == "Real + simulated" and "Fitbit" in b14["source"]
+    assert b14["sleep_hours"] == 5.0 and b14["resting_hr"] == 62  # from data/real/fitbit_daily.csv
 
 
 def test_baseline_is_personal():
@@ -47,7 +54,7 @@ def test_full_offline_flow():
     q = client.get("/nova/morning/B", params={"lang": "ar"}).json()["question"]
     assert q
     r = client.get("/forecast/B", params={"use_claude": False, "lang": "ar"}).json()
-    assert r["label"] == "Simulated" and r["focus_day"] == 16 and r["changes"]
+    assert r["label"] in ("Simulated", "Real + simulated") and r["focus_day"] == 16 and r["changes"]
     eff = r["all_changes_effect"]
     assert eff["readiness_after"] >= eff["readiness_before"]
     ids = [c["id"] for c in r["changes"]]
@@ -78,7 +85,7 @@ def test_reassign_only_to_ready_crew():
 def test_digital_twin():
     client.post("/simulate")
     t = client.get("/twin/B").json()
-    assert t["label"] == "Simulated" and not t["unknown"]
+    assert t["label"] in ("Simulated", "Real + simulated") and not t["unknown"]
     assert len(t["forecast"]) == 3
     assert any(d["alert"] for d in t["forecast"])
     assert t["now"]["signals"]["sleep_hours"]["status"].endswith("below normal")

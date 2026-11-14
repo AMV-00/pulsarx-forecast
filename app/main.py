@@ -9,7 +9,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from app.data import store
-from app.data.simulate import CREW, DAYS, LABEL, free_minutes, generate_ring, generate_schedules
+from app.data.simulate import CREW, DAYS, LABEL as SIM_LABEL, REAL_SOURCE, free_minutes, generate_ring, generate_schedules, load_real
+
+# Real Fitbit values when data/real/fitbit_daily.csv exists; HRV, temperature and schedule stay simulated.
+LABEL = "Real + simulated" if load_real() else SIM_LABEL
 from app.explain.templates import polish, reason_sentence
 from app.fallback.answers import answer
 from app.model.forecast import forecast
@@ -84,7 +87,7 @@ def simulate(seed: int = 1):
 
 @app.get("/ring/{crew}")
 def ring(crew: str):
-    return {"label": LABEL, "source": "FORECAST Smart Ring (simulated)", "days": _ring(crew)}
+    return {"label": LABEL, "source": REAL_SOURCE if load_real() else "FORECAST Smart Ring (simulated)", "days": _ring(crew)}
 
 
 @app.get("/twin/{crew}")
