@@ -6,349 +6,518 @@
 <title>FORECAST Console</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
-/* Direction
-   Product: onboard tool that forecasts each astronaut's readiness from a smart ring and suggests schedule changes
-   Character: steady, exact, quietly alert
-   World: flight-deck instruments, mission timeline, brushed titanium
-   Moments: the titanium ring, and the readiness timeline (past estimates, 3-day forecast, the EVA marker, the what-if point)
-   Signature: mission-day stamps (D14, D+2) in mono, wherever a day is named
-   Layout: app shell, crew sidebar 264px, content column with one main chart beside the ring */
+/* FORECAST console, layout after the team mockup: top tabs, Overview grid of cards
+   (Smart Ring, Digital Twin gauge, Upcoming tasks, Forecast chart, NOVA, What-if), detail views in tabs */
 :root{
-  --bg:#1b2130; --s1:#212838; --s2:#283044; --s3:#30394f;
-  --hair:rgba(226,234,250,.09); --hair2:rgba(226,234,250,.16);
-  --t1:#e9edf5; --t2:#a7b0c2; --t3:#727c92;
-  --acc:#56d6b6; --acc-ink:#0d2a24;
-  --ok:#6cc7a8; --warn:#d9a648; --bad:#e06a72;
+  --bg:#0d1526; --s1:#131f36; --s2:#1a2945; --s3:#233656;
+  --hair:rgba(130,180,255,.12); --hair2:rgba(130,180,255,.24);
+  --t1:#eaf1fb; --t2:#a9b6cc; --t3:#71819c;
+  --acc:#4cb8f5; --acc2:#36d39a;
+  --ok:#36d39a; --warn:#f2a53a; --bad:#f0626a;
+  --nova:#d5e8ff; --nova-ink:#0f1c33;
   --sans:"IBM Plex Sans","Segoe UI",system-ui,sans-serif;
   --mono:"IBM Plex Mono",Consolas,ui-monospace,monospace;
   --ease:cubic-bezier(.2,.8,.2,1);
   color-scheme:dark;
 }
 *{box-sizing:border-box}
-html,body{margin:0;height:100%}
-body{background:var(--bg);color:var(--t1);font:14px/1.5 var(--sans)}
+html,body{margin:0}
+body{min-height:100vh;color:var(--t1);font:14px/1.5 var(--sans);
+  background:radial-gradient(1400px 520px at 50% -360px,rgba(76,184,245,.13),transparent 72%),var(--bg)}
 button{font:inherit;color:inherit;cursor:pointer}
 :focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 .num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+a{color:var(--acc)}
+.wrap{max-width:1560px;margin:0 auto;padding:0 24px 40px}
 
-.shell{display:grid;grid-template-columns:264px minmax(0,1fr);min-height:100%;max-width:1600px;margin:0 auto}
-/* sidebar */
-aside{border-right:1px solid var(--hair);padding:20px 16px;display:flex;flex-direction:column;gap:24px;position:sticky;top:0;height:100vh;overflow:auto}
-.brand{display:flex;align-items:center;gap:10px;padding:0 8px}
-.mark{width:22px;height:22px;border-radius:50%;border:2.5px solid var(--t2);position:relative}
-.mark::after{content:"";position:absolute;width:6px;height:6px;border-radius:50%;background:var(--acc);bottom:-4px;left:50%;margin-left:-3px}
-.brand b{font:600 1rem var(--sans);letter-spacing:.02em}
-.group{display:flex;flex-direction:column;gap:4px}
-.glabel{font-size:.75rem;color:var(--t3);padding:0 8px 4px}
-.crow{display:grid;grid-template-columns:28px 1fr auto;align-items:center;gap:10px;height:52px;padding:0 8px;border-radius:8px;border:1px solid transparent;background:transparent;text-align:left;transition:background-color .15s var(--ease)}
-.crow:hover{background:var(--s1)}
-.crow.sel{background:var(--s2);border-color:var(--hair2)}
+/* top bar */
+.top{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:24px;padding:16px 0}
+.brand{display:flex;align-items:center;gap:12px}
+.brand .logo{height:64px;width:auto;mix-blend-mode:screen}
+.brand .divl{width:1px;height:40px;background:var(--hair2)}
+.brand b{display:block;font:600 1.45rem var(--sans);letter-spacing:.06em}
+.brand small{display:block;color:var(--t2);font-size:.85rem}
+.tabs{justify-self:center;display:flex;gap:4px;background:rgba(19,31,54,.7);border:1px solid var(--hair);border-radius:14px;padding:4px;overflow-x:auto;max-width:100%}
+.tabs button{background:none;border:0;border-radius:10px;padding:8px 14px;color:var(--t2);white-space:nowrap;position:relative;transition:color .15s var(--ease),background-color .15s var(--ease)}
+.tabs button:hover{color:var(--t1)}
+.tabs button.on{color:var(--t1);background:var(--s2)}
+.tabs button.on::after{content:"";position:absolute;left:14px;right:14px;bottom:3px;height:2px;border-radius:2px;background:var(--acc)}
+.status{text-align:right;font:500 .8rem var(--mono);color:var(--t2);line-height:1.6}
+.status .ln{display:flex;align-items:center;justify-content:flex-end;gap:8px;color:var(--t1);letter-spacing:.04em}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--ok);flex:none}
+
+/* crew bar */
+.bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0 0 16px}
+.crew{display:flex;gap:8px;flex-wrap:wrap}
+.cp{display:flex;align-items:center;gap:10px;height:40px;padding:0 14px 0 6px;border-radius:12px;border:1px solid var(--hair);background:var(--s1);transition:border-color .15s var(--ease)}
+.cp:hover{border-color:var(--hair2)}
+.cp.sel{border-color:var(--acc);background:var(--s2)}
 .av{width:28px;height:28px;border-radius:50%;background:var(--s3);display:grid;place-items:center;font:500 .8rem var(--sans);color:var(--t2)}
-.crow .nm{display:flex;flex-direction:column;line-height:1.25;min-width:0}
-.crow .nm span{font-size:.75rem;color:var(--t3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.crow .pc{font:500 .9rem var(--mono)}
-.dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:6px;vertical-align:1px}
-.meta{display:flex;flex-direction:column;gap:8px;padding:0 8px;font-size:.78rem;color:var(--t2)}
-.meta .row{display:flex;justify-content:space-between;gap:8px}
-.meta .row span:first-child{color:var(--t3)}
-.switch{display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:pointer}
-.switch input{appearance:none;width:28px;height:16px;border-radius:8px;background:var(--s3);position:relative;margin:0;cursor:pointer;transition:background-color .15s var(--ease)}
-.switch input::after{content:"";position:absolute;top:2px;left:2px;width:12px;height:12px;border-radius:50%;background:var(--t1);transition:transform .15s var(--ease)}
-.switch input:checked{background:var(--acc)}
-.switch input:checked::after{transform:translateX(12px)}
-.textbtn{background:none;border:0;padding:0;color:var(--t2);text-align:left;font-size:.78rem}
-.textbtn:hover{color:var(--t1)}
-.side-foot{margin-top:auto;padding:0 8px;font-size:.72rem;color:var(--t3)}
+.cp .pc{font:500 .9rem var(--mono)}
+.cp small{color:var(--t3);font-size:.75rem}
+.tag{font:500 .75rem var(--mono);color:var(--t2);border:1px solid var(--hair2);border-radius:20px;padding:4px 10px;white-space:nowrap}
+.tag.sim{color:var(--warn);border-color:rgba(242,165,58,.45)}
+.tag.pred{color:var(--acc);border-color:rgba(76,184,245,.45);background:rgba(76,184,245,.08)}
+.spacer{flex:1}
+.btn{background:transparent;border:1px solid var(--hair2);border-radius:10px;padding:6px 14px;font-size:.82rem;transition:border-color .15s var(--ease),background-color .15s var(--ease)}
+.btn:hover{border-color:var(--t3)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.main{background:var(--acc);color:#06223a;border-color:var(--acc);font-weight:500}
+.btn:active{transform:scale(.98)}
 
-/* main */
-main{padding:24px 32px 40px;display:flex;flex-direction:column;gap:24px;min-width:0}
-.head{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px}
-.head h1{font:500 1.6rem var(--sans);margin:0}
-.head p{margin:2px 0 0;color:var(--t2)}
-.stamp{font:500 .78rem var(--mono);color:var(--t2);border:1px solid var(--hair2);border-radius:6px;padding:4px 8px}
-.stamp.sim{color:var(--warn);border-color:rgba(217,166,72,.4)}
-.tags{display:flex;gap:8px;flex-wrap:wrap}
-.panel{background:var(--s1);border:1px solid var(--hair);border-radius:16px;padding:20px;min-width:0}
-.ptitle{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin:0 0 16px}
-.ptitle h2{font:500 1rem var(--sans);margin:0}
-.ptitle span{font-size:.8rem;color:var(--t3)}
+/* grid + cards */
+.view{display:none}
+.view.on{display:block}
+#ftBtn{display:none}
+.mcnav{display:none;gap:4px;flex-wrap:wrap;margin:0 0 16px}
+body.mc .mcnav{display:flex}
+.mcnav a{color:var(--t2);text-decoration:none;font-size:.85rem;padding:6px 12px;border-radius:10px;border:1px solid var(--hair)}
+.mcnav a:hover{color:var(--t1);border-color:var(--hair2)}
+.view{scroll-margin-top:16px}
+.dtiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.dt{border:1px solid var(--hair);border-radius:14px;padding:16px;background:rgba(13,21,38,.4)}
+.dt small{color:var(--t2)}
+.dt b{display:block;font:500 2.2rem var(--mono);margin:4px 0}
+.dt p{margin:8px 0 0;font-size:.85rem;color:var(--t2)}
+.brief{margin-top:16px;border:1px solid rgba(95,216,255,.25);border-radius:14px;padding:16px 20px;background:rgba(95,216,255,.06)}
+.brief .bh{display:flex;align-items:center;gap:10px}.brief .bh b{flex:1;font-weight:500}
+.brief ul{margin:12px 0 8px;padding-left:18px;display:grid;gap:8px;font-size:1rem;line-height:1.45}
+.brief a{color:#7fd3ff;font-size:.88rem;text-decoration:none}.brief a:hover{text-decoration:underline}
+#micBtn.on{border-color:var(--bad);color:var(--bad)}
+@media (max-width:560px){.dtiles{grid-template-columns:1fr}}
+.view.on+.view.on{margin-top:32px}
+.vh{font:600 1.2rem var(--sans);margin:0 0 14px;scroll-margin-top:16px}
+.grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:16px}
+.c3{grid-column:span 3}.c4{grid-column:span 4}.c5{grid-column:span 5}.c6{grid-column:span 6}.c7{grid-column:span 7}.c8{grid-column:span 8}.c12{grid-column:span 12}
+.card{background:linear-gradient(180deg,rgba(26,41,69,.92),rgba(19,31,54,.92));border:1px solid var(--hair);border-radius:18px;padding:20px;min-width:0}
+.card.glow{border-color:rgba(76,184,245,.45);box-shadow:0 0 0 1px rgba(76,184,245,.12) inset}
+.ch{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin:0 0 16px}
+.ch h2{font:600 1.08rem var(--sans);margin:0}
+.ch p{margin:2px 0 0;color:var(--t2);font-size:.85rem}
+.link{background:none;border:0;padding:0;color:var(--acc);font-size:.85rem;white-space:nowrap}
+.link:hover{text-decoration:underline}
+.err{color:var(--bad)}
+.empty{color:var(--t3);font-size:.85rem;margin:0}
 
-.top{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px}
-.chartwrap{position:relative}
-#chart{width:100%;height:auto;display:block}
-.legend{display:flex;flex-wrap:wrap;gap:16px;margin-top:8px;font-size:.75rem;color:var(--t3)}
-.legend i{display:inline-block;width:14px;height:0;border-top:2px solid var(--t2);vertical-align:3px;margin-right:6px}
-.legend i.dash{border-top-style:dashed}
-.legend i.acc{border-color:var(--acc);width:8px;height:8px;border:0;background:var(--acc);border-radius:50%;vertical-align:0}
-.headline{display:flex;flex-wrap:wrap;gap:24px;margin-bottom:12px}
-.fig{display:flex;flex-direction:column}
-.fig small{font-size:.75rem;color:var(--t3)}
-.fig b{font:500 1.9rem var(--mono);line-height:1.2}
-.fig em{font-style:normal;font-size:.78rem;color:var(--t2)}
+/* ring card */
+.ringc{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;align-items:center}
+.ringc iframe{width:100%;height:220px;border:0;border-radius:14px;background:transparent}
+.sl{display:flex;flex-direction:column;gap:10px}
+.si{display:grid;grid-template-columns:22px 1fr;gap:10px;align-items:center}
+.si svg,.ic{width:20px;height:20px;stroke:var(--acc);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.si small{display:block;color:var(--t2);font-size:.75rem;line-height:1.2}
+.si b{font:500 .95rem var(--mono)}
+.si b span{font-size:.75rem;color:var(--t2);margin-left:3px}
+.src{font:500 .62rem var(--mono);border-radius:4px;padding:0 4px;margin-left:6px;border:1px solid var(--hair2);color:var(--t3);vertical-align:1px}
+.src.real{color:var(--ok);border-color:rgba(54,211,154,.4)}
+.foot{margin:12px 0 0;color:var(--t2);font-size:.78rem;text-align:center}
 
-.ringp{padding:0;display:flex;flex-direction:column;overflow:hidden;background:var(--s1)}
-.ringp iframe{border:0;width:100%;aspect-ratio:1/1;display:block;background:transparent}
-.ringcap{padding:12px 20px 16px;border-top:1px solid var(--hair);display:flex;justify-content:space-between;font-size:.78rem;color:var(--t2)}
-.live{color:var(--acc)}
+/* twin gauge card */
+.twin{display:grid;grid-template-columns:180px minmax(0,1fr);gap:20px;align-items:center}
+.gauge{width:100%;max-width:200px}
+.tw .row{padding:8px 0;border-bottom:1px solid var(--hair)}
+.tw .row:last-child{border:0}
+.tw small{display:block;color:var(--t2);font-size:.8rem}
+.tw b{font:500 1.15rem var(--sans)}
+.meter{height:8px;border-radius:4px;background:rgba(130,180,255,.14);margin-top:6px;overflow:hidden}
+.meter i{display:block;height:100%;border-radius:4px;background:var(--acc)}
+.pill{display:flex;align-items:center;gap:10px;margin-top:14px;padding:10px 14px;border-radius:12px;background:rgba(130,180,255,.08);border:1px solid var(--hair);font-size:.88rem}
+.pill .ok{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;flex:none;color:#062a1d;font-weight:700;font-size:.75rem}
 
-/* signals list */
-.sigs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:32px}
-.sig{display:grid;grid-template-columns:170px 76px minmax(0,1fr) 92px;align-items:center;gap:12px;height:40px;border-bottom:1px solid var(--hair)}
-.sig .k{color:var(--t2)}
-.src{font:500 .65rem var(--mono);color:var(--t3);border:1px solid var(--hair2);border-radius:4px;padding:0 4px;margin-left:6px;vertical-align:1px}
-.src.real{color:var(--ok);border-color:rgba(108,199,168,.4)}
-.sig .v{text-align:right}
-.dev{position:relative;height:6px;border-radius:3px;background:var(--s3)}
-.dev .band{position:absolute;top:0;bottom:0;left:33.3%;width:33.3%;background:rgba(226,234,250,.12)}
-.dev .mid{position:absolute;top:-3px;bottom:-3px;left:50%;width:1px;background:var(--t3)}
-.dev .pt{position:absolute;top:50%;width:10px;height:10px;margin:-5px 0 0 -5px;border-radius:50%;border:2px solid var(--s1)}
-.sig .st{font-size:.78rem;text-align:right;white-space:nowrap}
+/* tasks */
+.tl{display:flex;flex-direction:column}
+.ti{display:grid;grid-template-columns:28px minmax(0,1fr) auto 44px;gap:12px;align-items:center;padding:10px 0;border-top:1px solid var(--hair)}
+.ti:first-child{border-top:0;padding-top:0}
+.ti .ring{width:24px;height:24px;border-radius:50%;border:2px solid var(--t3);display:grid;place-items:center;font:700 .75rem var(--sans)}
+.ti b{display:block;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ti small{color:var(--t2);font:400 .78rem var(--mono)}
+.ti .pc{font:500 .9rem var(--mono);text-align:right}
+.badge{font-size:.75rem;font-weight:500;border-radius:8px;padding:3px 10px;white-space:nowrap}
+.b-crit{color:#ffd9db;background:rgba(240,98,106,.22);border:1px solid rgba(240,98,106,.5)}
+.b-risk{color:#ffe3bd;background:rgba(242,165,58,.2);border:1px solid rgba(242,165,58,.5)}
+.b-watch{color:#fff0c4;background:rgba(220,190,80,.14);border:1px solid rgba(220,190,80,.4)}
+.b-ok{color:#c8f5e3;background:rgba(54,211,154,.14);border:1px solid rgba(54,211,154,.4)}
 
-.bottom{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:16px;align-items:start}
-/* NOVA */
-.chat{display:flex;flex-direction:column;gap:12px;max-height:360px;overflow:auto}
+/* chart */
+.chart{width:100%;height:auto;display:block}
+#chartP{height:340px}
+.legend{display:flex;gap:16px;font-size:.8rem;color:var(--t2)}
+.legend i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px}
+
+/* NOVA card */
+.nova{background:var(--nova);color:var(--nova-ink);border:0}
+.nova .ch h2{display:flex;align-items:center;gap:10px}
+.nova .ch h2 svg{width:22px;height:22px;stroke:var(--nova-ink);fill:none;stroke-width:1.6}
+.nova .tag{color:#2c3f60;border-color:rgba(15,28,51,.2);background:rgba(255,255,255,.4)}
+.nova p.say{font-size:1.02rem;line-height:1.55;margin:0}
+.nova .btn{border-color:rgba(15,28,51,.25);color:var(--nova-ink)}
+.nova .btn.main{background:var(--nova-ink);color:var(--nova);border-color:var(--nova-ink)}
+.nova .nl{margin:14px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px}
+.nova .nl li{display:grid;grid-template-columns:20px minmax(0,1fr) auto;gap:10px;align-items:center;padding:8px 12px;border-radius:10px;background:rgba(255,255,255,.45);font-size:.88rem}
+.nova .nl svg{width:18px;height:18px;stroke:var(--nova-ink);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.nova .nl span span{color:#4a5b78}
+.nova .nl b{font:500 .82rem var(--mono);color:#0b6b48}
+.nova .acts2{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+
+/* what-if */
+.wif{display:grid;grid-template-columns:minmax(0,1.3fr) 1px minmax(0,1fr);gap:24px;align-items:center}
+.wif .sep{background:var(--hair2);align-self:stretch}
+.wbtns{display:flex;gap:12px;flex-wrap:wrap}
+.wb{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:130px;padding:14px 16px;border-radius:14px;border:1px solid var(--hair2);background:rgba(13,21,38,.5);transition:border-color .15s var(--ease),background-color .15s var(--ease)}
+.wb svg{width:24px;height:24px;stroke:var(--t2);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.wb small{color:var(--t3);font:400 .72rem var(--mono)}
+.wb.on{border-color:var(--acc);background:rgba(76,184,245,.12)}
+.wb.on svg{stroke:var(--acc)}
+.ba{display:flex;align-items:flex-end;gap:24px;flex-wrap:wrap}
+.ba small{display:block;color:var(--t2);font-size:.85rem}
+.ba b{font:500 2.6rem var(--mono);line-height:1.1}
+.ba .arr{font-size:1.8rem;color:var(--t2);padding-bottom:6px}
+.gain{margin-top:8px;color:var(--ok);font-size:.88rem}
+
+/* twin tab */
+.sigs{display:flex;flex-direction:column}
+.sig{display:grid;grid-template-columns:minmax(0,1.4fr) 76px minmax(0,1fr);gap:12px;align-items:center;padding:10px 0;border-top:1px solid var(--hair)}
+.sig:first-child{border-top:0}
+.sig .v{font:500 .9rem var(--mono);text-align:right}
+.sig .st{font-size:.8rem;text-align:right}
+.dev{position:relative;height:16px}
+.dev::before{content:"";position:absolute;left:0;right:0;top:7px;height:2px;border-radius:1px;background:rgba(130,180,255,.12)}
+.dev .band{position:absolute;left:33.3%;right:33.3%;top:4px;bottom:4px;background:rgba(54,211,154,.14);border-radius:4px}
+.dev .mid{position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--hair2)}
+.dev .pt{position:absolute;top:3px;width:10px;height:10px;border-radius:50%;margin-left:-5px}
+table{width:100%;border-collapse:collapse;font-size:.85rem}
+th{text-align:left;color:var(--t3);font-weight:400;padding:6px 8px;border-bottom:1px solid var(--hair)}
+td{padding:8px;border-bottom:1px solid var(--hair)}
+td.num,th.num{text-align:right}
+
+/* predictions day cards */
+.day h3{margin:0;font:500 1rem var(--sans)}
+.day .big{font:500 2.2rem var(--mono);margin:6px 0 2px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.chip{font:400 .75rem var(--mono);border:1px solid var(--hair2);border-radius:6px;padding:2px 8px;color:var(--t2)}
+.chip.p1{color:var(--warn);border-color:rgba(242,165,58,.45)}
+.chip.p2{color:var(--bad);border-color:rgba(240,98,106,.5)}
+
+/* schedule */
+.task{display:grid;grid-template-columns:56px minmax(0,1fr);gap:10px;padding:10px 0;border-top:1px solid var(--hair)}
+.task:first-of-type{border-top:0}
+.task .tm{font:400 .82rem var(--mono);color:var(--t2)}
+.task b{font-weight:500}
+.task small{display:block;color:var(--t3);font-size:.78rem}
+.task .chg{display:block;margin-top:4px;font-size:.78rem;color:var(--acc)}
+
+/* NOVA chat + suggestions */
+.chat{display:flex;flex-direction:column;gap:12px;max-height:420px;overflow:auto;padding-right:4px}
 .msg{display:grid;grid-template-columns:28px 1fr;gap:10px;max-width:92%}
 .msg.me{align-self:flex-end;grid-template-columns:1fr 28px}
 .msg.me .av{order:2}
-.nova{background:var(--acc);color:var(--acc-ink);font-weight:600}
+.av.nova{background:var(--nova);color:var(--nova-ink)}
 .bub{background:var(--s2);border-radius:12px;padding:8px 12px}
 .me .bub{background:var(--s3)}
+.bub.flag{border:1px solid rgba(242,165,58,.5);background:rgba(242,165,58,.08)}
+.bub ul{margin:6px 0 0;padding-left:18px;color:var(--t2);font-size:.85rem}
 .who{font-size:.72rem;color:var(--t3);margin-bottom:2px}
-.facts{display:flex;flex-wrap:wrap;gap:12px;margin-top:6px;font:500 .8rem var(--mono);color:var(--t2)}
-.facts b{color:var(--t1);font-weight:500}
+.facts{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.facts span{font-size:.78rem;background:var(--s3);border-radius:6px;padding:2px 8px}
 .quick{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
-.quick button{background:transparent;border:1px solid var(--hair2);border-radius:8px;padding:6px 10px;font-size:.8rem;color:var(--t2);transition:border-color .15s var(--ease),color .15s var(--ease)}
+.quick button{background:transparent;border:1px solid var(--hair2);border-radius:10px;padding:6px 10px;font-size:.8rem;color:var(--t2)}
 .quick button:hover{color:var(--t1);border-color:var(--t3)}
 .ask{display:flex;gap:8px;margin-top:12px}
-.ask input{flex:1;min-width:0;background:var(--s2);border:1px solid var(--hair2);border-radius:10px;color:var(--t1);padding:10px 12px;font:inherit}
-.ask input::placeholder{color:var(--t3)}
-.primary{background:var(--t1);color:#151a26;border:0;border-radius:10px;padding:0 16px;font-weight:500}
-.primary:active,.btn:active{transform:scale(.98)}
-
-/* suggestions */
-.summary{margin:0 0 16px;color:var(--t2)}
+.ask input,.note{flex:1;min-width:0;background:var(--s2);border:1px solid var(--hair2);border-radius:10px;color:var(--t1);padding:10px 12px;font:inherit}
+.note{padding:4px 10px;font-size:.82rem}
+.summary{color:var(--t2);margin:0 0 12px}
+.banner{margin:0 0 12px;padding:10px 14px;border-radius:12px;border:1px solid rgba(242,165,58,.5);background:rgba(242,165,58,.08);color:#ffe3bd;font-size:.85rem}
 .acts{display:flex;flex-direction:column}
-.act{display:grid;grid-template-columns:18px minmax(0,1fr) auto;column-gap:12px;row-gap:8px;padding:16px 0;border-top:1px solid var(--hair);transition:opacity .2s var(--ease)}
+.act{display:grid;grid-template-columns:20px minmax(0,1fr) auto;column-gap:12px;row-gap:8px;padding:14px 0;border-top:1px solid var(--hair)}
 .act:first-child{border-top:0;padding-top:0}
-.act svg{width:18px;height:18px;stroke:var(--t2);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;margin-top:2px}
+.act>svg{width:20px;height:20px;stroke:var(--acc);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;margin-top:2px}
 .act .t{font-weight:500}
 .act .t span{color:var(--t2);font-weight:400}
-.fx{font:500 .85rem var(--mono);white-space:nowrap;color:var(--t2)}
-.fx b{color:var(--acc);font-weight:500}
+.act .fx{font:400 .85rem var(--mono);color:var(--t2)}
+.act .fx b{color:var(--ok);font-weight:500}
 .ctrl{grid-column:2/4;display:flex;flex-wrap:wrap;align-items:center;gap:8px}
-.btn{background:transparent;border:1px solid var(--hair2);border-radius:8px;padding:4px 12px;font-size:.8rem;transition:border-color .15s var(--ease),background-color .15s var(--ease)}
-.btn:hover{border-color:var(--t3)}
-.btn:disabled{opacity:.4;cursor:not-allowed}
-.btn.main{background:var(--t1);color:#151a26;border-color:var(--t1)}
-.pick{display:inline-flex;align-items:center;gap:6px;font-size:.8rem;color:var(--t2);margin-left:auto;cursor:pointer}
-.pick input{accent-color:var(--acc)}
 .state{font-size:.8rem;color:var(--t3)}
 .act.accept .state{color:var(--ok)} .act.reject{opacity:.5} .act.reject .state{color:var(--bad)} .act.edit .state{color:var(--warn)}
 .act.accept .ctrl .btn,.act.reject .ctrl .btn:not([data-d=why]){display:none}
 .why{grid-column:2/4;margin:0;color:var(--t2);font-size:.85rem;display:none}
 .act.open .why{display:block}
-.note{flex:1 1 160px;min-width:0;background:var(--s2);border:1px solid var(--hair2);border-radius:8px;color:var(--t1);padding:4px 10px;font:inherit;font-size:.8rem}
-.wi{margin-top:8px;padding-top:16px;border-top:1px solid var(--hair2);display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 16px}
-.wi span{color:var(--t2)}
-.wi b{font:500 1.3rem var(--mono)}
-.wi b i{font-style:normal;color:var(--acc)}
-.err{color:var(--bad)}
-footer{font-size:.75rem;color:var(--t3)}
+.pick{display:flex;align-items:center;gap:6px;font-size:.8rem;color:var(--t2);margin-left:auto}
 
-
-/* story steps */
-.flow{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
-.flow a{display:grid;grid-template-columns:28px 1fr;gap:4px 10px;align-items:center;padding:12px;border:1px solid var(--hair);border-radius:12px;background:var(--s1);color:inherit;text-decoration:none;position:relative;transition:border-color .15s var(--ease)}
-.flow a:hover{border-color:var(--hair2)}
-.flow a:not(:last-child)::after{content:"";position:absolute;right:-7px;top:50%;width:6px;height:1px;background:var(--t3)}
-.flow .n,.shead .n{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font:500 .85rem var(--mono);background:var(--s3);color:var(--t1);grid-row:span 2}
-.flow b{font-weight:500;font-size:.9rem}
-.flow small{font-size:.78rem;color:var(--t2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.flow a.hot{border-color:rgba(224,106,114,.45)} .flow a.hot small{color:var(--bad)}
-.step{display:flex;flex-direction:column;gap:16px;scroll-margin-top:16px}
-.shead{display:grid;grid-template-columns:28px 1fr;gap:2px 12px;align-items:center}
-.shead .n{background:var(--t1);color:#151a26}
-.shead h2{font:500 1.15rem var(--sans);margin:0}
-.shead p{grid-column:2;margin:0;color:var(--t2)}
-.s1grid{display:grid;grid-template-columns:300px minmax(0,1fr);gap:16px}
-.ringbox{padding:0;overflow:hidden;display:flex;flex-direction:column}
-.ringbox iframe{border:0;width:100%;aspect-ratio:1/1;display:block;background:transparent}
-.raw{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0}
-.raw div{padding:16px 0 16px 16px;border-left:1px solid var(--hair);display:flex;flex-direction:column;gap:2px}
-.raw div:nth-child(3n+1){border-left:0;padding-left:0}
-.raw div:nth-child(n+4){border-top:1px solid var(--hair)}
-.raw small{font-size:.78rem;color:var(--t3)}
-.raw b{font:500 1.5rem var(--mono)}
-.raw b span{font-size:.85rem;color:var(--t2);margin-left:4px}
-.raw em{font-style:normal;font-size:.75rem;color:var(--t3)}
-.how{margin:16px 0 0;font-size:.8rem;color:var(--t3)}
-.s2grid{display:grid;grid-template-columns:340px minmax(0,1fr);gap:16px}
-.twin{display:flex;flex-direction:column;align-items:center;text-align:center;gap:8px}
-.twin{padding:0 0 16px;overflow:hidden}.twin iframe{border:0;width:100%;height:340px;display:block;background:transparent}.twininfo{display:flex;flex-direction:column;align-items:center;gap:4px;padding:0 16px}
-.twin b{font-weight:500}
-.twin p{margin:0;font-size:.8rem;color:var(--t2)}
-.twin .verdict{font:500 1rem var(--sans);margin-top:4px}
-.sigs.one{grid-template-columns:1fr}
-@media (max-width:1180px){.flow{grid-template-columns:repeat(2,minmax(0,1fr))}.flow a::after{display:none}.s1grid,.s2grid{grid-template-columns:1fr}.ringbox iframe{max-width:320px;margin:0 auto}}
-@media (max-width:560px){.flow{grid-template-columns:1fr}.raw{grid-template-columns:repeat(2,minmax(0,1fr))}.raw div{border-left:0!important;padding-left:0!important;border-top:1px solid var(--hair)}}
-
-/* onboard / Earth link */
-.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;background:var(--s2);border-radius:8px;padding:2px}
-.seg button{background:transparent;border:0;border-radius:6px;padding:4px 0;font-size:.75rem;color:var(--t2)}
+/* earth link */
+.seg{display:flex;background:var(--bg);border:1px solid var(--hair);border-radius:10px;padding:3px}
+.seg button{flex:1;background:none;border:0;border-radius:8px;padding:6px 0;color:var(--t2)}
 .seg button.on{background:var(--s3);color:var(--t1)}
-.linkst{display:flex;align-items:center;gap:6px}
-.marsb{display:none;font-size:.75rem;color:var(--warn);border:1px solid rgba(217,166,72,.4);border-radius:6px;padding:4px 8px;line-height:1.35}
+.kv{display:flex;justify-content:space-between;gap:8px;padding:10px 0;border-bottom:1px solid var(--hair);color:var(--t2)}
+.kv b{color:var(--t1);font:500 .9rem var(--mono)}
+.switch{display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:pointer;padding:10px 0;border-bottom:1px solid var(--hair)}
+.switch input{appearance:none;width:34px;height:20px;border-radius:10px;background:var(--s3);position:relative;margin:0;cursor:pointer;transition:background-color .15s var(--ease)}
+.switch input::after{content:"";position:absolute;top:3px;left:3px;width:14px;height:14px;border-radius:50%;background:var(--t1);transition:transform .15s var(--ease)}
+.switch input:checked{background:var(--acc2)}
+.switch input:checked::after{transform:translateX(14px)}
+.marsb{display:none;margin-top:12px}
 .marsb.on{display:block}
-.banner{border:1px solid rgba(217,166,72,.4);background:rgba(217,166,72,.08);color:var(--t1);border-radius:10px;padding:10px 12px;margin:0 0 16px;font-size:.85rem}
-.banner b{color:var(--warn);font-weight:500}
-.flag{border:1px solid rgba(217,166,72,.45);background:rgba(217,166,72,.08)}
-.flag ul{margin:6px 0 0;padding-left:18px;color:var(--t2);font-size:.82rem}
-.s5grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
-.qi{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:baseline;padding:8px 0;border-top:1px solid var(--hair);font-size:.85rem}
+.qi{display:grid;grid-template-columns:40px minmax(0,1fr) auto;gap:10px;align-items:center;padding:8px 0;border-top:1px solid var(--hair);font-size:.85rem}
 .qi:first-child{border-top:0}
-.qi .k{font:500 .72rem var(--mono);color:var(--t3)}
-.qi .st{font:500 .75rem var(--mono);white-space:nowrap}
-.empty{color:var(--t3);font-size:.85rem;margin:0}
-.earth{display:flex;justify-content:space-between;align-items:baseline;margin:0 0 12px;font-size:.85rem;color:var(--t2)}
+.qi .k{font:400 .75rem var(--mono);color:var(--t3)}
+.qi .st{font-size:.78rem}
+.earth{display:flex;justify-content:space-between;color:var(--t3);font-size:.8rem;margin:12px 0 4px}
+
+/* footer */
+.fbar{display:flex;flex-wrap:wrap;align-items:center;gap:20px;margin-top:24px;padding-top:16px;border-top:1px solid var(--hair);font-size:.82rem;color:var(--t2)}
+.fbar .switch{border:0;padding:0;gap:10px}
+.fbar button.textbtn{background:none;border:0;padding:0;color:var(--t2)}
+.fbar button.textbtn:hover{color:var(--t1)}
+.fbar .note2{flex-basis:100%;color:var(--t3);font-size:.75rem;margin:0}
+
 /* focus test */
-.ftest{position:fixed;inset:0;background:rgba(10,14,22,.72);display:none;place-items:center;z-index:50}
+.ftest{position:fixed;inset:0;background:rgba(6,10,20,.75);display:none;place-items:center;z-index:50}
 .ftest.on{display:grid}
-.fbox{background:var(--s1);border:1px solid var(--hair2);border-radius:16px;padding:24px;width:min(440px,92vw);text-align:center}
-.fpad{height:200px;border-radius:12px;background:var(--s2);margin:16px 0;display:grid;place-items:center;cursor:pointer;user-select:none;color:var(--t2)}
+.ftbox{width:min(420px,calc(100% - 32px));background:var(--s1);border:1px solid var(--hair2);border-radius:18px;padding:24px}
+.fpad{height:200px;border-radius:14px;background:var(--s2);margin:16px 0;display:grid;place-items:center;cursor:pointer;user-select:none;color:var(--t2);text-align:center}
 .fdot{width:64px;height:64px;border-radius:50%;background:var(--acc)}
-@media (max-width:900px){.s5grid{grid-template-columns:1fr}}
-@media (max-width:1180px){.top{grid-template-columns:1fr}.ringp{flex-direction:row}.ringp iframe{width:260px;flex:none}.ringcap{border-top:0;flex-direction:column;justify-content:center;gap:4px}.sigs{grid-template-columns:1fr}}
-@media (max-width:900px){.shell{grid-template-columns:1fr}aside{position:static;height:auto;border-right:0;border-bottom:1px solid var(--hair)}.bottom{grid-template-columns:1fr}main{padding:20px 16px 32px}}
-@media (max-width:560px){.ringp{flex-direction:column}.ringp iframe{width:100%}.sig{grid-template-columns:96px 64px minmax(0,1fr)}.sig .st{display:none}}
-@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+@media (max-width:1300px){
+  .twin{grid-template-columns:1fr;justify-items:center}
+  .twin .tw{width:100%}
+}
+@media (max-width:1100px){
+  .c3,.c4,.c5,.c7,.c8{grid-column:span 6}
+}
+@media (max-width:900px){
+  .top{grid-template-columns:1fr auto}
+  .tabs{grid-column:1/-1;grid-row:2;justify-self:stretch}
+  .c3,.c4,.c5,.c6,.c7,.c8{grid-column:span 12}
+  .wif{grid-template-columns:1fr}.wif .sep{display:none}
+  .sig{grid-template-columns:1fr 80px 100px}.sig .dev{display:none}
+}
+@media (max-width:560px){
+  .wrap{padding:0 16px 32px}
+  .ringc{grid-template-columns:1fr}
+  .brand small{display:none}
+}
 </style>
 </head>
 <body>
-<div class="shell">
-  <aside>
-    <div class="brand"><span class="mark" aria-hidden="true"></span><b>FORECAST</b></div>
-    <div class="group">
-      <div class="glabel">Crew · lowest readiness, next 3 days</div>
-      <div id="crew"></div>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <img class="logo" src="../assets/pulsarx-logo.png" alt="PulsarX"><span class="divl"></span>
+      <div><b>FORECAST</b><small>by PulsarX · astronaut readiness forecast</small></div>
     </div>
-    <div class="meta">
-      <div class="row"><span>Mission day</span><span class="num" id="mday">D14</span></div>
-      <div class="row"><span>Runs</span><span>Onboard, no Earth link needed</span></div>
-      <div class="row"><span>Report to Mission Control</span><span id="pending">0 to review</span></div>
-    </div>
-    <div class="meta">
-      <div class="glabel" style="padding:0">Earth link · simulate the mission</div>
-      <div class="seg" id="place"><button data-p="iss">ISS</button><button data-p="moon">Moon</button><button data-p="mars">Mars</button></div>
-      <label class="switch"><span class="linkst"><span class="dot" id="linkDot"></span><span id="linkTxt">Link online</span></span><input type="checkbox" id="online" checked></label>
-      <div class="row"><span>Waiting to send</span><span class="num" id="waiting">0</span></div>
-      <div class="row"><span>One-way delay</span><span class="num" id="delay">0 s</span></div>
-      <div class="marsb" id="marsb">Mars mode: the commander approves now, Mission Control confirms later</div>
-    </div>
-    <div class="meta">
-      <label class="switch">NOVA phrasing by Claude <input type="checkbox" id="useClaude"></label>
-      <a class="textbtn" href="../model.html?crew=B" target="_blank" rel="noopener">How the model works</a>
-      <a class="textbtn" href="../ring/" target="_blank" rel="noopener">Open the ring in 3D</a>
-      <button class="textbtn" id="reset">Reset simulated data</button>
-    </div>
-    <div class="side-foot">Sleep, heart rate and activity: real Fitbit users. HRV, temperature, schedule: simulated. NOVA explains the model's numbers and never makes them up.</div>
-  </aside>
-
-  <main>
-    <div class="head">
-      <div><h1 id="title">Crew B</h1><p id="subtitle">Readiness forecast for the next 3 days</p></div>
-      <div class="tags"><span class="stamp num" id="conf">Ring data · 14 days</span><span class="stamp sim" id="simStamp">Simulated</span></div>
-    </div>
-
-    <nav class="flow" aria-label="How FORECAST works">
-      <a href="#s1"><span class="n">1</span><b>Ring measures</b><small id="f1">7 signals every day</small></a>
-      <a href="#s2"><span class="n">2</span><b>Digital Twin compares</b><small id="f2">Today vs personal normal</small></a>
-      <a href="#s3" id="f3a"><span class="n">3</span><b>Forecast warns</b><small id="f3">Next 3 days</small></a>
-      <a href="#s4"><span class="n">4</span><b>NOVA suggests, you decide</b><small id="f4">Changes to approve</small></a>
-      <a href="#s5"><span class="n">5</span><b>Syncs with Earth</b><small id="f5">When the link is up</small></a>
+    <nav class="tabs" id="tabs" aria-label="Who is using FORECAST">
+      <button data-v="astro" class="on">Astronaut</button>
+      <button data-v="mc">Mission Control</button>
     </nav>
+    <div class="status">
+      <div class="ln"><span class="dot" id="linkDot"></span><span id="linkTxt">CONNECTED</span></div>
+      <div id="mdTxt">MD 14</div>
+    </div>
+  </header>
 
-    <section class="step" id="s1">
-      <div class="shead"><span class="n">1</span><h2>The ring measures</h2><p>The astronaut wears it on a finger. It records the body while they sleep and work</p></div>
-      <div class="s1grid">
-        <div class="panel ringbox">
-          <iframe src="../ring/?mini" title="FORECAST Smart Ring, 3D"></iframe>
-          <div class="ringcap"><span>FORECAST Smart Ring</span><span class="live" id="ringcap">Crew B · 72 bpm</span></div>
-        </div>
-        <div class="panel">
-          <div class="ptitle"><h2 id="rawTitle">Last reading</h2><span>Raw values, before any model</span></div>
-          <div class="raw" id="raw"></div>
-          <p class="how" id="rawSrc" style="color:var(--t2)"></p>
-          <p class="how"><button class="btn" id="ftBtn" type="button">Take today's focus test</button> 5 taps, about 30 seconds. Slower reactions than your own normal add points to the forecast</p>
-          <p class="how">Light sensor for heart rate and HRV, thermometer for skin temperature, motion sensor for sleep and activity. Data stays onboard and syncs to Mission Control when the link returns</p>
-        </div>
+  <div class="bar">
+    <div class="crew" id="crew"></div>
+    <span class="spacer"></span>
+    <span class="tag" id="conf">Ring data</span>
+    <span class="tag sim" id="simStamp">Simulated</span>
+    <button class="btn" id="ftBtn" type="button">Take today's focus test</button>
+  </div>
+
+  <nav class="mcnav" id="mcnav" aria-label="Mission Control sections">
+    <a href="#v-overview">Crew</a><a href="#v-decide">Approvals</a><a href="#v-twin">Digital Twin</a><a href="#v-pred">Forecast</a><a href="#v-whatif">What-if</a><a href="#v-sched">Schedule</a><a href="#v-earth">Earth link</a>
+  </nav>
+  <main id="main">
+  <!-- ASTRONAUT -->
+  <section class="view on" id="v-astro">
+    <div class="grid">
+      <div class="card c5">
+        <div class="ch"><div><h2>Your readiness today</h2><p>Compared with your own normal from the ring</p></div></div>
+        <div class="twin" id="twinA"></div>
+        <div class="pill" id="twinPill3"></div>
       </div>
-    </section>
+      <div class="card c7">
+        <div class="ch"><div><h2>Your next 3 days</h2><p>Readiness forecast for each day, with the critical tasks</p></div><button class="btn" id="ftBtn2" type="button">Take today's focus test</button></div>
+        <div class="dtiles" id="daysA"></div>
+        <div class="brief" id="brief"><div class="bh"><span class="av nova">N</span><b>NOVA · in short</b><button class="btn" id="listen" type="button">Listen</button></div><ul id="briefList"><li>Reading your forecast</li></ul><a href="#v-nova" id="briefGo">See the changes NOVA suggests</a></div>
+        <p class="foot" style="text-align:left">Your ring data stays on the station. Mission Control gets a report when the link is up</p>
+      </div>
+    </div>
+  </section>
 
-    <section class="step" id="s2">
-      <div class="shead"><span class="n">2</span><h2>Digital Twin compares</h2><p>A digital copy of this astronaut learned their normal from the first 7 days. Each new reading is compared to that normal, not to an average person</p></div>
-      <div class="s2grid">
-        <div class="panel twin"><iframe id="holo" src="../twin/?mini" title="Digital Twin hologram"></iframe><div id="twinCard" class="twininfo"></div></div>
-        <div class="panel">
-          <div class="ptitle"><h2>Today vs personal normal</h2><span>Dot = today, band = normal range</span></div>
-          <div class="sigs one" id="sigs"></div>
+  <!-- NOVA -->
+  <section class="view on" id="v-nova">
+    <div class="grid">
+      <div class="card c5">
+        <div class="ch"><div><h2>Morning check-in</h2><p>One question at breakfast</p></div></div>
+        <div class="chat" id="chat"></div>
+        <div class="quick" id="quick"><button>Slept about 5 hours, very tired</button><button>Slept well, feeling fine</button><button>Fine I guess</button></div>
+        <form class="ask" id="askForm"><input id="ans" autocomplete="off" placeholder="Answer NOVA, or press Speak"><button class="btn" id="micBtn" type="button" hidden>Speak</button><button class="btn main" type="submit">Send</button></form>
+      </div>
+      <div class="card c7">
+        <div class="ch"><div><h2>Changes to your day</h2><p id="focusDay"></p></div></div>
+        <div id="sugg"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- OVERVIEW -->
+  <section class="view" id="v-overview">
+    <h2 class="vh">Crew overview</h2>
+    <div class="grid">
+      <div class="card c4">
+        <div class="ch"><div><h2>Smart Ring</h2><p>Wearable data, measured every day</p></div></div>
+        <div class="ringc">
+          <iframe src="../ring/?mini" title="FORECAST Smart Ring in 3D" loading="lazy" scrolling="no"></iframe>
+          <div class="sl" id="ringSig"></div>
         </div>
+        <p class="foot">Data stays onboard and is processed on the station</p>
       </div>
-    </section>
 
-    <section class="step" id="s3">
-      <div class="shead"><span class="n">3</span><h2>Forecast warns</h2><p id="s3p">The twin estimates readiness for the next 3 days and checks it against the task schedule</p></div>
-      <div class="panel">
-        <div class="headline" id="headline"></div>
-        <div class="chartwrap"><svg id="chart" viewBox="0 0 720 260" role="img" aria-label="Readiness timeline"></svg></div>
-        <div class="legend"><span><i></i>Estimated from ring</span><span><i class="dash"></i>Forecast</span><span><i class="acc"></i>With selected changes</span></div>
+      <div class="card c4">
+        <div class="ch"><div><h2>Astronaut Digital Twin</h2><p id="twinSub">Today against this astronaut's own normal</p></div><button class="link" data-go="twin">Details →</button></div>
+        <div class="twin" id="twinO"></div>
+        <div class="pill" id="twinPill"></div>
       </div>
-    </section>
 
-    <section class="step" id="s4">
-      <div class="shead"><span class="n">4</span><h2>NOVA suggests, you decide</h2><p>NOVA asks one question at breakfast, then suggests changes with a reason. The astronaut and Mission Control accept, edit or reject</p></div>
-      <div class="bottom">
-        <div class="panel">
-          <div class="ptitle"><h2>NOVA</h2><span>Voice check-in, typed for the demo</span></div>
-          <div class="chat" id="chat"></div>
-          <div class="quick" id="quick">
-            <button>I slept about 5 hours, really tired and a bit stressed</button>
-            <button>Slept 7 hours, feeling good and calm</button>
-            <button>Fine I guess</button>
+      <div class="card c4">
+        <div class="ch"><div><h2>Upcoming Mission Tasks</h2><p>Next 3 days, with the forecast for that day</p></div><button class="link" data-go="sched">View all →</button></div>
+        <div class="tl" id="tasksO"></div>
+      </div>
+
+      <div class="card c7">
+        <div class="ch"><div><h2>Future Readiness Forecast</h2><div class="legend" style="margin-top:6px"><span><i style="background:var(--t3)"></i>Past</span><span><i style="background:var(--acc)"></i>Forecast</span><span><i style="background:var(--ok)"></i>What-if</span></div></div><span class="tag pred">Predicted · <span id="predSrc">Simulated</span></span></div>
+        <svg class="chart" id="chartO" viewBox="0 0 720 280" role="img" aria-label="Readiness forecast"></svg>
+      </div>
+
+      <div class="card c5 nova">
+        <div class="ch"><h2><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l2.2 7.8L22 12l-7.8 2.2L12 22l-2.2-7.8L2 12l7.8-2.2z"/></svg>NOVA Assistant</h2><span class="tag">Advisory only</span></div>
+        <p class="say" id="novaSay">Reading today's ring data</p>
+        <ul class="nl" id="novaList"></ul>
+        <div class="acts2"><button class="btn main" data-go="decide" id="novaReview">Review changes</button></div>
+      </div>
+
+      <div class="card c12 glow">
+        <div class="wif">
+          <div>
+            <div class="ch"><div><h2>What-if Simulation</h2><p>Turn on a suggested change to see its effect on <span id="wiDay">the critical day</span></p></div></div>
+            <div class="wbtns" id="wbtns"></div>
           </div>
-          <form class="ask" id="askForm">
-            <label for="ans" style="position:absolute;left:-9999px">Answer NOVA</label>
-            <input id="ans" autocomplete="off" placeholder="Answer NOVA">
-            <button class="primary" type="submit">Send</button>
-          </form>
-        </div>
-        <div class="panel">
-          <div class="ptitle"><h2>Suggested changes</h2><span id="focusDay"></span></div>
-          <div id="sugg"></div>
+          <div class="sep"></div>
+          <div>
+            <div class="ch" style="margin-bottom:8px"><h2 style="font-weight:500">Predicted readiness</h2></div>
+            <div class="ba"><div><small>Before</small><b class="num" id="wBefore">–</b></div><span class="arr">→</span><div><small>After</small><b class="num" id="wAfter" style="color:var(--ok)">–</b></div></div>
+            <div class="gain" id="wGain"></div>
+          </div>
         </div>
       </div>
-    </section>
-    <section class="step" id="s5">
-      <div class="shead"><span class="n">5</span><h2>Syncs with Earth</h2><p>Everything works onboard. Decisions and alerts wait in the outbox and go to Mission Control when the link returns. Turn the link off or pick Mars on the left to see it</p></div>
-      <div class="s5grid">
-        <div class="panel">
-          <div class="ptitle"><h2>Onboard outbox</h2><span id="obInfo"></span></div>
-          <div id="outbox"></div>
-        </div>
-        <div class="panel">
-          <div class="ptitle"><h2>Mission Control, Earth</h2><span id="mcInfo"></span></div>
-          <div id="mcConfirm"></div>
-          <div id="mcGot"></div>
-        </div>
+    </div>
+  </section>
+
+  <!-- APPROVALS -->
+  <section class="view" id="v-decide">
+    <h2 class="vh">Approvals</h2>
+    <div class="grid"><div class="card c12">
+      <div class="ch"><div><h2>NOVA suggests, Mission Control decides</h2><p id="focusDay2"></p></div></div>
+      <div id="sugg2"></div>
+    </div></div>
+  </section>
+
+  <!-- DIGITAL TWIN -->
+  <section class="view" id="v-twin">
+    <h2 class="vh">Digital Twin</h2>
+    <div class="grid">
+      <div class="card c4">
+        <div class="ch"><div><h2>Readiness today</h2><p>Normal learned from mission days 1 to 7</p></div></div>
+        <div class="twin" id="twinT" style="grid-template-columns:1fr;justify-items:center"></div>
+        <div class="pill" id="twinPill2"></div>
       </div>
-    </section>
-    <footer>FORECAST · PulsarX · NASA Space Apps 2026 · transparent points model · real Fitbit data (Furberg et al. 2016) + simulated HRV, temperature and schedule</footer>
+      <div class="card c4">
+        <div class="ch"><div><h2>Twin hologram</h2><p>Head: sleep and focus. Heart: heart rate and HRV. Hand: temperature and activity</p></div></div>
+        <iframe id="holo" src="../twin/?mini" title="Digital Twin hologram" scrolling="no" style="width:100%;height:440px;border:0;border-radius:14px"></iframe>
+      </div>
+      <div class="card c4">
+        <div class="ch"><div><h2>Today vs personal normal</h2><p>The green band is this astronaut's normal range</p></div></div>
+        <div class="sigs" id="sigs"></div>
+      </div>
+      <div class="card c12">
+        <div class="ch"><div><h2>Personal normal</h2><p id="rawSrc">Values from the ring</p></div><a class="link" href="../model.html">How the model works →</a></div>
+        <table id="baseT"></table>
+      </div>
+    </div>
+  </section>
+
+  <!-- PREDICTIONS -->
+  <section class="view" id="v-pred">
+    <h2 class="vh">Forecast</h2>
+    <div class="grid">
+      <div class="card c12">
+        <div class="ch"><div><h2>Readiness, past and next 3 days</h2><p id="predHead">The twin estimates readiness and checks it against the task schedule</p></div><span class="tag pred">Predicted · Simulated schedule</span></div>
+        <svg class="chart" id="chartP" viewBox="0 0 720 280" role="img" aria-label="Readiness forecast"></svg>
+      </div>
+      <div class="c12 grid" id="dayCards"></div>
+    </div>
+  </section>
+
+  <!-- SCHEDULE -->
+  <section class="view" id="v-sched">
+    <h2 class="vh">Mission schedule, next 3 days</h2>
+    <div class="grid" id="schedCols"></div>
+  </section>
+
+  <!-- WHAT-IF -->
+  <section class="view" id="v-whatif">
+    <h2 class="vh">What-if simulation</h2>
+    <div class="grid">
+      <div class="card c7">
+        <div class="ch"><div><h2>Effect on the forecast</h2><p>The green point is readiness with the changes you picked</p></div></div>
+        <svg class="chart" id="chartW" viewBox="0 0 720 280" role="img" aria-label="What-if forecast"></svg>
+        <div class="ba" style="margin-top:12px"><div><small>Before</small><b class="num" id="wBefore2">–</b></div><span class="arr">→</span><div><small>After</small><b class="num" id="wAfter2" style="color:var(--ok)">–</b></div></div>
+      </div>
+      <div class="card c5">
+        <div class="ch"><div><h2>Changes to test</h2><p>Nothing is applied until someone approves it in NOVA</p></div></div>
+        <div id="wList"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- EARTH LINK -->
+  <section class="view" id="v-earth">
+    <h2 class="vh">Earth link and Mission Control</h2>
+    <div class="grid">
+      <div class="card c4">
+        <div class="ch"><div><h2>Earth link</h2><p>Simulate where the mission is</p></div></div>
+        <div class="seg" id="place"><button data-p="iss">ISS</button><button data-p="moon">Moon</button><button data-p="mars">Mars</button></div>
+        <label class="switch" style="margin-top:8px"><span>Link online</span><input type="checkbox" id="online" checked></label>
+        <div class="kv"><span>Waiting to send</span><b id="waiting">0</b></div>
+        <div class="kv"><span>One-way delay</span><b id="delay">0 s</b></div>
+        <div class="kv"><span>Changes to review</span><b id="pending">0</b></div>
+        <p class="banner marsb" id="marsb">Mars mode: the commander approves now, Mission Control confirms later</p>
+      </div>
+      <div class="card c4">
+        <div class="ch"><div><h2>Onboard outbox</h2><p id="obInfo"></p></div></div>
+        <div id="outbox"></div>
+      </div>
+      <div class="card c4">
+        <div class="ch"><div><h2>Mission Control, Earth</h2><p id="mcInfo"></p></div></div>
+        <div id="mcConfirm"></div>
+        <div id="mcGot"></div>
+      </div>
+    </div>
+  </section>
   </main>
+
+  <div class="fbar">
+    <label class="switch">NOVA phrasing by Claude <input type="checkbox" id="useClaude"></label>
+    <a href="../model.html">How the model works</a>
+    <a href="../ring/">Open the ring in 3D</a>
+    <button class="textbtn" id="reset">Reset simulated data</button>
+    <p class="note2">Sleep, heart rate and activity: real Fitbit users. HRV, temperature, focus and schedule: simulated. NOVA explains the model's numbers and never makes them up</p>
+  </div>
 </div>
 
 <div class="ftest" id="ft" role="dialog" aria-modal="true" aria-labelledby="ftTitle">
-  <div class="fbox">
+  <div class="ftbox">
     <h2 id="ftTitle" style="font:500 1.1rem var(--sans);margin:0">Focus test</h2>
-    <p class="how" id="ftMsg" style="margin:6px 0 0">Tap the pad as soon as the circle appears</p>
+    <p id="ftMsg" style="margin:6px 0 0;color:var(--t2)">Tap the pad as soon as the circle appears</p>
     <div class="fpad" id="fpad">Tap to start</div>
     <div style="display:flex;justify-content:center;gap:8px"><button class="btn" id="ftClose" type="button">Close</button></div>
   </div>
@@ -358,7 +527,7 @@ footer{font-size:.75rem;color:var(--t3)}
 const API = location.protocol === 'file:' ? 'http://127.0.0.1:8000' : '';
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-let crew = 'B', today = 14, last = null, ring = [], twin = null, whatIfPt = null;
+let crew = 'B', today = 14, last = null, twin = null, whatIfPt = null, sched = {}, picked = new Set(), L = null;
 
 async function api(path, body){
   const opt = body !== undefined ? {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)} : {};
@@ -367,128 +536,200 @@ async function api(path, body){
   return r.json();
 }
 const col = l => l === 'low' ? 'var(--ok)' : l === 'medium' ? 'var(--warn)' : l === 'high' ? 'var(--bad)' : 'var(--t3)';
-const word = l => l === 'low' ? 'Low risk' : l === 'medium' ? 'Medium risk' : l === 'high' ? 'High risk' : 'Unknown';
+const word = l => l === 'low' ? 'Low' : l === 'medium' ? 'Moderate' : l === 'high' ? 'High' : 'Unknown';
 const dstamp = d => d <= today ? 'D' + d : 'D+' + (d - today);
 
+// ---------- tabs ----------
+const VIEWS = {astro:['astro','nova'], mc:['overview','decide','twin','pred','whatif','sched','earth']};
+function show(v, scrollTo){
+  if(!VIEWS[v]) v = VIEWS.mc.includes(v) ? 'mc' : 'astro';
+  document.body.classList.toggle('mc', v === 'mc');
+  document.querySelectorAll('#tabs button').forEach(b => b.classList.toggle('on', b.dataset.v === v));
+  document.querySelectorAll('.view').forEach(s => s.classList.toggle('on', VIEWS[v].includes(s.id.slice(2))));
+  if(location.hash !== '#' + v) history.replaceState(null, '', '#' + v);
+  // 3D frames loaded while hidden have no size: reload them once they are visible
+  document.querySelectorAll('.view.on iframe').forEach(f => { if(!f.dataset.shown){ f.dataset.shown = 1; f.src = f.src; } });
+  const el = scrollTo && document.getElementById('v-' + scrollTo);
+  if(el && VIEWS[v][0] !== scrollTo) el.scrollIntoView({behavior:'smooth'}); else window.scrollTo({top:0});
+}
+document.querySelectorAll('#tabs button').forEach(b => b.onclick = () => show(b.dataset.v));
+document.querySelectorAll('[data-go]').forEach(b => b.onclick = () => show(b.dataset.go, b.dataset.go));
+document.querySelectorAll('#mcnav a').forEach(a => a.onclick = e => { e.preventDefault(); document.querySelector(a.getAttribute('href')).scrollIntoView({behavior:'smooth'}); });
+
+// ---------- icons ----------
+const I = {
+  heart:'<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/>',
+  hrv:'<path d="M3 12h4l2-5 4 10 2-5h6"/>',
+  temp:'<path d="M14 14.8V5a2 2 0 0 0-4 0v9.8a4 4 0 1 0 4 0z"/>',
+  moon:'<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>',
+  run:'<circle cx="14" cy="4.5" r="1.8"/><path d="M8 21l3-6 3 2v4M7 12l3-4 4 1 2 3 3 1M11 15l-1-4"/>',
+  focus:'<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="1"/>',
+  clock:'<circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/>'};
+const svg = p => `<svg viewBox="0 0 24 24" aria-hidden="true">${p}</svg>`;
+
+// ---------- crew ----------
 async function loadCrew(){
   const s = await api('/mission-control/summary');
-  today = s.today; $('mday').textContent = 'D' + today;
+  today = s.today;
+  $('mdTxt').textContent = 'MD ' + today + ' · Crew ' + crew;
   const pend = s.crew.reduce((n,c) => n + (c.pending_changes ? c.pending_changes.length : 0), 0);
-  $('pending').textContent = pend ? pend + ' to review' : 'Nothing to review';
+  $('pending').textContent = pend || 'Nothing';
   $('crew').innerHTML = s.crew.map(c => c.status === 'unknown'
-    ? `<button class="crow" data-c="${c.crew}"><span class="av">${c.crew}</span><span class="nm">Crew ${c.crew}<span>Not enough ring data</span></span><span class="pc">–</span></button>`
-    : `<button class="crow ${c.crew===crew?'sel':''}" data-c="${c.crew}"><span class="av">${c.crew}</span>
-        <span class="nm">Crew ${c.crew}<span><span class="dot" style="background:${col(c.level)}"></span>${c.alert ? esc(c.critical_tasks[0]) + ' at ' + dstamp(c.on_day) : word(c.level)}</span></span>
-        <span class="pc num" style="color:${col(c.level)}">${c.lowest_readiness}%</span></button>`).join('');
-  document.querySelectorAll('.crow').forEach(b => b.onclick = () => select(b.dataset.c));
+    ? `<button class="cp" data-c="${c.crew}"><span class="av">${c.crew}</span><span>Crew ${c.crew} <small>no data</small></span></button>`
+    : `<button class="cp ${c.crew===crew?'sel':''}" data-c="${c.crew}" title="${c.alert ? esc(c.critical_tasks[0]) + ' at ' + dstamp(c.on_day) : word(c.level) + ' risk'}"><span class="av">${c.crew}</span>
+        <span>Crew ${c.crew}</span><span class="pc" style="color:${col(c.level)}">${c.lowest_readiness}%</span></button>`).join('');
+  document.querySelectorAll('.cp').forEach(b => b.onclick = () => select(b.dataset.c));
 }
 
-function drawChart(){
-  const svg = $('chart'); if(!twin || twin.unknown){ svg.innerHTML = ''; return; }
-  const pts = [...twin.history.map(h => ({...h, f:false})), ...twin.forecast.map(f => ({...f, f:true}))];
-  const W = 720, H = 260, L = 40, R = 16, T = 16, B = 28;
+// ---------- chart ----------
+function chart(){
+  if(!twin || twin.unknown) return '';
+  const hist = twin.history.slice(-7);
+  const pts = [...hist.map(h => ({...h, f:false})), ...twin.forecast.map(f => ({...f, f:true}))];
+  const W = 720, H = 280, Lm = 44, R = 30, T = 36, B = 34;
   const x0 = pts[0].day, x1 = pts.at(-1).day;
-  const X = d => L + (d - x0) / (x1 - x0) * (W - L - R), Y = v => T + (100 - v) / 100 * (H - T - B);
-  let g = '';
-  // risk zones as quiet bands
-  g += `<rect x="${L}" y="${Y(50)}" width="${W-L-R}" height="${Y(0)-Y(50)}" fill="rgba(224,106,114,.07)"/>`;
-  g += `<rect x="${L}" y="${Y(75)}" width="${W-L-R}" height="${Y(50)-Y(75)}" fill="rgba(217,166,72,.05)"/>`;
-  [0,25,50,75,100].forEach(v => g += `<line x1="${L}" x2="${W-R}" y1="${Y(v)}" y2="${Y(v)}" stroke="rgba(226,234,250,.07)"/><text x="${L-8}" y="${Y(v)+4}" text-anchor="end" fill="var(--t3)" font-size="11" font-family="var(--mono)">${v}</text>`);
-  // today divider
-  g += `<line x1="${X(today)}" x2="${X(today)}" y1="${T}" y2="${H-B}" stroke="rgba(226,234,250,.22)" stroke-dasharray="2 4"/>`;
-  g += `<text x="${X(today)+6}" y="${T+10}" fill="var(--t3)" font-size="11">today</text>`;
-  pts.forEach(p => g += `<text x="${X(p.day)}" y="${H-8}" text-anchor="middle" fill="${p.day===today?'var(--t1)':'var(--t3)'}" font-size="11" font-family="var(--mono)">${dstamp(p.day)}</text>`);
-  // lines
+  const X = d => Lm + (d - x0) / (x1 - x0) * (W - Lm - R), Y = v => T + (100 - v) / 100 * (H - T - B);
+  let g = `<defs><linearGradient id="fa" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4cb8f5" stop-opacity=".28"/><stop offset="1" stop-color="#4cb8f5" stop-opacity="0"/></linearGradient></defs>`;
+  [0,25,50,75,100].forEach(v => g += `<line x1="${Lm}" x2="${W-R}" y1="${Y(v)}" y2="${Y(v)}" stroke="rgba(130,180,255,.10)"/><text x="${Lm-10}" y="${Y(v)+4}" text-anchor="end" fill="var(--t3)" font-size="11" font-family="var(--mono)">${v}%</text>`);
+  g += `<line x1="${X(today)}" x2="${X(today)}" y1="${T-10}" y2="${H-B}" stroke="rgba(130,180,255,.35)" stroke-dasharray="3 4"/>`;
+  g += `<text x="${X(today)}" y="${T-16}" text-anchor="middle" fill="var(--t2)" font-size="11">today</text>`;
+  pts.forEach(p => g += `<text x="${X(p.day)}" y="${H-10}" text-anchor="middle" fill="${p.f?'var(--t1)':'var(--t3)'}" font-size="11" font-family="var(--mono)">${p.f ? '+' + (p.day - today) * 24 + ' h' : 'D' + p.day}</text>`);
   const past = pts.filter(p => !p.f), fut = [past.at(-1), ...pts.filter(p => p.f)];
   const path = arr => arr.map((p,i) => (i?'L':'M') + X(p.day).toFixed(1) + ' ' + Y(p.readiness).toFixed(1)).join(' ');
-  g += `<path d="${path(past)}" fill="none" stroke="var(--t2)" stroke-width="2" stroke-linejoin="round"/>`;
-  g += `<path d="${path(fut)}" fill="none" stroke="var(--t1)" stroke-width="2" stroke-dasharray="6 5" stroke-linejoin="round"/>`;
-  pts.forEach(p => g += `<circle cx="${X(p.day)}" cy="${Y(p.readiness)}" r="${p.f?4.5:3}" fill="${p.f?col(p.level):'var(--t2)'}" stroke="var(--s1)" stroke-width="2"/>`);
-  // critical task markers
-  twin.forecast.filter(d => d.critical_tasks.length).forEach(d => {
-    const x = X(d.day), y = Y(d.readiness);
-    g += `<g transform="translate(${x},${y+22})"><rect x="-5" y="-5" width="10" height="10" transform="rotate(45)" fill="${d.alert?'var(--bad)':'var(--t3)'}"/></g>`;
-    g += `<text x="${x}" y="${y+44}" text-anchor="middle" fill="${d.alert?'var(--bad)':'var(--t3)'}" font-size="11">${esc(d.critical_tasks[0])}</text>`;
+  g += `<path d="${path(fut)} L${X(fut.at(-1).day)} ${Y(0)} L${X(fut[0].day)} ${Y(0)}Z" fill="url(#fa)"/>`;
+  g += `<path d="${path(past)}" fill="none" stroke="var(--t3)" stroke-width="2" stroke-linejoin="round"/>`;
+  g += `<path d="${path(fut)}" fill="none" stroke="var(--acc)" stroke-width="2.5" stroke-linejoin="round"/>`;
+  past.forEach(p => g += `<circle cx="${X(p.day)}" cy="${Y(p.readiness)}" r="3" fill="var(--t3)"/>`);
+  pts.filter(p => p.f).forEach(p => {
+    const x = X(p.day), y = Y(p.readiness), c = col(p.level);
+    g += `<circle cx="${x}" cy="${y}" r="6" fill="${c}" stroke="#0d1526" stroke-width="2"/>`;
+    g += `<rect x="${x-24}" y="${y-36}" width="48" height="24" rx="8" fill="#0d1526" stroke="${c}" stroke-opacity=".7"/><text x="${x}" y="${y-19}" text-anchor="middle" fill="var(--t1)" font-size="12.5" font-family="var(--mono)">${p.readiness}%</text>`;
+    if(p.critical_tasks && p.critical_tasks.length) g += `<text x="${x}" y="${Math.min(y + 26, H - B - 6)}" text-anchor="middle" fill="${p.alert?'var(--bad)':'var(--t2)'}" font-size="11">${esc(p.critical_tasks[0])}</text>`;
   });
-  // what-if point
   if(whatIfPt){
     const x = X(whatIfPt.day), y0 = Y(whatIfPt.before), y1 = Y(whatIfPt.after);
-    g += `<line x1="${x}" x2="${x}" y1="${y0}" y2="${y1}" stroke="var(--acc)" stroke-width="2"/>`;
-    g += `<circle cx="${x}" cy="${y1}" r="6" fill="var(--acc)" stroke="var(--s1)" stroke-width="2"/>`;
-    g += `<text x="${x+10}" y="${y1+4}" fill="var(--acc)" font-size="12" font-family="var(--mono)">${whatIfPt.after}%</text>`;
+    g += `<line x1="${x+14}" x2="${x+14}" y1="${y0}" y2="${y1}" stroke="var(--ok)" stroke-width="2" stroke-dasharray="3 3"/>`;
+    g += `<circle cx="${x+14}" cy="${y1}" r="6" fill="var(--ok)" stroke="#0d1526" stroke-width="2"/>`;
+    g += `<text x="${x+24}" y="${y1+4}" fill="var(--ok)" font-size="12.5" font-family="var(--mono)">${whatIfPt.after}%</text>`;
   }
-  svg.innerHTML = g;
+  return g;
 }
+const drawCharts = () => { const g = chart(); ['chartO','chartP','chartW'].forEach(id => $(id).innerHTML = g); };
 
+// ---------- twin ----------
 const REAL = new Set(['sleep_hours','hours_awake','resting_hr','active_minutes']);
 const isReal = k => twin && twin.label === 'Real + simulated' && REAL.has(k);
 const tag = k => isReal(k) ? '<span class="src real">real</span>' : '<span class="src">sim</span>';
-const SIG = [['sleep_hours','Sleep','h',1],['hrv_ms','HRV','ms',0],['resting_hr','Resting heart rate','bpm',0],
-             ['skin_temp_c','Skin temperature','°C',1],['hours_awake','Hours awake','h',1],['active_minutes','Activity','min',0],['focus_rt_ms','Focus test','ms',0]];
+const SIG = [['resting_hr','Heart rate','bpm',0,'heart'],['hrv_ms','HRV','ms',0,'hrv'],['skin_temp_c','Skin temperature','°C',1,'temp'],
+             ['sleep_hours','Sleep, last night','h',1,'moon'],['active_minutes','Activity','min',0,'run'],['hours_awake','Hours awake','h',1,'clock'],['focus_rt_ms','Focus test','ms',0,'focus']];
 const sigs = () => SIG.filter(([k]) => twin.now.signals[k]);
-function drawSignals(){
-  $('sigs').innerHTML = sigs().map(([k,name,unit,dp]) => {
-    const s = twin.now.signals[k], z = Math.max(-3, Math.min(3, s.z));
-    const c = Math.abs(s.z) >= 2 ? 'var(--bad)' : Math.abs(s.z) >= 1 ? 'var(--warn)' : 'var(--ok)';
-    const st = s.status.charAt(0).toUpperCase() + s.status.slice(1);
-    return `<div class="sig"><span class="k">${name}${tag(k)}</span><span class="v num">${Number(s.value).toFixed(dp)} ${unit}</span>
-      <span class="dev" title="normal ${s.normal}"><span class="band"></span><span class="mid"></span><span class="pt" style="left:${(z+3)/6*100}%;background:${c}"></span></span>
-      <span class="st" style="color:${c}">${st}</span></div>`;
-  }).join('');
+const zc = z => Math.abs(z) >= 2 ? 'var(--bad)' : Math.abs(z) >= 1 ? 'var(--warn)' : 'var(--ok)';
+
+function gauge(v, level, id){
+  const r = 70, c = 2 * Math.PI * r, arc = c * .75, val = arc * Math.max(0, Math.min(100, v)) / 100, k = col(level);
+  return `<svg class="gauge" viewBox="0 0 180 170" role="img" aria-label="Readiness ${v}%">
+    <defs><linearGradient id="${id}" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="${k}"/><stop offset="1" stop-color="#4cb8f5"/></linearGradient></defs>
+    <circle cx="90" cy="90" r="${r}" fill="none" stroke="rgba(130,180,255,.12)" stroke-width="12" stroke-linecap="round" stroke-dasharray="${arc} ${c}" transform="rotate(135 90 90)"/>
+    <circle cx="90" cy="90" r="${r}" fill="none" stroke="url(#${id})" stroke-width="12" stroke-linecap="round" stroke-dasharray="${val} ${c}" transform="rotate(135 90 90)"/>
+    <text x="90" y="96" text-anchor="middle" fill="var(--t1)" font-size="38" font-family="var(--mono)" font-weight="500">${v}%</text>
+    <text x="90" y="124" text-anchor="middle" fill="${k}" font-size="15" font-family="var(--sans)">Ready</text></svg>`;
 }
 
-
-const TWIN_SVG = c => `<svg viewBox="0 0 180 200" aria-hidden="true">
-  <circle cx="90" cy="52" r="34" fill="none" stroke="var(--t2)" stroke-width="1.5"/>
-  <path d="M68 50a22 18 0 0 1 44 0v6a22 14 0 0 1-44 0z" fill="var(--s3)" stroke="var(--t3)" stroke-width="1"/>
-  <path d="M40 196v-46c0-26 22-44 50-44s50 18 50 44v46" fill="none" stroke="var(--t2)" stroke-width="1.5"/>
-  <path d="M40 150l-12 34M140 150l12 34" fill="none" stroke="var(--t2)" stroke-width="1.5"/>
-  <rect x="76" y="126" width="28" height="18" rx="3" fill="none" stroke="var(--t3)"/>
-  <circle cx="152" cy="184" r="5" fill="none" stroke="var(--acc)" stroke-width="2"/>
-  <circle cx="152" cy="184" r="10" fill="none" stroke="var(--acc)" stroke-opacity=".35"/>
-  <circle cx="90" cy="140" r="4" fill="${c}"/>
-</svg>`;
-function drawTwinExtras(){
-  const sig = twin.now.signals, off = sigs().filter(([k]) => Math.abs(sig[k].z) >= 1);
-  const bad = sigs().some(([k]) => Math.abs(sig[k].z) >= 2);
-  const c = bad ? 'var(--bad)' : off.length ? 'var(--warn)' : 'var(--ok)';
-  const verdict = off.length ? `${off.length} of ${sigs().length} signals off normal` : 'All signals in normal range';
-  $('twinCard').innerHTML = `<b>Twin of crew ${crew}</b><p>Normal learned from days 1 to 7</p>
-    <div class="verdict" style="color:${c}">${verdict}</div>
-    <p>${off.map(([,n]) => n).join(', ') || 'Nothing unusual today'}</p>`;
-  $('f2').textContent = verdict;
+function drawTwin(){
+  const sig = twin.now.signals, all = sigs(), off = all.filter(([k]) => Math.abs(sig[k].z) >= 1);
+  const now = twin.history.at(-1);
+  const hist = twin.history.slice(-8, -1), avg = hist.length ? Math.round(hist.reduce((a,h) => a + h.readiness, 0) / hist.length) : now.readiness;
+  const worst = [...twin.forecast].sort((a,b) => (b.alert - a.alert) || (a.readiness - b.readiness))[0];
+  const side = `<div class="tw">
+      <div class="row"><small>Fatigue risk today</small><b style="color:${col(now.level)}"><span class="dot" style="background:${col(now.level)};margin-right:8px"></span>${word(now.level)}</b></div>
+      <div class="row"><small>Signals off normal</small><b class="num">${off.length} of ${all.length}</b><div class="meter"><i style="width:${off.length/all.length*100}%;background:${zc(off.length >= all.length/2 ? 2 : off.length ? 1 : 0)}"></i></div></div>
+      <div class="row"><small>Average readiness, previous 7 days</small><b class="num">${avg}%</b></div></div>`;
+  $('twinO').innerHTML = gauge(now.readiness, now.level, 'g1') + side;
+  $('twinA').innerHTML = gauge(now.readiness, now.level, 'g3') + side;
+  $('twinT').innerHTML = gauge(now.readiness, now.level, 'g2') + side;
+  const ok = !worst.alert && now.level !== 'high';
+  const pill = `<span class="ok" style="background:${ok?'var(--ok)':'var(--warn)'}">${ok?'✓':'!'}</span><span>${worst.alert
+      ? `${esc(worst.critical_tasks[0])} at ${dstamp(worst.day)} falls on a ${worst.readiness}% day`
+      : off.length ? `${off.length} signals off normal, keep an eye on the next days` : 'Fit for duty, all signals in normal range'}</span>`;
+  $('twinPill').innerHTML = pill; $('twinPill2').innerHTML = pill; $('twinPill3').innerHTML = pill;
+  drawDaysA(); drawBrief();
   const lvl = ks => { const m = Math.max(0, ...ks.filter(k => sig[k]).map(k => Math.abs(sig[k].z))); return m >= 2 ? 'bad' : m >= 1 ? 'warn' : 'ok'; };
   const h = {head:lvl(['sleep_hours','hours_awake','focus_rt_ms']), heart:lvl(['resting_hr','hrv_ms']), hand:lvl(['skin_temp_c','active_minutes'])};
   const fr = $('holo'); fr.src = '../twin/?mini#' + new URLSearchParams(h);
   try{ fr.contentWindow.postMessage({twin:h}, '*'); }catch(e){}
-  $('rawTitle').textContent = 'Last reading, ' + dstamp(twin.now.day);
-  $('raw').innerHTML = sigs().map(([k,name,unit,dp]) => `<div><small>${name}${tag(k)}</small><b class="num">${Number(sig[k].value).toFixed(dp)}<span>${unit}</span></b><em>normal ${Number(sig[k].normal).toFixed(dp)} ${unit}</em></div>`).join('');
-  const worst = [...twin.forecast].sort((a,b) => (b.alert - a.alert) || (a.readiness - b.readiness))[0];
-  $('f3').textContent = worst.alert ? `${worst.critical_tasks[0]} at ${dstamp(worst.day)}: ${worst.readiness}%` : `Lowest ${worst.readiness}% at ${dstamp(worst.day)}`;
-  $('f3a').classList.toggle('hot', !!worst.alert);
-  $('s3p').textContent = worst.alert
-    ? `${worst.critical_tasks[0]} is a critical task at ${dstamp(worst.day)}, and the forecast for that day is only ${worst.readiness}%`
-    : 'The twin estimates readiness for the next 3 days and checks it against the task schedule';
+
+  $('ringSig').innerHTML = all.slice(0, 5).map(([k,name,unit,dp,ic]) => `<div class="si">${svg(I[ic])}<div><small>${name}${tag(k)}</small><b style="color:${Math.abs(sig[k].z) >= 2 ? 'var(--bad)' : 'var(--t1)'}">${Number(sig[k].value).toFixed(dp)}<span>${unit}</span></b></div></div>`).join('');
+
+  $('sigs').innerHTML = all.map(([k,name,unit,dp,ic]) => {
+    const s = sig[k], z = Math.max(-3, Math.min(3, s.z)), c = zc(s.z);
+    return `<div class="sig"><span style="display:flex;align-items:center;gap:10px">${svg(I[ic]).replace('<svg','<svg class="ic"')}${name}${tag(k)}</span><span class="v">${Number(s.value).toFixed(dp)} ${unit}</span>
+      <span class="dev" title="${s.status}, normal ${s.normal}"><span class="band"></span><span class="mid"></span><span class="pt" style="left:${(z+3)/6*100}%;background:${c}"></span></span>
+      </div>`;
+  }).join('');
+  const pb = twin.personal_baseline;
+  $('baseT').innerHTML = `<tr><th>Signal</th><th class="num">Personal normal</th><th class="num">Today</th><th class="num">Distance from normal</th><th>Source</th></tr>` +
+    all.map(([k,name,unit,dp]) => `<tr><td>${name}</td><td class="num">${pb[k] ? Number(pb[k].mean).toFixed(dp) + ' ± ' + Number(pb[k].sd).toFixed(dp || 1) : '–'} ${unit}</td><td class="num">${Number(sig[k].value).toFixed(dp)} ${unit}</td><td class="num" style="color:${zc(sig[k].z)}">${sig[k].z > 0 ? '+' : ''}${sig[k].z} SD</td><td>${isReal(k) ? 'Real Fitbit' : 'Simulated'}</td></tr>`).join('');
 }
 
 async function loadTwin(){
   twin = await api('/twin/' + crew);
-  $('title').textContent = 'Crew ' + crew;
   const real = twin.label === 'Real + simulated';
   $('simStamp').textContent = real ? 'Real Fitbit data + simulated' : 'Simulated';
-  $('rawSrc').textContent = real ? 'Sleep, heart rate and activity are real Fitbit days (Furberg et al. 2016, Zenodo 53894). HRV and skin temperature are simulated' : 'All values simulated';
-  $('ringcap').textContent = twin.unknown ? 'Crew ' + crew : `Crew ${crew} · ${twin.now.signals.resting_hr.value} bpm`;
-  if(twin.unknown){ $('twinCard').innerHTML=`<p>${esc(twin.message)}</p>`; $('raw').innerHTML=''; $('headline').innerHTML = `<p class="summary">${esc(twin.message)}</p>`; $('sigs').innerHTML=''; drawChart(); return; }
-  const worst = [...twin.forecast].sort((a,b) => (b.alert - a.alert) || (a.readiness - b.readiness))[0];
-  const now = twin.history.at(-1);
-  $('subtitle').textContent = worst.alert ? `${worst.critical_tasks[0]} at ${dstamp(worst.day)} falls on a low-readiness day` : 'Readiness forecast for the next 3 days';
-  $('headline').innerHTML = `
-    <div class="fig"><small>Today, ${dstamp(today)}</small><b class="num">${now.readiness}%</b><em>${word(now.level)}</em></div>
-    <div class="fig"><small>Lowest ahead, ${dstamp(worst.day)}</small><b class="num" style="color:${col(worst.level)}">${worst.readiness}%</b><em>${word(worst.level)}${worst.critical_tasks.length?' · '+esc(worst.critical_tasks[0]):''}</em></div>
-    <div class="fig"><small>Normal for crew ${crew}</small><b class="num">${twin.personal_baseline.sleep_hours.mean} h</b><em>sleep, first 7 days</em></div>`;
-  drawChart(); drawSignals(); drawTwinExtras();
+  $('predSrc').textContent = real ? 'Real + simulated' : 'Simulated';
+  $('rawSrc').textContent = real ? 'Sleep, heart rate and activity are real Fitbit days (Furberg et al. 2016, Zenodo 53894). HRV, skin temperature and focus are simulated' : 'All values simulated';
+  if(twin.unknown){ $('twinO').innerHTML = `<p class="empty">${esc(twin.message)}</p>`; $('ringSig').innerHTML = ''; drawCharts(); return; }
+  drawTwin(); drawCharts();
 }
 
+function drawDaysA(){
+  const name = d => d === today + 1 ? 'Tomorrow' : dstamp(d);
+  $('daysA').innerHTML = twin.forecast.map(f => `<div class="dt" style="${f.alert ? 'border-color:rgba(240,98,106,.55)' : ''}"><small>${name(f.day)} · day ${f.day}</small>
+    <b style="color:${col(f.level)}">${f.readiness}%</b><small style="color:${col(f.level)}">${word(f.level)} fatigue risk</small>
+    <p>${f.critical_tasks.length ? (f.alert ? '<span class="badge b-crit">Critical</span> ' : '') + esc(f.critical_tasks.join(', ')) : 'No critical task'}</p></div>`).join('');
+}
+
+// ---------- schedule ----------
+async function loadSched(){
+  const days = [today + 1, today + 2, today + 3];
+  const res = await Promise.all(days.map(d => api(`/schedule/${crew}/${d}`).catch(() => ({tasks:[]}))));
+  sched = {}; days.forEach((d,i) => sched[d] = res[i].tasks);
+}
+function dayOf(d){ return twin && twin.forecast ? twin.forecast.find(f => f.day === d) : null; }
+function badge(t, f){
+  if(!f) return '';
+  if(t.critical && f.alert) return '<span class="badge b-crit">Critical</span>';
+  if(f.level === 'high') return '<span class="badge b-risk">At risk</span>';
+  if(f.level === 'medium') return t.load === 'heavy' ? '<span class="badge b-watch">Consider delay</span>' : '<span class="badge b-watch">Watch</span>';
+  return '<span class="badge b-ok">Ready</span>';
+}
+function drawTasks(){
+  const changes = last && last.changes ? last.changes : [];
+  const list = Object.entries(sched).flatMap(([d, ts]) => ts.filter(t => t.load !== 'rest').map(t => ({...t, day:+d})))
+    .filter(t => t.critical || t.load === 'heavy').slice(0, 4);
+  $('tasksO').innerHTML = list.length ? list.map(t => { const f = dayOf(t.day), c = f ? col(f.level) : 'var(--t3)';
+    return `<div class="ti"><span class="ring" style="border-color:${c};color:${c}">${t.critical ? '!' : ''}</span>
+      <div><b>${esc(t.name)}</b><small>${dstamp(t.day)} · ${t.start}</small></div>${badge(t, f)}<span class="pc" style="color:${c}">${f ? f.readiness + '%' : ''}</span></div>`; }).join('')
+    : '<p class="empty">No heavy or critical tasks in the next 3 days</p>';
+  $('schedCols').innerHTML = Object.entries(sched).map(([d, ts]) => { const f = dayOf(+d);
+    return `<div class="card c4"><div class="ch"><div><h2>${dstamp(+d)} <span class="num" style="color:var(--t3);font-weight:400">· mission day ${d}</span></h2><p>${f ? (f.critical_tasks.length ? 'Critical: ' + esc(f.critical_tasks.join(', ')) : 'No critical task') : ''}</p></div>
+      ${f ? `<span class="tag" style="color:${col(f.level)};border-color:${col(f.level)}">${f.readiness}% · ${word(f.level)}</span>` : ''}</div>
+      ${ts.map(t => { const ch = changes.filter(c => c.task_id === t.id);
+        return `<div class="task"><span class="tm">${t.start}</span><div><b>${esc(t.name)}</b> ${t.critical ? '<span class="badge b-crit" style="margin-left:6px">critical</span>' : ''}
+          <small>${t.minutes} min · ${t.load} · simulated</small>${ch.map(c => `<span class="chg">Suggested: ${TITLE(c).replace(/<[^>]+>/g, '')} · ${stateText(c)}</span>`).join('')}</div></div>`; }).join('')}</div>`; }).join('');
+}
+
+// ---------- predictions day cards ----------
+const FN = {sleep:'sleep', circadian:'body clock', body:'body signs', wake:'hours awake', focus:'focus', workload:'workload', self_report:'check-in'};
+function drawDays(){
+  if(!last || !last.forecast || !last.forecast.days) return;
+  $('dayCards').innerHTML = last.forecast.days.map(d => `<div class="card c4 day"><h3>${dstamp(d.day)} <span class="num" style="color:var(--t3);font-weight:400">· day ${d.day}</span></h3>
+    <div class="big" style="color:${col(d.level)}">${d.readiness}%</div><div style="color:var(--t2)">${word(d.level)} fatigue risk · ${d.score} of ${d.max_score} points${d.critical_tasks.length ? ' · ' + esc(d.critical_tasks.join(', ')) : ''}</div>
+    <div class="chips">${Object.entries(d.points).map(([k,v]) => `<span class="chip p${v}">${FN[k] || k} ${v}</span>`).join('')}</div></div>`).join('');
+  const w = last.forecast.days.find(d => d.alert);
+  $('predHead').textContent = w ? `${w.critical_tasks[0]} at ${dstamp(w.day)} is critical, and the forecast for that day is ${w.readiness}%` : 'The twin estimates readiness and checks it against the task schedule';
+}
+
+// ---------- NOVA ----------
 function say(html, me){
   $('chat').insertAdjacentHTML('beforeend', `<div class="msg ${me?'me':''}"><span class="av ${me?'':'nova'}">${me?crew:'N'}</span><div class="bub"><div class="who">${me?'Crew '+crew:'NOVA'}</div>${html}</div></div>`);
   $('chat').scrollTop = 1e6;
@@ -503,10 +744,10 @@ async function answer(text){
   try{
     const r = await api('/nova/answer', {crew, text});
     const a = r.answers, f = [];
-    if(a.sleep_hours != null) f.push(`sleep <b>${a.sleep_hours} h</b>`);
-    if(a.fatigue != null) f.push(`fatigue <b>${a.fatigue}/5</b>`);
-    if(a.stress != null) f.push(`stress <b>${a.stress}/5</b>`);
-    if(a.mood != null) f.push(`mood <b>${esc(a.mood)}</b>`);
+    if(a.sleep_hours != null) f.push(`<span>sleep <b>${a.sleep_hours} h</b></span>`);
+    if(a.fatigue != null) f.push(`<span>fatigue <b>${a.fatigue}/5</b></span>`);
+    if(a.stress != null) f.push(`<span>stress <b>${a.stress}/5</b></span>`);
+    if(a.mood != null) f.push(`<span>mood <b>${esc(a.mood)}</b></span>`);
     say(`Thanks. I added this to your forecast.${f.length?`<div class="facts">${f.join('')}</div>`:''}${r.nova_note?`<p style="margin:8px 0 0">${esc(r.nova_note)}</p>`:''}
       <div class="who" style="margin-top:6px">Understood ${a.source === 'claude' ? 'by Claude' : 'offline'}${a.claude_error?' · '+esc(a.claude_error):''}</div>`);
     if(r.hidden_fatigue && r.hidden_fatigue.flag){
@@ -518,31 +759,79 @@ async function answer(text){
     await Promise.all([loadTwin(), loadCrew()]); runForecast(); loadLink();
   }catch(err){ say('<span class="err">The server is not reachable</span>'); }
 }
+// ---------- NOVA brief for the astronaut: built only from the model's numbers ----------
+function briefLines(){
+  if(!twin || twin.unknown || !twin.forecast) return [];
+  const L = [], sig = twin.now.signals, fc = twin.forecast;
+  const worst = [...fc].sort((a,b) => (b.alert - a.alert) || (a.readiness - b.readiness))[0];
+  if(worst.alert) L.push(`${dstamp(worst.day)} is your hardest day. ${worst.critical_tasks[0]} falls on a ${worst.readiness}% readiness day`);
+  else if(fc.every(f => f.level === 'high')) L.push('Your next 3 days look tiring');
+  else if(fc.every(f => f.level === 'low')) L.push('Your next 3 days look good. You are fit for your tasks');
+  else L.push(`Your lowest day is ${dstamp(worst.day)} at ${worst.readiness}% readiness`);
+  const off = sigs().filter(([k]) => Math.abs(sig[k].z) >= 1).sort((a,b) => Math.abs(sig[b[0]].z) - Math.abs(sig[a[0]].z));
+  if(off.length){ const [k,name,unit,dp] = off[0];
+    const BN = {sleep_hours:'sleep', resting_hr:'resting heart rate', hrv_ms:'HRV', skin_temp_c:'skin temperature', active_minutes:'activity', hours_awake:'hours awake', focus_rt_ms:'focus test time'};
+    L.push(`Main reason: your ${BN[k] || name} is ${sig[k].z < 0 ? 'lower' : 'higher'} than your normal (${Number(sig[k].value).toFixed(dp)} ${unit.trim()})`); }
+  if(last && last.changes && last.changes.length){ const n = last.changes.filter(c => c.status === 'pending').length;
+    L.push(n ? `I suggested ${n} change${n === 1 ? '' : 's'} to your schedule. You decide` : 'Your schedule changes are decided'); }
+  else if(last && last.changes) L.push('No schedule change needed');
+  return L;
+}
+function drawBrief(){ const L = briefLines(); if(L.length) $('briefList').innerHTML = L.map(l => `<li>${esc(l)}</li>`).join(''); }
+$('listen').onclick = () => {
+  if(!('speechSynthesis' in window)) return;
+  speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(briefLines().join('. ')); u.lang = 'en-US'; u.rate = 0.95;
+  speechSynthesis.speak(u);
+};
+$('briefGo').onclick = e => { e.preventDefault(); $('v-nova').scrollIntoView({behavior:'smooth'}); };
+// voice answer: speech to text in the browser, then the same text path as typing
+(() => { const SR = window.SpeechRecognition || window.webkitSpeechRecognition; if(!SR) return;
+  const b = $('micBtn'); b.hidden = false; let rec = null;
+  b.onclick = () => { if(rec){ rec.stop(); return; }
+    rec = new SR(); rec.lang = 'en-US'; rec.interimResults = true;
+    rec.onresult = e => { $('ans').value = [...e.results].map(r => r[0].transcript).join(' '); };
+    rec.onend = () => { b.classList.remove('on'); b.textContent = 'Speak'; rec = null; const t = $('ans').value.trim(); if(t){ $('ans').value = ''; answer(t); } };
+    rec.onerror = () => { $('ans').placeholder = 'Voice needs a microphone and internet in this browser. Type instead'; };
+    b.classList.add('on'); b.textContent = 'Stop'; rec.start(); };
+})();
 $('askForm').onsubmit = e => { e.preventDefault(); const t = $('ans').value.trim(); if(t){ $('ans').value = ''; answer(t); } };
 document.querySelectorAll('#quick button').forEach(b => b.onclick = () => answer(b.textContent));
 
 const ICON = {
-  longer_rest:'<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>',
+  longer_rest:'<path d="M3 18v-6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v6M3 14h18M7 10V7"/>',
   reorder:'<path d="M7 4v16m0 0-3-3m3 3 3-3M17 20V4m0 0-3 3m3-3 3 3"/>',
-  postpone:'<circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/>',
-  reassign:'<circle cx="9" cy="8" r="3"/><path d="M4 19c0-3 2.2-5 5-5s5 2 5 5M15 10h6m-3-3 3 3-3 3"/>'};
+  postpone:'<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/>',
+  reassign:'<circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3 19c0-3 2.7-5 6-5s6 2 6 5M15 14c3 0 6 1.5 6 4"/>'};
+const WLABEL = {longer_rest:'Add rest', reorder:'Reorder tasks', postpone:'Postpone task', reassign:'Reassign task'};
 const TITLE = c => c.type === 'longer_rest' ? `Longer rest <span>+${c.extra_minutes} min</span>`
   : c.type === 'reassign' ? `${esc(c.task)} <span>to crew ${esc(c.to_crew)}</span>`
   : c.type === 'postpone' ? `Postpone ${esc(c.task)} <span>to ${esc(c.to)}</span>`
   : `Move ${esc(c.task)} <span>${esc(c.from)} to ${esc(c.to)}</span>`;
 const STATE = {pending:'Waiting for approval', accept:'Accepted', reject:'Rejected', edit:'Edited'};
 const stateText = c => c.provisional ? (STATE[c.status] || c.status) + ' by commander, waiting for Earth' : c.confirmed ? (STATE[c.status] || c.status) + ', confirmed by Earth' : (STATE[c.status] || c.status);
+const pendText = () => { const n = last.changes.filter(c => c.status === 'pending').length; return n ? `Review ${n} change${n === 1 ? '' : 's'}` : 'See decisions'; };
 
+function drawNovaList(){
+  $('novaList').innerHTML = last.changes.slice(0, 3).map(c => `<li>${svg(ICON[c.type] || '')}<span>${TITLE(c)}</span><b>${c.status === 'pending' ? '+' + (c.effect.readiness_after - c.effect.readiness_before) + ' pts' : esc(STATE[c.status] || c.status)}</b></li>`).join('');
+}
 async function runForecast(){
   $('sugg').innerHTML = '<p class="summary">Checking the schedule</p>';
   last = await api(`/forecast/${crew}?lang=en&use_claude=${$('useClaude').checked}`);
   whatIfPt = null;
-  if(last.unknown || !last.changes){ $('sugg').innerHTML = `<p class="summary">${esc(last.message || '')}</p>`; $('focusDay').textContent = ''; drawChart(); return; }
-  $('focusDay').textContent = 'for ' + dstamp(last.focus_day);
-  $('f4').textContent = last.changes.length ? last.changes.length + ' changes to approve' : 'No changes needed';
-  if(!last.changes.length){ $('sugg').innerHTML = `<p class="summary">${esc(last.summary)}</p>`; drawChart(); return; }
+  if(last.unknown || !last.changes){ $('sugg').innerHTML = `<p class="summary">${esc(last.message || '')}</p>`; $('novaSay').textContent = last.message || ''; drawCharts(); return; }
+  $('focusDay').textContent = 'Changes for ' + dstamp(last.focus_day); $('focusDay2').textContent = 'Changes for crew ' + crew + ' on ' + dstamp(last.focus_day);
+  $('wiDay').textContent = dstamp(last.focus_day);
+  $('novaSay').textContent = last.summary;
+  $('novaReview').textContent = pendText();
+  drawNovaList(); drawDays(); drawTasks(); drawBrief();
+  if(!last.changes.length){ $('sugg').innerHTML = $('sugg2').innerHTML = `<p class="summary">${esc(last.summary)}</p>`; $('wbtns').innerHTML = '<p class="empty">No changes needed</p>'; $('wList').innerHTML = ''; drawCharts(); return; }
+  renderSugg();
+  picked = new Set(last.changes.filter(c => c.status !== 'reject').map(c => c.id));
+  drawWhatIfControls(); whatIf();
+}
+function renderSugg(){
   const banner = last.mars_mode ? `<p class="banner"><b>Mars mode.</b> ${last.link.online ? `Earth is ${last.link.delay_min} min away each way, so an answer takes ${Math.round(last.link.delay_min*2)} min.` : 'No link to Earth right now.'} The commander approves now, and Mission Control confirms when the message arrives</p>` : '';
-  $('sugg').innerHTML = banner + `<p class="summary">${esc(last.summary)}</p><div class="acts">${last.changes.map(c => `
+  const html = banner + `<p class="summary">${esc(last.summary)}</p><div class="acts">${last.changes.map(c => `
     <div class="act ${c.status}" data-id="${c.id}">
       <svg viewBox="0 0 24 24" aria-hidden="true">${ICON[c.type] || ''}</svg>
       <span class="t">${TITLE(c)}</span>
@@ -550,22 +839,35 @@ async function runForecast(){
       <div class="ctrl">
         <button class="btn main" data-d="accept">Accept</button><button class="btn" data-d="edit">Edit</button><button class="btn" data-d="reject">Reject</button><button class="btn" data-d="why">Why</button>
         <span class="state">${stateText(c)}</span>
-        <label class="pick"><input type="checkbox" value="${c.id}" checked> In what-if</label>
       </div>
       <p class="why">${esc(c.reason)} Approver: ${esc(c.approver)}</p>
-    </div>`).join('')}</div>
-    <div class="wi"><span>What-if, selected changes</span><b class="num" id="wiv"></b></div>`;
-  document.querySelectorAll('.act .btn').forEach(b => b.onclick = () => act(b.closest('.act'), b.dataset.d));
-  document.querySelectorAll('.pick input').forEach(p => p.onchange = whatIf);
-  whatIf();
+    </div>`).join('')}</div>`;
+  $('sugg').innerHTML = html; $('sugg2').innerHTML = html;
+  document.querySelectorAll('#sugg .act .btn, #sugg2 .act .btn').forEach(b => b.onclick = () => act(b.closest('.act'), b.dataset.d));
+}
+function drawWhatIfControls(){
+  const types = [...new Set(last.changes.map(c => c.type))];
+  $('wbtns').innerHTML = types.map(t => { const ids = last.changes.filter(c => c.type === t).map(c => c.id), on = ids.some(i => picked.has(i));
+    return `<button class="wb ${on?'on':''}" data-t="${t}" aria-pressed="${on}">${svg(ICON[t] || '')}<span>${WLABEL[t] || t}</span><small>${ids.length} change${ids.length === 1 ? '' : 's'}</small></button>`; }).join('');
+  document.querySelectorAll('.wb').forEach(b => b.onclick = () => {
+    const ids = last.changes.filter(c => c.type === b.dataset.t).map(c => c.id), on = ids.some(i => picked.has(i));
+    ids.forEach(i => on ? picked.delete(i) : picked.add(i)); drawWhatIfControls(); whatIf();
+  });
+  $('wList').innerHTML = `<div class="acts">${last.changes.map(c => `<div class="act ${c.status}" style="grid-template-columns:20px minmax(0,1fr) auto">
+      <svg viewBox="0 0 24 24" aria-hidden="true">${ICON[c.type] || ''}</svg><span class="t">${TITLE(c)}</span>
+      <label class="pick"><input type="checkbox" value="${c.id}" ${picked.has(c.id)?'checked':''}> Test</label>
+      <span class="fx" style="grid-column:2/4">Alone: ${c.effect.readiness_before}% → <b>${c.effect.readiness_after}%</b> · ${stateText(c)}</span></div>`).join('')}</div>`;
+  document.querySelectorAll('#wList .pick input').forEach(p => p.onchange = () => { p.checked ? picked.add(p.value) : picked.delete(p.value); drawWhatIfControls(); whatIf(); });
 }
 async function whatIf(){
-  const ids = [...document.querySelectorAll('.pick input:checked')].map(p => p.value);
-  if(!ids.length){ $('wiv').textContent = 'Pick a change'; whatIfPt = null; drawChart(); return; }
+  const ids = [...picked];
+  const set = (b, a, g) => { $('wBefore').textContent = b; $('wAfter').textContent = a; $('wBefore2').textContent = b; $('wAfter2').textContent = a; $('wGain').innerHTML = g; };
+  if(!ids.length){ whatIfPt = null; const f = last.forecast.days.find(d => d.day === last.focus_day); set(f ? f.readiness + '%' : '–', '–', '<span style="color:var(--t3)">Pick a change</span>'); drawCharts(); return; }
   const r = await api('/whatif/' + crew, {day: last.focus_day, change_ids: ids});
   whatIfPt = {day: r.day, before: r.readiness_before, after: r.readiness_after};
-  $('wiv').innerHTML = `${dstamp(r.day)} ${r.readiness_before}% → <i>${r.readiness_after}%</i>`;
-  drawChart();
+  const d = r.readiness_after - r.readiness_before;
+  set(r.readiness_before + '%', r.readiness_after + '%', d > 0 ? `<span class="dot" style="margin-right:6px;vertical-align:0"></span>+${d} points on ${dstamp(r.day)}, model estimate` : 'No change on that day');
+  drawCharts();
 }
 async function act(box, d){
   const id = box.dataset.id;
@@ -581,29 +883,30 @@ async function act(box, d){
   box.querySelector('.state').textContent = STATE[d] + (note ? ': ' + note : '');
   box.querySelector('.note')?.remove(); box.querySelector('[data-d="save"]')?.remove();
   if(last.mars_mode && d !== 'reject') box.querySelector('.state').textContent += ' by commander, waiting for Earth';
-  loadCrew(); loadLink();
+  const c = last.changes.find(x => x.id === id); if(c){ c.status = d; c.provisional = last.mars_mode && d !== 'reject'; }
+  $('novaReview').textContent = pendText();
+  if(d !== 'edit' || note) c && (c.note = note);
+  renderSugg(); drawNovaList(); drawWhatIfControls(); drawTasks(); loadCrew(); loadLink();
 }
 
 // ---------- Earth link, outbox, Mission Control ----------
 const KIND = {decision:'Decision', hidden_fatigue:'Hidden fatigue note'};
 async function loadLink(){
-  const L = await api('/link');
+  L = await api('/link');
   document.querySelectorAll('#place button').forEach(b => b.classList.toggle('on', b.dataset.p === L.place));
   $('online').checked = L.online;
-  $('linkTxt').textContent = L.online ? 'Link online' : 'Link lost';
-  $('linkDot').style.background = L.online ? 'var(--ok)' : 'var(--bad)';
+  $('linkTxt').textContent = !L.online ? 'LINK LOST' : L.mars_mode ? 'MARS MODE · ' + L.delay_min + ' MIN' : 'CONNECTED · ' + L.place.toUpperCase();
+  $('linkDot').style.background = !L.online ? 'var(--bad)' : L.mars_mode ? 'var(--warn)' : 'var(--ok)';
   $('waiting').textContent = L.waiting;
   $('delay').textContent = L.delay_min >= 1 ? L.delay_min + ' min' : Math.round(L.delay_min * 60) + ' s';
   $('marsb').classList.toggle('on', L.mars_mode);
-  $('f5').textContent = L.waiting ? L.waiting + ' waiting for the link' : (L.online ? 'All sent' : 'Link lost');
-  const ob = await api('/mission-control/inbox');
-  $('obInfo').textContent = L.online ? 'link up' : 'link lost, saving onboard';
-  const all = await api('/outbox');
+  $('obInfo').textContent = L.online ? 'Link up, everything is sent' : 'Link lost, saving onboard';
+  const [ob, all] = await Promise.all([api('/mission-control/inbox'), api('/outbox')]);
   $('outbox').innerHTML = all.length ? all.slice().reverse().map(i => `<div class="qi"><span class="k">${i.id}</span>
       <span>${KIND[i.kind] || i.kind}: ${esc(desc(i))}</span>
       <span class="st" style="color:${i.synced ? 'var(--ok)' : 'var(--warn)'}">${i.synced ? 'sent' : 'waiting'}</span></div>`).join('')
-    : '<p class="empty">Nothing yet. Accept a change in step 4</p>';
-  $('mcInfo').textContent = L.online ? (L.delay_min ? 'reply in ' + Math.round(L.delay_min * 2) + ' min' : 'live') : 'not reachable';
+    : '<p class="empty">Nothing yet. Accept a change in NOVA</p>';
+  $('mcInfo').textContent = L.online ? (L.delay_min ? 'Reply in ' + Math.round(L.delay_min * 2) + ' min' : 'Live') : 'Not reachable';
   $('mcConfirm').innerHTML = ob.to_confirm.length ? ob.to_confirm.map(c => `<div class="qi"><span class="k">${c.id}</span>
       <span>Commander ${c.status === 'edit' ? 'edited' : 'accepted'}: ${esc(c.task)} (${c.type.replace('_',' ')})</span>
       <span><button class="btn main" data-cf="${c.id}" data-ok="1" ${L.online?'':'disabled'}>Confirm</button> <button class="btn" data-cf="${c.id}" data-ok="0" ${L.online?'':'disabled'}>Overrule</button></span></div>`).join('') : '';
@@ -619,7 +922,7 @@ const desc = i => i.kind === 'decision' ? `${i.data.by} ${i.data.decision} · ${
 document.querySelectorAll('#place button').forEach(b => b.onclick = async () => { await api('/link', {place: b.dataset.p}); await loadLink(); runForecast(); });
 $('online').onchange = async () => { await api('/link', {online: $('online').checked}); await loadLink(); runForecast(); };
 
-// ---------- focus test (simple reaction time test) ----------
+// ---------- focus test ----------
 let ft = null;
 function ftReset(){ ft = {n:0, times:[], state:'idle', timer:null}; $('fpad').innerHTML = 'Tap to start'; $('ftMsg').textContent = 'Tap the pad as soon as the circle appears'; }
 function ftNext(){
@@ -640,25 +943,34 @@ $('fpad').onclick = async () => {
     await Promise.all([loadTwin(), loadCrew()]); runForecast();
   }
 };
-$('ftBtn').onclick = () => { ftReset(); $('ft').classList.add('on'); };
+$('ftBtn').onclick = $('ftBtn2').onclick = () => { ftReset(); $('ft').classList.add('on'); };
 $('ftClose').onclick = () => { clearTimeout(ft && ft.timer); $('ft').classList.remove('on'); };
 
 async function select(c){
   crew = c;
-  document.querySelectorAll('.crow').forEach(b => b.classList.toggle('sel', b.dataset.c === c));
-  await Promise.all([loadTwin(), loadNova()]);
+  document.querySelectorAll('.cp').forEach(b => b.classList.toggle('sel', b.dataset.c === c));
+  $('mdTxt').textContent = 'MD ' + today + ' · Crew ' + crew;
+  await Promise.all([loadTwin(), loadNova(), loadSched()]);
   runForecast();
 }
 $('reset').onclick = async () => { await fetch(API + '/simulate', {method:'POST'}); await loadCrew(); await select(crew); loadLink(); };
 $('useClaude').onchange = runForecast;
 
 (async () => {
+  const v = location.hash.slice(1); if(v) show(v);
+  let s = null;
+  try{ s = await api('/mission-control/summary'); }catch(e){}
+  if(!s){
+    try{ await fetch(API + '/health'); }catch(e){
+      $('main').insertAdjacentHTML('afterbegin', '<p class="err">The server is not running. In VS Code run: python -m uvicorn app.main:app --reload</p>'); return;
+    }
+  }
   try{
-    const s = await api('/mission-control/summary').catch(() => null);
     if(!s || s.crew.every(c => c.status === 'unknown')) await fetch(API + '/simulate', {method:'POST'});
     await loadCrew(); await select(crew); loadLink();
   }catch(err){
-    document.querySelector('main').insertAdjacentHTML('afterbegin', '<p class="err">The server is not running. In VS Code run: python -m uvicorn app.main:app --reload</p>');
+    console.error(err);
+    $('main').insertAdjacentHTML('afterbegin', `<p class="err">Something went wrong while loading: ${esc(err.message)}. Press "Reset simulated data" at the bottom</p>`);
   }
 })();
 </script>
