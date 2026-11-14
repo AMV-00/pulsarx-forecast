@@ -62,3 +62,14 @@ def test_full_offline_flow():
 def test_bad_decision_rejected():
     client.post("/simulate")
     assert client.post("/decision", json={"change_id": "x", "decision": "maybe"}).status_code == 400
+
+
+def test_reassign_only_to_ready_crew():
+    client.post("/simulate")
+    r = client.get("/forecast/B?use_claude=false").json()
+    day = r["focus_day"]
+    for c in r["changes"]:
+        if c["type"] == "reassign":
+            other = client.get(f"/forecast/{c['to_crew']}?use_claude=false").json()
+            lvl = next(d["level"] for d in other["forecast"]["days"] if d["day"] == day)
+            assert lvl == "low"

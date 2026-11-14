@@ -109,7 +109,16 @@ def forecast_crew(crew: str, lang: str = "en", use_claude: bool = True, mars_mod
     worst = sorted(f["days"], key=lambda d: (not d["alert"], -d["score"]))[0]
     day = worst["day"]
     others = {c: sch[c].get(str(day), []) for c in CREW}
-    free = {c: m for c, m in free_minutes(others).items()}
+    # Only hand tasks to crew members who are free AND forecast as ready (low risk) that day.
+    ready = set()
+    for c in CREW:
+        if c == crew:
+            continue
+        fc = forecast(_ring(c), sch.get(c, {}), DAYS, self_report=_self_report(c))
+        d = next((x for x in fc.get("days", []) if x["day"] == day), None)
+        if d and d["level"] == "low":
+            ready.add(c)
+    free = {c: m for c, m in free_minutes(others).items() if c in ready}
     changes = suggest_changes(worst["level"], me.get(str(day), []), free, mars_mode)
 
     for i, c in enumerate(changes):
