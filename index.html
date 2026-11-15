@@ -242,6 +242,8 @@ html[dir=rtl] .tag-box .t-v{direction:ltr;text-align:right}
 .playv{margin-top:28px;align-self:flex-start;font-family:'IBM Plex Sans Arabic','Inter',sans-serif;font-size:28px;font-weight:600;color:#03070d;background:#5CD6F0;border:0;border-radius:999px;padding:16px 36px;cursor:pointer;box-shadow:0 0 32px rgba(92,214,240,.45)}
 .playv:hover{background:#8BE6F7}
 html[dir=rtl] .cover-main{top:170px}
+html,body{background:#03070d url(assets/earth-content2.jpg) center bottom/cover no-repeat}
+#fsb{position:fixed;top:12px;left:12px;z-index:9;padding:8px 14px;border-radius:99px;border:1px solid #2a3a55;background:rgba(15,24,40,.7);color:#EAF0F7;font:500 15px "IBM Plex Sans Arabic",sans-serif;cursor:pointer;opacity:.5}#fsb:hover{opacity:1}
 </style></head><body>
 <div id="stage">
 <section data-n="0" id="cover" class="cover" data-transition="fade">
@@ -852,7 +854,7 @@ var t0=performance.now(),last=0;function loop(n){requestAnimationFrame(loop);if(
 <div class="logos"><img class="l-team" src="assets/logo.png" alt="PulsarX"><img class="l-part" src="assets/partners.png" alt="MAIA و NASA Space Apps"></div></section>
 </div>
 
-<div id="nav"></div><div id="vo"><video id="vv" src="video/forecast.mp4" controls playsinline preload="auto"></video><button id="vx" aria-label="إغلاق" onclick="closeV()">&#10005;</button></div>
+<div id="nav"></div><button id="fsb" onclick="(document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen())">⛶ ملء الشاشة</button><div id="vo"><video id="vv" src="video/forecast.mp4" controls playsinline preload="auto"></video><button id="vx" aria-label="إغلاق" onclick="closeV()">&#10005;</button></div>
 <script>
 (function(){
 var vo=document.getElementById('vo'),vv=document.getElementById('vv');
