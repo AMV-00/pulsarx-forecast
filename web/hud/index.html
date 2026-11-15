@@ -1097,10 +1097,34 @@ function ringListen(){
   $("rcall").classList.add("rec"); $("rc-btn").textContent = "Listening… tap to stop"; $("rc-live").textContent = "Listening…";
   rec.start();
 }
-function closeRing(){ $("rcall").classList.remove("on"); RC.open = false; $("rc-btn").onclick = ringListen; }
+function closeRing(){ $("rcall").classList.remove("on"); RC.open = false; $("rc-btn").onclick = ringListen; setTimeout(dropCheck, 4000); }
 $("rc-btn").onclick = ringListen; $("rc-ring").onclick = () => RC.open && $("rc-btn").textContent !== "Done" ? ringListen() : null; $("rc-x").onclick = closeRing;
 
-setView(); load().then(() => setTimeout(ringAsk, 1800)); setInterval(load, 30000);
+/* ---------- NOVA also asks when readiness drops ----------
+   Not only the morning question: if readiness today, or in the next 3 days, falls under 50%,
+   NOVA calls through the ring and asks how the astronaut feels. Numbers come from the model, NOVA only asks. */
+const DROP_AT = 50; S.dropAsked = S.dropAsked || {};
+const SIGNAME = {sleep_hours:"your sleep", hrv_ms:"your heart rate variability", resting_hr:"your resting heart rate", skin_temp_c:"your skin temperature", hours_awake:"your hours awake", active_minutes:"your activity", focus_rt_ms:"your focus test"};
+function dropCheck(){
+  if (!S.sel || RC.open || RC.rec || S.asked[S.sel] !== "ring") return;
+  const t = S.twins[S.sel]; if (!t || !t.history || !t.history.length) return;
+  const now = t.history[t.history.length-1], fut = (S.fc && S.fc.forecast && S.fc.forecast.days) || [];
+  const low = [now].concat(fut).reduce((a, b) => b.readiness < a.readiness ? b : a);
+  if (low.readiness == null || low.readiness >= DROP_AT) return;
+  const key = `${S.sel}-${low.day}-${low.readiness}`; if (S.dropAsked[S.sel] === key) return;
+  S.dropAsked[S.sel] = key;
+  const sig = (t.now && t.now.signals) || {}; let worst = null, wz = 0;
+  for (const k in SIGNAME){ const g = sig[k], z = g && typeof g === "object" ? Math.abs(g.z || 0) : 0; if (z > wz){ wz = z; worst = k; } }
+  const why = worst && wz >= 1 ? ` I can see ${SIGNAME[worst]} is off your normal.` : "";
+  const when = low === now ? "today" : dayWord(low.day).toLowerCase();
+  const q = `Hi, it's NOVA. Your readiness ${low === now ? "is" : "looks like it will be"} ${low.readiness}% ${when}.${why} How are you feeling right now?`;
+  $("rc-who").textContent = `NOVA · READINESS DROP · CREW ${S.sel}`;
+  $("rc-q").textContent = q; $("rc-live").textContent = "Tap the ring and answer by voice.";
+  $("rcall").classList.remove("rec"); $("rcall").classList.add("on"); RC.open = true;
+  $("rc-btn").textContent = "Tap ring to answer"; $("rc-btn").disabled = false; $("rc-btn").onclick = ringListen;
+  talk(q);
+}
+setView(); load().then(() => setTimeout(ringAsk, 1800)); setInterval(() => load().then(dropCheck), 30000);
 
 /* ---------- ISS moving along the orbit arc ---------- */
 const orb = $("orb"), iss = $("iss"), issIc = $("issic"), OL = orb.getTotalLength(), ORBIT_S = 80;
