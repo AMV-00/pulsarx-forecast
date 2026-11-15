@@ -1,0 +1,925 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FORECAST by PulsarX</title>
+<meta name="description" content="FORECAST: predict astronaut fatigue before it becomes a mission risk. NASA Space Apps Challenge 2026, Madinah. Team PulsarX.">
+<link rel="icon" href="assets/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:content-box}
+html,body{height:100%;background:#03070d;overflow:hidden}
+#stage{position:absolute;left:50%;top:50%;width:1920px;height:1080px;transform-origin:0 0}
+section{position:absolute;left:0;top:0;width:1920px;height:1080px;box-sizing:border-box;overflow:hidden;isolation:isolate;display:none!important}
+section.on{display:flex!important}
+section>*{position:relative}
+.xi{display:inline-block;color:#5CD6F0;flex-shrink:0}
+.card .xi{width:40px;height:40px}
+.point .xi{width:36px;height:36px;margin-top:4px}
+:root {
+  --bg: #070B14;
+  --bg2: #0C1424;
+  --surface: #0F1828;
+  --line: #1F2C42;
+  --text: #EAF0F7;
+  --muted: #A3B3C7;
+  --accent: #5CD6F0;
+  --warn: #FF8A70;
+}
+body { font-family: 'Inter', Arial, sans-serif; color: #EAF0F7; }
+section {
+  background: linear-gradient(160deg, #0C1424 0%, #070B14 55%);
+  padding: 128px 128px 160px;
+  color: #EAF0F7;
+  display: flex;
+  flex-direction: column;
+}
+section.alt { background: linear-gradient(200deg, #11203A 0%, #070B14 60%); }
+
+.eyebrow {
+  font-family: 'Space Grotesk', Arial, sans-serif;
+  font-size: 24px;
+  font-weight: 500;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: #5CD6F0;
+}
+.title {
+  font-family: 'Space Grotesk', Arial, sans-serif;
+  font-size: 64px;
+  font-weight: 600;
+  line-height: 1.08;
+  color: #EAF0F7;
+  margin-top: 16px;
+}
+.lead { font-size: 32px; line-height: 1.4; color: #A3B3C7; }
+.small { font-size: 24px; line-height: 1.4; color: #A3B3C7; }
+.hl { color: #5CD6F0; }
+.hot { color: #FF8A70; }
+
+.row { display: flex; gap: 32px; }
+.col { display: flex; flex-direction: column; gap: 24px; }
+.grow { flex: 1; }
+
+.card {
+  background: #0F1828;
+  border: 1px solid #1F2C42;
+  border-radius: 20px;
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.card h3 {
+  font-family: 'Space Grotesk', Arial, sans-serif;
+  font-size: 32px;
+  font-weight: 600;
+  color: #EAF0F7;
+  line-height: 1.2;
+}
+.card .body { font-size: 24px; line-height: 1.45; color: #A3B3C7; }
+.card .tag {
+  font-family: 'Space Grotesk', Arial, sans-serif;
+  font-size: 24px;
+  font-weight: 600;
+  color: #5CD6F0;
+}
+.card x-icon { color: #5CD6F0; width: 40px; height: 40px; }
+
+.num {
+  font-family: 'Space Grotesk', Arial, sans-serif;
+  font-size: 200px;
+  font-weight: 600;
+  line-height: 1;
+  color: #5CD6F0;
+  letter-spacing: -6px;
+}
+.num-mid {
+  font-family: 'Space Grotesk', Arial, sans-serif;
+  font-size: 96px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -2px;
+}
+
+.foot {
+  position: absolute;
+  left: 128px;
+  bottom: 64px;
+  width: 1664px;
+  font-size: 24px;
+  color: #7F91A8;
+}
+
+/* Cover */
+.cover-bg { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; object-fit: cover; opacity: 0.9; }
+.cover-shade {
+  position: absolute; left: 0; top: 0; width: 1920px; height: 1080px;
+  background: linear-gradient(90deg, #070B14 0%, #070B14 44%, rgba(7,11,20,0.6) 64%, rgba(7,11,20,0) 100%);
+}
+.cover-main {
+  position: absolute; left: 128px; top: 250px; width: 900px;
+  display: flex; flex-direction: column; gap: 20px;
+}
+.cover-logo { width: 220px; height: 110px; object-fit: contain; }
+.cover-title {
+  font-family: 'Space Grotesk', Arial, sans-serif;
+  font-size: 160px; font-weight: 600; line-height: 1; letter-spacing: 6px; color: #EAF0F7;
+}
+.team { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 24px; }
+.member {
+  background: rgba(15,24,40,0.85);
+  border: 1px solid #1F2C42;
+  border-left: 4px solid #5CD6F0;
+  border-radius: 12px;
+  padding: 16px 24px;
+  display: flex; flex-direction: column; gap: 4px;
+}
+.member .name { font-family: 'Space Grotesk', Arial, sans-serif; font-size: 28px; font-weight: 600; color: #EAF0F7; }
+.member .role { font-size: 24px; color: #A3B3C7; }
+
+/* Flow */
+.flow { display: flex; align-items: stretch; gap: 12px; margin-top: 48px; }
+.step { flex: 1; }
+.step .n {
+  font-family: 'Space Grotesk', Arial, sans-serif;
+  font-size: 24px; font-weight: 600; color: #070B14;
+  background: #5CD6F0; border-radius: 999px;
+  width: 44px; height: 44px; display: flex; align-items: center; justify-content: center;
+}
+.step.last { border-color: #5CD6F0; }
+.flow x-connector { width: 32px; color: #5CD6F0; align-self: center; }
+
+/* Screenshot */
+.shot {
+  border-radius: 16px;
+  border: 1px solid #1F2C42;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.5);
+  object-fit: cover;
+}
+
+/* Lists of points */
+.point { display: flex; gap: 20px; align-items: flex-start; }
+.point x-icon { color: #5CD6F0; width: 36px; height: 36px; flex-shrink: 0; margin-top: 4px; }
+.point .txt { display: flex; flex-direction: column; gap: 4px; }
+.point .h { font-family: 'Space Grotesk', Arial, sans-serif; font-size: 30px; font-weight: 600; color: #EAF0F7; }
+.point .d { font-size: 24px; line-height: 1.4; color: #A3B3C7; }
+
+/* Motion */
+.rise { animation: rise 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) both; animation-delay: calc(var(--i, 0) * 120ms); }
+@keyframes rise { from { opacity: 0; transform: translateY(24px); } }
+.fade { animation: fadein 1.2s ease-out both; }
+@keyframes fadein { from { opacity: 0; } }
+
+/* Logo strip (team + partners), bottom right of every slide */
+.logos {
+  position: absolute; right: 128px; bottom: 52px; width: 360px; height: 48px;
+  display: flex; align-items: center; justify-content: flex-end; gap: 24px;
+}
+.logos .l-team { width: 96px; height: 48px; object-fit: contain; }
+.logos .l-part { width: 212px; height: 48px; object-fit: contain; }
+.foot { width: 1240px; }
+
+/* Live space backdrop (moving Earth + stars) */
+.space-shade {
+  position: absolute; left: 0; top: 0; width: 1920px; height: 1080px;
+  background: linear-gradient(180deg, rgba(5,9,17,0.55) 0%, rgba(5,9,17,0.35) 60%, rgba(5,9,17,0) 100%);
+}
+.cover .cover-shade { background: linear-gradient(90deg, rgba(5,9,17,0.85) 0%, rgba(5,9,17,0.6) 40%, rgba(5,9,17,0) 62%); }
+.holo { position: absolute; left: 1180px; top: 100px; width: 432px; height: 880px; animation: floaty 7s ease-in-out infinite alternate; }
+@keyframes floaty { from { transform: translateY(0px); } to { transform: translateY(-16px); } }
+.node { position: absolute; width: 20px; height: 20px; border-radius: 999px; border: 3px solid #EAF0F7; box-sizing: border-box; }
+.node.bad { background: #FF6B5A; box-shadow: 0 0 24px #FF6B5A; animation: pulse 1.6s ease-in-out infinite alternate; }
+.node.warn { background: #F2C14E; box-shadow: 0 0 24px #F2C14E; }
+@keyframes pulse { from { box-shadow: 0 0 8px #FF6B5A; } to { box-shadow: 0 0 32px #FF6B5A; } }
+.lead-line { color: #9FDCF0; border-width: 2px; }
+.tag-box { position: absolute; left: 1652px; width: 240px; display: flex; flex-direction: column; gap: 2px; }
+.tag-box .t-k { font-family: 'Space Grotesk', Arial, sans-serif; font-size: 24px; font-weight: 600; color: #EAF0F7; }
+.tag-box .t-v { font-family: 'Space Grotesk', Arial, sans-serif; font-size: 36px; font-weight: 600; color: #EAF0F7; line-height: 1.1; }
+.tag-box .t-s { font-size: 24px; color: #FF8A70; }
+.foot { text-shadow: 0 0 12px #03070D, 0 0 4px #03070D; color: #A3B3C7; }
+
+#nav{position:fixed;left:0;right:0;bottom:10px;display:flex;justify-content:center;gap:10px;z-index:9;opacity:.0;transition:opacity .3s}
+body:hover #nav,#nav:focus-within{opacity:1}
+#nav button{width:12px;height:12px;border-radius:99px;border:0;background:#2a3a55;cursor:pointer}
+#nav button.on{background:#5CD6F0;width:28px}
+.arrow{position:fixed;top:0;bottom:0;width:18%;z-index:8;cursor:pointer;background:none;border:0}
+#prev{left:0}#next{right:0}
+</style></head><body>
+<div id="stage">
+<section data-n="0" id="cover" class="cover" data-transition="fade">
+<img src="assets/earth-cover.jpg" alt="" style="position:absolute;left:0;top:0;width:1920px;height:1080px;object-fit:cover">
+<iframe class="space-frame" class="space" data-src="&lt;!doctype html&gt;&lt;html&gt;&lt;head&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;style&gt;html,body{margin:0;height:100%;background:#03070d;overflow:hidden}canvas{display:block;width:100%;height:100%}&lt;/style&gt;&lt;/head&gt;&lt;body&gt;&lt;canvas id=&quot;c&quot;&gt;&lt;/canvas&gt;&lt;script&gt;
+(function(){var OFF=&quot;0.0&quot;;var cv=document.getElementById(&quot;c&quot;),gl=cv.getContext(&quot;webgl&quot;,{antialias:false,alpha:false});if(!gl)return;
+var VS=&quot;attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}&quot;;
+var FS=`precision highp float;
+uniform vec2 uR;uniform float uT,uD;
+float h(vec2 p){p=fract(p*vec2(123.34,456.21));p+=dot(p,p+45.32);return fract(p.x*p.y);}
+float h3(vec3 p){p=fract(p*.3183099+.1);p*=17.;return fract(p.x*p.y*p.z*(p.x+p.y+p.z));}
+float n2(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(h(i),h(i+vec2(1,0)),f.x),mix(h(i+vec2(0,1)),h(i+1.),f.x),f.y);}
+float n3(vec3 x){vec3 i=floor(x),f=fract(x);f=f*f*(3.-2.*f);
+ return mix(mix(mix(h3(i),h3(i+vec3(1,0,0)),f.x),mix(h3(i+vec3(0,1,0)),h3(i+vec3(1,1,0)),f.x),f.y),
+            mix(mix(h3(i+vec3(0,0,1)),h3(i+vec3(1,0,1)),f.x),mix(h3(i+vec3(0,1,1)),h3(i+1.),f.x),f.y),f.z);}
+float fb3(vec3 p){float s=0.,a=.5;for(int i=0;i!=5;i++){s+=a*n3(p);p=p*2.02+vec3(17.1,9.2,4.7);a*=.5;}return s;}
+float fb2(vec2 p){float s=0.,a=.5;for(int i=0;i!=4;i++){s+=a*n2(p);p=p*2.03+vec2(17.1,9.2);a*=.5;}return s;}
+vec3 rot(vec3 v,vec3 k,float a){float c=cos(a),s=sin(a);return v*c+cross(k,v)*s+k*dot(k,v)*(1.-c);}
+float star(vec2 p,float sc,float th,float t){vec2 sp=p/sc,c=floor(sp),f=fract(sp)-.5;float r=h(c);if(th&gt;r)return 0.;
+ vec2 o=(vec2(h(c+1.3),h(c+2.7))-.5)*.5;float tw=.5+.5*sin(t*(.6+2.8*h(c+9.1))+r*90.);
+ return (.25+.75*h(c+7.))*tw*tw*smoothstep(.5,0.,length(f-o)*2.);}
+void main(){
+ vec2 p=gl_FragCoord.xy/uD;p.y=uR.y-p.y;p.y-=OFF*uR.y;float W=uR.x,H=uR.y;
+ vec3 col=vec3(.004,.010,.020)+vec3(.006,.02,.045)*fb2(p/H*2.2+vec2(uT*.004,0.))*(.35+p.y/H);
+ col+=vec3(.70,.85,1.)*star(p+vec2(uT*1.6,0.),2.6,.9955,uT)*.9;
+ col+=vec3(.80,.92,1.)*star(p+vec2(uT*.6,0.),7.,.9962,uT*.8)*1.1;
+ col+=vec3(1.,.95,.85)*star(p+vec2(uT*.25,0.),16.,.9975,uT*.5)*1.3;
+ /* camera 0.05 radii above a unit sphere, pitched 10.3 deg down */
+ float k=.93,cp=cos(.155),spi=sin(.155);
+ vec3 r0=normalize(vec3((p.x-W*.5)/H*k,(H*.5-p.y)/H*k,-1.));
+ vec3 rd=vec3(r0.x,r0.y*cp+r0.z*spi,-r0.y*spi+r0.z*cp);
+ vec3 ro=vec3(0.,1.05,0.);
+ float b=dot(ro,rd),c=dot(ro,ro)-1.,disc=b*b-c;
+ vec3 sun=normalize(vec3(.6,-.45,-.66));
+ if(min(disc,-b)&gt;0.){
+  float t=-b-sqrt(disc);vec3 n=ro+rd*t;
+  float mu=clamp(dot(n,-rd),0.,1.);
+  vec3 q=rot(n,normalize(vec3(.12,.2,1.)),-uT*6.2831853/150.);
+  float cont=fb3(q*3.2+3.);
+  float land=smoothstep(.45,.53,cont);
+  float cl=smoothstep(.47,.74,fb3(q*vec3(4.5,8.,4.5)+vec3(uT*.012,0.,0.)));
+  cl*=.55+.7*fb3(q*26.+5.);cl=clamp(cl,0.,1.);
+  vec3 e=mix(vec3(.010,.032,.072),vec3(.026,.046,.066),land);
+  float lon=atan(q.z,q.x),lat=asin(clamp(q.y,-1.,1.));
+  float dens=land*smoothstep(.36,.62,fb3(q*7.+11.));
+  vec2 base=vec2(lon*cos(lat),lat);
+  /* two layers of city-light speckles: large towns + fine scatter */
+  vec2 lm=base*230.;vec2 lc=floor(lm);float lr=h(lc);
+  vec2 lf=fract(lm)-.5-(vec2(h(lc+1.),h(lc+2.))-.5)*.55;
+  float lt=step(1.-dens*.9,lr)*smoothstep(.36,0.,length(lf))*(.5+.5*h(lc+5.));
+  vec2 lm2=base*520.;vec2 lc2=floor(lm2);float lr2=h(lc2+31.);
+  vec2 lf2=fract(lm2)-.5-(vec2(h(lc2+3.),h(lc2+4.))-.5)*.55;
+  lt+=step(1.-dens*.75,lr2)*smoothstep(.4,0.,length(lf2))*(.35+.4*h(lc2+6.));
+  float glow=dens*(.2+fb3(q*36.+2.))*.55;
+  float day=dot(n,sun),night=smoothstep(.12,-.15,day);
+  float vis=smoothstep(.0,.04,mu);
+  e+=vec3(1.,.64,.3)*(lt*2.4+glow*.8)*(1.-cl*.75)*night*vis;
+  e+=vec3(.05,.16,.3)*max(day,0.)*(1.+land)*.8;
+  e=mix(e,vec3(.12,.2,.31)*(.8+max(day+.2,0.)),cl*.6);
+  float haze=pow(1.-mu,3.);
+  e=mix(e,vec3(.08,.34,.82),haze*.6);
+  e+=vec3(.1,.45,1.)*pow(1.-mu,9.)*.8*(.7+.6*max(dot(n,sun)+.3,0.))+vec3(.55,.88,1.)*pow(1.-mu,40.)*1.3;
+  col=e;
+ }else{
+  float dc=0.&gt;b?sqrt(max(dot(ro,ro)-b*b,0.)):length(ro);
+  float dd=max(dc-1.,0.)*H/.3;
+  float sd=.75+.5*max(rd.x,0.);
+  col+=(vec3(.35,.76,1.)*exp(-dd/2.5)*1.+vec3(.1,.45,.95)*exp(-dd/16.)*.6+vec3(.05,.22,.55)*exp(-dd/90.)*.4+vec3(.03,.1,.25)*exp(-dd/380.)*.3)*sd;
+ }
+ vec2 g=(p-vec2(W*.49,H*.9))/vec2(W*.26,H*.13);col+=vec3(.03,.16,.36)*exp(-dot(g,g));
+ vec2 v=p/uR-.5;col*=1.-dot(v,v)*.45;
+ gl_FragColor=vec4(col,1.);
+}`.replace(&quot;OFF&quot;,OFF);
+function sh(t,s){var o=gl.createShader(t);gl.shaderSource(o,s);gl.compileShader(o);return o;}
+var pr=gl.createProgram();gl.attachShader(pr,sh(gl.VERTEX_SHADER,VS));gl.attachShader(pr,sh(gl.FRAGMENT_SHADER,FS));gl.linkProgram(pr);gl.useProgram(pr);
+gl.bindBuffer(gl.ARRAY_BUFFER,gl.createBuffer());gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);
+var l=gl.getAttribLocation(pr,&quot;p&quot;);gl.enableVertexAttribArray(l);gl.vertexAttribPointer(l,2,gl.FLOAT,false,0,0);
+var uR=gl.getUniformLocation(pr,&quot;uR&quot;),uT=gl.getUniformLocation(pr,&quot;uT&quot;),uD=gl.getUniformLocation(pr,&quot;uD&quot;);
+var W,H,d;function size(){W=innerWidth;H=innerHeight;d=Math.min(devicePixelRatio||1,1);cv.width=W*d;cv.height=H*d;gl.viewport(0,0,cv.width,cv.height);}
+function draw(t){gl.uniform2f(uR,W,H);gl.uniform1f(uD,d);gl.uniform1f(uT,t);gl.drawArrays(gl.TRIANGLES,0,3);}
+addEventListener(&quot;resize&quot;,size);size();draw(20);
+var t0=performance.now(),last=0;function loop(n){requestAnimationFrame(loop);if(30&gt;n-last||document.hidden)return;last=n;draw((n-t0)/1000+20);}requestAnimationFrame(loop);})();
+&lt;/script&gt;&lt;/body&gt;&lt;/html&gt;" style="position:absolute;left:0;top:0;width:1920px;height:1080px;border:0" tabindex="-1" aria-hidden="true"></iframe>
+<div class="cover-shade"></div>
+<div class="holo"><img src="assets/holo.png" alt="Hologram digital twin of an astronaut" style="width:432px;height:880px;object-fit:contain"></div>
+<div class="lead-line" style="position:absolute;left:1400.0px;top:213.0px;width:240.0px;height:2px;background:#9FDCF0"></div>
+<div class="lead-line" style="position:absolute;left:1366.0px;top:395.0px;width:274.0px;height:2px;background:#9FDCF0"></div>
+<div class="lead-line" style="position:absolute;left:1530.0px;top:579.0px;width:110.0px;height:2px;background:#9FDCF0"></div>
+<div class="node bad" style="left:1390px;top:204px"></div>
+<div class="node bad" style="left:1356px;top:386px"></div>
+<div class="node warn" style="left:1520px;top:570px"></div>
+<div class="tag-box" style="top:180px"><p class="t-k">Sleep</p><p class="t-v">5.0 h</p><p class="t-s hot">2.4 h below normal</p></div>
+<div class="tag-box" style="top:362px"><p class="t-k">HRV</p><p class="t-v">37 ms</p><p class="t-s hot">well below normal</p></div>
+<div class="tag-box" style="top:546px"><p class="t-k">Skin temp</p><p class="t-v">34.6 °C</p><p class="t-s" style="color:#F2C14E">above normal</p></div>
+<div class="cover-main">
+<div class="row rise" style="--i:0;align-items:center;gap:40px">
+<img class="cover-logo" src="assets/logo.png" alt="PulsarX logo">
+<div style="width:2px;height:72px;background:#1F2C42"></div>
+<img style="width:300px;height:68px;object-fit:contain" src="assets/partners.png" alt="MAIA and NASA Space Apps logos">
+</div>
+<p class="eyebrow rise" style="--i:1">NASA Space Apps Challenge 2026 · Madinah</p>
+<h1 class="cover-title rise" style="--i:2">FORECAST</h1>
+<p class="lead rise" style="--i:3">Predict astronaut fatigue before it becomes a mission risk.</p>
+<div class="rise" style="--i:4;margin-top:32px;font-family:'Space Grotesk',Arial,sans-serif;color:#EAF0F7"><p style="margin:0 0 10px;color:#5CD6F0;letter-spacing:4px;font-size:20px;font-weight:500">TEAM</p><p style="margin:0;font-size:26px;font-weight:500;letter-spacing:.5px;line-height:1.6"><span style="white-space:nowrap">Ahlam Alharbi</span><span style="color:#5CD6F0;margin:0 12px">·</span><span style="white-space:nowrap">Layan Alhaddad</span><span style="color:#5CD6F0;margin:0 12px">·</span><span style="white-space:nowrap">Alhassan Mohammed</span><br><span style="white-space:nowrap">Omnia Jelaidan</span><span style="color:#5CD6F0;margin:0 12px">·</span><span style="white-space:nowrap">Sarah Alharthi</span></p></div>
+</div>
+
+</section>
+<section data-n="1" id="challenge" data-transition="fade">
+<img src="assets/earth-content2.jpg" alt="" style="position:absolute;left:0;top:0;width:1920px;height:1080px;object-fit:cover">
+<iframe class="space-frame" class="space" data-src="&lt;!doctype html&gt;&lt;html&gt;&lt;head&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;style&gt;html,body{margin:0;height:100%;background:#03070d;overflow:hidden}canvas{display:block;width:100%;height:100%}&lt;/style&gt;&lt;/head&gt;&lt;body&gt;&lt;canvas id=&quot;c&quot;&gt;&lt;/canvas&gt;&lt;script&gt;
+(function(){var OFF=&quot;0.22&quot;;var cv=document.getElementById(&quot;c&quot;),gl=cv.getContext(&quot;webgl&quot;,{antialias:false,alpha:false});if(!gl)return;
+var VS=&quot;attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}&quot;;
+var FS=`precision highp float;
+uniform vec2 uR;uniform float uT,uD;
+float h(vec2 p){p=fract(p*vec2(123.34,456.21));p+=dot(p,p+45.32);return fract(p.x*p.y);}
+float h3(vec3 p){p=fract(p*.3183099+.1);p*=17.;return fract(p.x*p.y*p.z*(p.x+p.y+p.z));}
+float n2(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(h(i),h(i+vec2(1,0)),f.x),mix(h(i+vec2(0,1)),h(i+1.),f.x),f.y);}
+float n3(vec3 x){vec3 i=floor(x),f=fract(x);f=f*f*(3.-2.*f);
+ return mix(mix(mix(h3(i),h3(i+vec3(1,0,0)),f.x),mix(h3(i+vec3(0,1,0)),h3(i+vec3(1,1,0)),f.x),f.y),
+            mix(mix(h3(i+vec3(0,0,1)),h3(i+vec3(1,0,1)),f.x),mix(h3(i+vec3(0,1,1)),h3(i+1.),f.x),f.y),f.z);}
+float fb3(vec3 p){float s=0.,a=.5;for(int i=0;i!=5;i++){s+=a*n3(p);p=p*2.02+vec3(17.1,9.2,4.7);a*=.5;}return s;}
+float fb2(vec2 p){float s=0.,a=.5;for(int i=0;i!=4;i++){s+=a*n2(p);p=p*2.03+vec2(17.1,9.2);a*=.5;}return s;}
+vec3 rot(vec3 v,vec3 k,float a){float c=cos(a),s=sin(a);return v*c+cross(k,v)*s+k*dot(k,v)*(1.-c);}
+float star(vec2 p,float sc,float th,float t){vec2 sp=p/sc,c=floor(sp),f=fract(sp)-.5;float r=h(c);if(th&gt;r)return 0.;
+ vec2 o=(vec2(h(c+1.3),h(c+2.7))-.5)*.5;float tw=.5+.5*sin(t*(.6+2.8*h(c+9.1))+r*90.);
+ return (.25+.75*h(c+7.))*tw*tw*smoothstep(.5,0.,length(f-o)*2.);}
+void main(){
+ vec2 p=gl_FragCoord.xy/uD;p.y=uR.y-p.y;p.y-=OFF*uR.y;float W=uR.x,H=uR.y;
+ vec3 col=vec3(.004,.010,.020)+vec3(.006,.02,.045)*fb2(p/H*2.2+vec2(uT*.004,0.))*(.35+p.y/H);
+ col+=vec3(.70,.85,1.)*star(p+vec2(uT*1.6,0.),2.6,.9955,uT)*.9;
+ col+=vec3(.80,.92,1.)*star(p+vec2(uT*.6,0.),7.,.9962,uT*.8)*1.1;
+ col+=vec3(1.,.95,.85)*star(p+vec2(uT*.25,0.),16.,.9975,uT*.5)*1.3;
+ /* camera 0.05 radii above a unit sphere, pitched 10.3 deg down */
+ float k=.93,cp=cos(.155),spi=sin(.155);
+ vec3 r0=normalize(vec3((p.x-W*.5)/H*k,(H*.5-p.y)/H*k,-1.));
+ vec3 rd=vec3(r0.x,r0.y*cp+r0.z*spi,-r0.y*spi+r0.z*cp);
+ vec3 ro=vec3(0.,1.05,0.);
+ float b=dot(ro,rd),c=dot(ro,ro)-1.,disc=b*b-c;
+ vec3 sun=normalize(vec3(.6,-.45,-.66));
+ if(min(disc,-b)&gt;0.){
+  float t=-b-sqrt(disc);vec3 n=ro+rd*t;
+  float mu=clamp(dot(n,-rd),0.,1.);
+  vec3 q=rot(n,normalize(vec3(.12,.2,1.)),-uT*6.2831853/150.);
+  float cont=fb3(q*3.2+3.);
+  float land=smoothstep(.45,.53,cont);
+  float cl=smoothstep(.47,.74,fb3(q*vec3(4.5,8.,4.5)+vec3(uT*.012,0.,0.)));
+  cl*=.55+.7*fb3(q*26.+5.);cl=clamp(cl,0.,1.);
+  vec3 e=mix(vec3(.010,.032,.072),vec3(.026,.046,.066),land);
+  float lon=atan(q.z,q.x),lat=asin(clamp(q.y,-1.,1.));
+  float dens=land*smoothstep(.36,.62,fb3(q*7.+11.));
+  vec2 base=vec2(lon*cos(lat),lat);
+  /* two layers of city-light speckles: large towns + fine scatter */
+  vec2 lm=base*230.;vec2 lc=floor(lm);float lr=h(lc);
+  vec2 lf=fract(lm)-.5-(vec2(h(lc+1.),h(lc+2.))-.5)*.55;
+  float lt=step(1.-dens*.9,lr)*smoothstep(.36,0.,length(lf))*(.5+.5*h(lc+5.));
+  vec2 lm2=base*520.;vec2 lc2=floor(lm2);float lr2=h(lc2+31.);
+  vec2 lf2=fract(lm2)-.5-(vec2(h(lc2+3.),h(lc2+4.))-.5)*.55;
+  lt+=step(1.-dens*.75,lr2)*smoothstep(.4,0.,length(lf2))*(.35+.4*h(lc2+6.));
+  float glow=dens*(.2+fb3(q*36.+2.))*.55;
+  float day=dot(n,sun),night=smoothstep(.12,-.15,day);
+  float vis=smoothstep(.0,.04,mu);
+  e+=vec3(1.,.64,.3)*(lt*2.4+glow*.8)*(1.-cl*.75)*night*vis;
+  e+=vec3(.05,.16,.3)*max(day,0.)*(1.+land)*.8;
+  e=mix(e,vec3(.12,.2,.31)*(.8+max(day+.2,0.)),cl*.6);
+  float haze=pow(1.-mu,3.);
+  e=mix(e,vec3(.08,.34,.82),haze*.6);
+  e+=vec3(.1,.45,1.)*pow(1.-mu,9.)*.8*(.7+.6*max(dot(n,sun)+.3,0.))+vec3(.55,.88,1.)*pow(1.-mu,40.)*1.3;
+  col=e;
+ }else{
+  float dc=0.&gt;b?sqrt(max(dot(ro,ro)-b*b,0.)):length(ro);
+  float dd=max(dc-1.,0.)*H/.3;
+  float sd=.75+.5*max(rd.x,0.);
+  col+=(vec3(.35,.76,1.)*exp(-dd/2.5)*1.+vec3(.1,.45,.95)*exp(-dd/16.)*.6+vec3(.05,.22,.55)*exp(-dd/90.)*.4+vec3(.03,.1,.25)*exp(-dd/380.)*.3)*sd;
+ }
+ vec2 g=(p-vec2(W*.49,H*.9))/vec2(W*.26,H*.13);col+=vec3(.03,.16,.36)*exp(-dot(g,g));
+ vec2 v=p/uR-.5;col*=1.-dot(v,v)*.45;
+ gl_FragColor=vec4(col,1.);
+}`.replace(&quot;OFF&quot;,OFF);
+function sh(t,s){var o=gl.createShader(t);gl.shaderSource(o,s);gl.compileShader(o);return o;}
+var pr=gl.createProgram();gl.attachShader(pr,sh(gl.VERTEX_SHADER,VS));gl.attachShader(pr,sh(gl.FRAGMENT_SHADER,FS));gl.linkProgram(pr);gl.useProgram(pr);
+gl.bindBuffer(gl.ARRAY_BUFFER,gl.createBuffer());gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);
+var l=gl.getAttribLocation(pr,&quot;p&quot;);gl.enableVertexAttribArray(l);gl.vertexAttribPointer(l,2,gl.FLOAT,false,0,0);
+var uR=gl.getUniformLocation(pr,&quot;uR&quot;),uT=gl.getUniformLocation(pr,&quot;uT&quot;),uD=gl.getUniformLocation(pr,&quot;uD&quot;);
+var W,H,d;function size(){W=innerWidth;H=innerHeight;d=Math.min(devicePixelRatio||1,1);cv.width=W*d;cv.height=H*d;gl.viewport(0,0,cv.width,cv.height);}
+function draw(t){gl.uniform2f(uR,W,H);gl.uniform1f(uD,d);gl.uniform1f(uT,t);gl.drawArrays(gl.TRIANGLES,0,3);}
+addEventListener(&quot;resize&quot;,size);size();draw(20);
+var t0=performance.now(),last=0;function loop(n){requestAnimationFrame(loop);if(30&gt;n-last||document.hidden)return;last=n;draw((n-t0)/1000+20);}requestAnimationFrame(loop);})();
+&lt;/script&gt;&lt;/body&gt;&lt;/html&gt;" style="position:absolute;left:0;top:0;width:1920px;height:1080px;border:0" tabindex="-1" aria-hidden="true"></iframe>
+<div class="space-shade"></div>
+<p class="eyebrow rise" style="--i:0">The NASA challenge we chose</p>
+<h2 class="title rise" style="--i:1;font-size:80px;max-width:1500px">Create Health Monitoring Software for Astronauts on Space Missions</h2>
+<div class="row" style="margin-top:72px">
+<div class="card grow rise" style="--i:2"><span class="xi"><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <circle cx="12" cy="12" r="10" /> <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" /> <path d="M2 12h20" /> </svg> </span><h3>Help is far away</h3><p class="body">On a Mars mission, a message to Earth takes up to 22 minutes one way. The crew must catch problems on their own.</p></div>
+<div class="card grow rise" style="--i:3"><span class="xi"><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span><h3>Fatigue is a known risk</h3><p class="body">NASA lists sleep loss and a broken body clock among the risks of human spaceflight.</p></div>
+<div class="card grow rise" style="--i:4"><span class="xi"><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5" /> <path d="M9 18h6" /> <path d="M10 22h4" /> </svg> </span><h3>We can build it</h3><p class="body">Wearables, data and AI are ready today. The missing piece is software that turns them into a decision.</p></div>
+</div>
+<p class="foot">Source: NASA Human Research Program, Risks of Human Spaceflight</p>
+<div class="logos"><img class="l-team" src="assets/logo.png" alt="PulsarX"><img class="l-part" src="assets/partners.png" alt="MAIA and NASA Space Apps"></div>
+
+</section>
+<section data-n="2" id="problem" class="alt" data-transition="fade">
+<img src="assets/earth-content2.jpg" alt="" style="position:absolute;left:0;top:0;width:1920px;height:1080px;object-fit:cover">
+<iframe class="space-frame" class="space" data-src="&lt;!doctype html&gt;&lt;html&gt;&lt;head&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;style&gt;html,body{margin:0;height:100%;background:#03070d;overflow:hidden}canvas{display:block;width:100%;height:100%}&lt;/style&gt;&lt;/head&gt;&lt;body&gt;&lt;canvas id=&quot;c&quot;&gt;&lt;/canvas&gt;&lt;script&gt;
+(function(){var OFF=&quot;0.22&quot;;var cv=document.getElementById(&quot;c&quot;),gl=cv.getContext(&quot;webgl&quot;,{antialias:false,alpha:false});if(!gl)return;
+var VS=&quot;attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}&quot;;
+var FS=`precision highp float;
+uniform vec2 uR;uniform float uT,uD;
+float h(vec2 p){p=fract(p*vec2(123.34,456.21));p+=dot(p,p+45.32);return fract(p.x*p.y);}
+float h3(vec3 p){p=fract(p*.3183099+.1);p*=17.;return fract(p.x*p.y*p.z*(p.x+p.y+p.z));}
+float n2(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(h(i),h(i+vec2(1,0)),f.x),mix(h(i+vec2(0,1)),h(i+1.),f.x),f.y);}
+float n3(vec3 x){vec3 i=floor(x),f=fract(x);f=f*f*(3.-2.*f);
+ return mix(mix(mix(h3(i),h3(i+vec3(1,0,0)),f.x),mix(h3(i+vec3(0,1,0)),h3(i+vec3(1,1,0)),f.x),f.y),
+            mix(mix(h3(i+vec3(0,0,1)),h3(i+vec3(1,0,1)),f.x),mix(h3(i+vec3(0,1,1)),h3(i+1.),f.x),f.y),f.z);}
+float fb3(vec3 p){float s=0.,a=.5;for(int i=0;i!=5;i++){s+=a*n3(p);p=p*2.02+vec3(17.1,9.2,4.7);a*=.5;}return s;}
+float fb2(vec2 p){float s=0.,a=.5;for(int i=0;i!=4;i++){s+=a*n2(p);p=p*2.03+vec2(17.1,9.2);a*=.5;}return s;}
+vec3 rot(vec3 v,vec3 k,float a){float c=cos(a),s=sin(a);return v*c+cross(k,v)*s+k*dot(k,v)*(1.-c);}
+float star(vec2 p,float sc,float th,float t){vec2 sp=p/sc,c=floor(sp),f=fract(sp)-.5;float r=h(c);if(th&gt;r)return 0.;
+ vec2 o=(vec2(h(c+1.3),h(c+2.7))-.5)*.5;float tw=.5+.5*sin(t*(.6+2.8*h(c+9.1))+r*90.);
+ return (.25+.75*h(c+7.))*tw*tw*smoothstep(.5,0.,length(f-o)*2.);}
+void main(){
+ vec2 p=gl_FragCoord.xy/uD;p.y=uR.y-p.y;p.y-=OFF*uR.y;float W=uR.x,H=uR.y;
+ vec3 col=vec3(.004,.010,.020)+vec3(.006,.02,.045)*fb2(p/H*2.2+vec2(uT*.004,0.))*(.35+p.y/H);
+ col+=vec3(.70,.85,1.)*star(p+vec2(uT*1.6,0.),2.6,.9955,uT)*.9;
+ col+=vec3(.80,.92,1.)*star(p+vec2(uT*.6,0.),7.,.9962,uT*.8)*1.1;
+ col+=vec3(1.,.95,.85)*star(p+vec2(uT*.25,0.),16.,.9975,uT*.5)*1.3;
+ /* camera 0.05 radii above a unit sphere, pitched 10.3 deg down */
+ float k=.93,cp=cos(.155),spi=sin(.155);
+ vec3 r0=normalize(vec3((p.x-W*.5)/H*k,(H*.5-p.y)/H*k,-1.));
+ vec3 rd=vec3(r0.x,r0.y*cp+r0.z*spi,-r0.y*spi+r0.z*cp);
+ vec3 ro=vec3(0.,1.05,0.);
+ float b=dot(ro,rd),c=dot(ro,ro)-1.,disc=b*b-c;
+ vec3 sun=normalize(vec3(.6,-.45,-.66));
+ if(min(disc,-b)&gt;0.){
+  float t=-b-sqrt(disc);vec3 n=ro+rd*t;
+  float mu=clamp(dot(n,-rd),0.,1.);
+  vec3 q=rot(n,normalize(vec3(.12,.2,1.)),-uT*6.2831853/150.);
+  float cont=fb3(q*3.2+3.);
+  float land=smoothstep(.45,.53,cont);
+  float cl=smoothstep(.47,.74,fb3(q*vec3(4.5,8.,4.5)+vec3(uT*.012,0.,0.)));
+  cl*=.55+.7*fb3(q*26.+5.);cl=clamp(cl,0.,1.);
+  vec3 e=mix(vec3(.010,.032,.072),vec3(.026,.046,.066),land);
+  float lon=atan(q.z,q.x),lat=asin(clamp(q.y,-1.,1.));
+  float dens=land*smoothstep(.36,.62,fb3(q*7.+11.));
+  vec2 base=vec2(lon*cos(lat),lat);
+  /* two layers of city-light speckles: large towns + fine scatter */
+  vec2 lm=base*230.;vec2 lc=floor(lm);float lr=h(lc);
+  vec2 lf=fract(lm)-.5-(vec2(h(lc+1.),h(lc+2.))-.5)*.55;
+  float lt=step(1.-dens*.9,lr)*smoothstep(.36,0.,length(lf))*(.5+.5*h(lc+5.));
+  vec2 lm2=base*520.;vec2 lc2=floor(lm2);float lr2=h(lc2+31.);
+  vec2 lf2=fract(lm2)-.5-(vec2(h(lc2+3.),h(lc2+4.))-.5)*.55;
+  lt+=step(1.-dens*.75,lr2)*smoothstep(.4,0.,length(lf2))*(.35+.4*h(lc2+6.));
+  float glow=dens*(.2+fb3(q*36.+2.))*.55;
+  float day=dot(n,sun),night=smoothstep(.12,-.15,day);
+  float vis=smoothstep(.0,.04,mu);
+  e+=vec3(1.,.64,.3)*(lt*2.4+glow*.8)*(1.-cl*.75)*night*vis;
+  e+=vec3(.05,.16,.3)*max(day,0.)*(1.+land)*.8;
+  e=mix(e,vec3(.12,.2,.31)*(.8+max(day+.2,0.)),cl*.6);
+  float haze=pow(1.-mu,3.);
+  e=mix(e,vec3(.08,.34,.82),haze*.6);
+  e+=vec3(.1,.45,1.)*pow(1.-mu,9.)*.8*(.7+.6*max(dot(n,sun)+.3,0.))+vec3(.55,.88,1.)*pow(1.-mu,40.)*1.3;
+  col=e;
+ }else{
+  float dc=0.&gt;b?sqrt(max(dot(ro,ro)-b*b,0.)):length(ro);
+  float dd=max(dc-1.,0.)*H/.3;
+  float sd=.75+.5*max(rd.x,0.);
+  col+=(vec3(.35,.76,1.)*exp(-dd/2.5)*1.+vec3(.1,.45,.95)*exp(-dd/16.)*.6+vec3(.05,.22,.55)*exp(-dd/90.)*.4+vec3(.03,.1,.25)*exp(-dd/380.)*.3)*sd;
+ }
+ vec2 g=(p-vec2(W*.49,H*.9))/vec2(W*.26,H*.13);col+=vec3(.03,.16,.36)*exp(-dot(g,g));
+ vec2 v=p/uR-.5;col*=1.-dot(v,v)*.45;
+ gl_FragColor=vec4(col,1.);
+}`.replace(&quot;OFF&quot;,OFF);
+function sh(t,s){var o=gl.createShader(t);gl.shaderSource(o,s);gl.compileShader(o);return o;}
+var pr=gl.createProgram();gl.attachShader(pr,sh(gl.VERTEX_SHADER,VS));gl.attachShader(pr,sh(gl.FRAGMENT_SHADER,FS));gl.linkProgram(pr);gl.useProgram(pr);
+gl.bindBuffer(gl.ARRAY_BUFFER,gl.createBuffer());gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);
+var l=gl.getAttribLocation(pr,&quot;p&quot;);gl.enableVertexAttribArray(l);gl.vertexAttribPointer(l,2,gl.FLOAT,false,0,0);
+var uR=gl.getUniformLocation(pr,&quot;uR&quot;),uT=gl.getUniformLocation(pr,&quot;uT&quot;),uD=gl.getUniformLocation(pr,&quot;uD&quot;);
+var W,H,d;function size(){W=innerWidth;H=innerHeight;d=Math.min(devicePixelRatio||1,1);cv.width=W*d;cv.height=H*d;gl.viewport(0,0,cv.width,cv.height);}
+function draw(t){gl.uniform2f(uR,W,H);gl.uniform1f(uD,d);gl.uniform1f(uT,t);gl.drawArrays(gl.TRIANGLES,0,3);}
+addEventListener(&quot;resize&quot;,size);size();draw(20);
+var t0=performance.now(),last=0;function loop(n){requestAnimationFrame(loop);if(30&gt;n-last||document.hidden)return;last=n;draw((n-t0)/1000+20);}requestAnimationFrame(loop);})();
+&lt;/script&gt;&lt;/body&gt;&lt;/html&gt;" style="position:absolute;left:0;top:0;width:1920px;height:1080px;border:0" tabindex="-1" aria-hidden="true"></iframe>
+<div class="space-shade"></div>
+<p class="eyebrow rise" style="--i:0">The problem</p>
+<div class="row" style="margin-top:56px;align-items:center;gap:96px">
+<div class="col" style="width:760px">
+<p class="num rise" style="--i:1">~6 h</p>
+<p class="lead rise" style="--i:2;color:#EAF0F7">of sleep a night in space, on average.</p>
+<p class="lead rise" style="--i:3">NASA schedules <b class="hl">8.5 h</b>. And <b class="hl">3 in 4</b> ISS crew members took sleep medication.</p>
+</div>
+<div class="col grow">
+<div class="card rise" style="--i:4;border-left:4px solid #FF8A70"><p class="tag" style="color:#FF8A70">The gap</p><p class="body" style="font-size:30px;color:#EAF0F7">Today fatigue is noticed after it happens. Nothing forecasts it against tomorrow’s critical tasks, like a spacewalk.</p></div>
+<div class="card rise" style="--i:5"><p class="tag">Why it matters</p><p class="body" style="font-size:30px;color:#EAF0F7">A tired crew makes more mistakes. On Earth the same gap hurts pilots, doctors and shift workers.</p></div>
+</div>
+</div>
+<p class="foot">Source: Barger et al., The Lancet Neurology, 2014 (85 astronauts, Shuttle and ISS)</p>
+<div class="logos"><img class="l-team" src="assets/logo.png" alt="PulsarX"><img class="l-part" src="assets/partners.png" alt="MAIA and NASA Space Apps"></div>
+
+</section>
+<section data-n="3" id="solution" data-transition="fade">
+<img src="assets/earth-content2.jpg" alt="" style="position:absolute;left:0;top:0;width:1920px;height:1080px;object-fit:cover">
+<iframe class="space-frame" class="space" data-src="&lt;!doctype html&gt;&lt;html&gt;&lt;head&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;style&gt;html,body{margin:0;height:100%;background:#03070d;overflow:hidden}canvas{display:block;width:100%;height:100%}&lt;/style&gt;&lt;/head&gt;&lt;body&gt;&lt;canvas id=&quot;c&quot;&gt;&lt;/canvas&gt;&lt;script&gt;
+(function(){var OFF=&quot;0.22&quot;;var cv=document.getElementById(&quot;c&quot;),gl=cv.getContext(&quot;webgl&quot;,{antialias:false,alpha:false});if(!gl)return;
+var VS=&quot;attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}&quot;;
+var FS=`precision highp float;
+uniform vec2 uR;uniform float uT,uD;
+float h(vec2 p){p=fract(p*vec2(123.34,456.21));p+=dot(p,p+45.32);return fract(p.x*p.y);}
+float h3(vec3 p){p=fract(p*.3183099+.1);p*=17.;return fract(p.x*p.y*p.z*(p.x+p.y+p.z));}
+float n2(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(h(i),h(i+vec2(1,0)),f.x),mix(h(i+vec2(0,1)),h(i+1.),f.x),f.y);}
+float n3(vec3 x){vec3 i=floor(x),f=fract(x);f=f*f*(3.-2.*f);
+ return mix(mix(mix(h3(i),h3(i+vec3(1,0,0)),f.x),mix(h3(i+vec3(0,1,0)),h3(i+vec3(1,1,0)),f.x),f.y),
+            mix(mix(h3(i+vec3(0,0,1)),h3(i+vec3(1,0,1)),f.x),mix(h3(i+vec3(0,1,1)),h3(i+1.),f.x),f.y),f.z);}
+float fb3(vec3 p){float s=0.,a=.5;for(int i=0;i!=5;i++){s+=a*n3(p);p=p*2.02+vec3(17.1,9.2,4.7);a*=.5;}return s;}
+float fb2(vec2 p){float s=0.,a=.5;for(int i=0;i!=4;i++){s+=a*n2(p);p=p*2.03+vec2(17.1,9.2);a*=.5;}return s;}
+vec3 rot(vec3 v,vec3 k,float a){float c=cos(a),s=sin(a);return v*c+cross(k,v)*s+k*dot(k,v)*(1.-c);}
+float star(vec2 p,float sc,float th,float t){vec2 sp=p/sc,c=floor(sp),f=fract(sp)-.5;float r=h(c);if(th&gt;r)return 0.;
+ vec2 o=(vec2(h(c+1.3),h(c+2.7))-.5)*.5;float tw=.5+.5*sin(t*(.6+2.8*h(c+9.1))+r*90.);
+ return (.25+.75*h(c+7.))*tw*tw*smoothstep(.5,0.,length(f-o)*2.);}
+void main(){
+ vec2 p=gl_FragCoord.xy/uD;p.y=uR.y-p.y;p.y-=OFF*uR.y;float W=uR.x,H=uR.y;
+ vec3 col=vec3(.004,.010,.020)+vec3(.006,.02,.045)*fb2(p/H*2.2+vec2(uT*.004,0.))*(.35+p.y/H);
+ col+=vec3(.70,.85,1.)*star(p+vec2(uT*1.6,0.),2.6,.9955,uT)*.9;
+ col+=vec3(.80,.92,1.)*star(p+vec2(uT*.6,0.),7.,.9962,uT*.8)*1.1;
+ col+=vec3(1.,.95,.85)*star(p+vec2(uT*.25,0.),16.,.9975,uT*.5)*1.3;
+ /* camera 0.05 radii above a unit sphere, pitched 10.3 deg down */
+ float k=.93,cp=cos(.155),spi=sin(.155);
+ vec3 r0=normalize(vec3((p.x-W*.5)/H*k,(H*.5-p.y)/H*k,-1.));
+ vec3 rd=vec3(r0.x,r0.y*cp+r0.z*spi,-r0.y*spi+r0.z*cp);
+ vec3 ro=vec3(0.,1.05,0.);
+ float b=dot(ro,rd),c=dot(ro,ro)-1.,disc=b*b-c;
+ vec3 sun=normalize(vec3(.6,-.45,-.66));
+ if(min(disc,-b)&gt;0.){
+  float t=-b-sqrt(disc);vec3 n=ro+rd*t;
+  float mu=clamp(dot(n,-rd),0.,1.);
+  vec3 q=rot(n,normalize(vec3(.12,.2,1.)),-uT*6.2831853/150.);
+  float cont=fb3(q*3.2+3.);
+  float land=smoothstep(.45,.53,cont);
+  float cl=smoothstep(.47,.74,fb3(q*vec3(4.5,8.,4.5)+vec3(uT*.012,0.,0.)));
+  cl*=.55+.7*fb3(q*26.+5.);cl=clamp(cl,0.,1.);
+  vec3 e=mix(vec3(.010,.032,.072),vec3(.026,.046,.066),land);
+  float lon=atan(q.z,q.x),lat=asin(clamp(q.y,-1.,1.));
+  float dens=land*smoothstep(.36,.62,fb3(q*7.+11.));
+  vec2 base=vec2(lon*cos(lat),lat);
+  /* two layers of city-light speckles: large towns + fine scatter */
+  vec2 lm=base*230.;vec2 lc=floor(lm);float lr=h(lc);
+  vec2 lf=fract(lm)-.5-(vec2(h(lc+1.),h(lc+2.))-.5)*.55;
+  float lt=step(1.-dens*.9,lr)*smoothstep(.36,0.,length(lf))*(.5+.5*h(lc+5.));
+  vec2 lm2=base*520.;vec2 lc2=floor(lm2);float lr2=h(lc2+31.);
+  vec2 lf2=fract(lm2)-.5-(vec2(h(lc2+3.),h(lc2+4.))-.5)*.55;
+  lt+=step(1.-dens*.75,lr2)*smoothstep(.4,0.,length(lf2))*(.35+.4*h(lc2+6.));
+  float glow=dens*(.2+fb3(q*36.+2.))*.55;
+  float day=dot(n,sun),night=smoothstep(.12,-.15,day);
+  float vis=smoothstep(.0,.04,mu);
+  e+=vec3(1.,.64,.3)*(lt*2.4+glow*.8)*(1.-cl*.75)*night*vis;
+  e+=vec3(.05,.16,.3)*max(day,0.)*(1.+land)*.8;
+  e=mix(e,vec3(.12,.2,.31)*(.8+max(day+.2,0.)),cl*.6);
+  float haze=pow(1.-mu,3.);
+  e=mix(e,vec3(.08,.34,.82),haze*.6);
+  e+=vec3(.1,.45,1.)*pow(1.-mu,9.)*.8*(.7+.6*max(dot(n,sun)+.3,0.))+vec3(.55,.88,1.)*pow(1.-mu,40.)*1.3;
+  col=e;
+ }else{
+  float dc=0.&gt;b?sqrt(max(dot(ro,ro)-b*b,0.)):length(ro);
+  float dd=max(dc-1.,0.)*H/.3;
+  float sd=.75+.5*max(rd.x,0.);
+  col+=(vec3(.35,.76,1.)*exp(-dd/2.5)*1.+vec3(.1,.45,.95)*exp(-dd/16.)*.6+vec3(.05,.22,.55)*exp(-dd/90.)*.4+vec3(.03,.1,.25)*exp(-dd/380.)*.3)*sd;
+ }
+ vec2 g=(p-vec2(W*.49,H*.9))/vec2(W*.26,H*.13);col+=vec3(.03,.16,.36)*exp(-dot(g,g));
+ vec2 v=p/uR-.5;col*=1.-dot(v,v)*.45;
+ gl_FragColor=vec4(col,1.);
+}`.replace(&quot;OFF&quot;,OFF);
+function sh(t,s){var o=gl.createShader(t);gl.shaderSource(o,s);gl.compileShader(o);return o;}
+var pr=gl.createProgram();gl.attachShader(pr,sh(gl.VERTEX_SHADER,VS));gl.attachShader(pr,sh(gl.FRAGMENT_SHADER,FS));gl.linkProgram(pr);gl.useProgram(pr);
+gl.bindBuffer(gl.ARRAY_BUFFER,gl.createBuffer());gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);
+var l=gl.getAttribLocation(pr,&quot;p&quot;);gl.enableVertexAttribArray(l);gl.vertexAttribPointer(l,2,gl.FLOAT,false,0,0);
+var uR=gl.getUniformLocation(pr,&quot;uR&quot;),uT=gl.getUniformLocation(pr,&quot;uT&quot;),uD=gl.getUniformLocation(pr,&quot;uD&quot;);
+var W,H,d;function size(){W=innerWidth;H=innerHeight;d=Math.min(devicePixelRatio||1,1);cv.width=W*d;cv.height=H*d;gl.viewport(0,0,cv.width,cv.height);}
+function draw(t){gl.uniform2f(uR,W,H);gl.uniform1f(uD,d);gl.uniform1f(uT,t);gl.drawArrays(gl.TRIANGLES,0,3);}
+addEventListener(&quot;resize&quot;,size);size();draw(20);
+var t0=performance.now(),last=0;function loop(n){requestAnimationFrame(loop);if(30&gt;n-last||document.hidden)return;last=n;draw((n-t0)/1000+20);}requestAnimationFrame(loop);})();
+&lt;/script&gt;&lt;/body&gt;&lt;/html&gt;" style="position:absolute;left:0;top:0;width:1920px;height:1080px;border:0" tabindex="-1" aria-hidden="true"></iframe>
+<div class="space-shade"></div>
+<p class="eyebrow rise" style="--i:0">Our solution</p>
+<h2 class="title rise" style="--i:1">The ring measures. The twin forecasts. People decide.</h2>
+<div class="row" style="margin-top:40px;gap:48px;align-items:flex-start">
+<img class="shot rise" style="--i:2;width:1031px;height:580px;flex-shrink:0" src="assets/tech.webp" alt="3D view inside the FORECAST ring: two radio boards on opposite sides, Bluetooth to the station, Ku-band main and S-band backup to Earth">
+<div class="col grow" style="gap:22px">
+<div class="point rise" style="--i:3"><p class="step" style="flex:0 0 44px"><span class="n">1</span></p><div class="txt"><p class="h">Smart ring</p><p class="d">Heart rate, HRV, skin temp, sleep, motion</p></div></div>
+<div class="point rise" style="--i:4"><p class="step" style="flex:0 0 44px"><span class="n">2</span></p><div class="txt"><p class="h">Digital twin</p><p class="d">Learns each astronaut&rsquo;s own normal</p></div></div>
+<div class="point rise" style="--i:5"><p class="step" style="flex:0 0 44px"><span class="n">3</span></p><div class="txt"><p class="h">3-day forecast</p><p class="d">Readiness vs the task schedule</p></div></div>
+<div class="point rise" style="--i:6"><p class="step" style="flex:0 0 44px"><span class="n">4</span></p><div class="txt"><p class="h">NOVA</p><p class="d">Asks by voice through the ring, explains, suggests</p></div></div>
+<div class="point rise" style="--i:7"><p class="step" style="flex:0 0 44px"><span class="n">5</span></p><div class="txt"><p class="h">Humans decide</p><p class="d">Crew and Mission Control accept or reject</p></div></div>
+</div>
+</div>
+<p class="foot">Two radio boards on opposite sides · Ku-band main, S-band backup · runs onboard, offline</p>
+<div class="logos"><img class="l-team" src="assets/logo.png" alt="PulsarX"><img class="l-part" src="assets/partners.png" alt="MAIA and NASA Space Apps"></div>
+
+</section>
+<section data-n="4" id="data" data-transition="fade">
+<img src="assets/earth-content2.jpg" alt="" style="position:absolute;left:0;top:0;width:1920px;height:1080px;object-fit:cover">
+<iframe class="space-frame" class="space" data-src="&lt;!doctype html&gt;&lt;html&gt;&lt;head&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;style&gt;html,body{margin:0;height:100%;background:#03070d;overflow:hidden}canvas{display:block;width:100%;height:100%}&lt;/style&gt;&lt;/head&gt;&lt;body&gt;&lt;canvas id=&quot;c&quot;&gt;&lt;/canvas&gt;&lt;script&gt;
+(function(){var OFF=&quot;0.22&quot;;var cv=document.getElementById(&quot;c&quot;),gl=cv.getContext(&quot;webgl&quot;,{antialias:false,alpha:false});if(!gl)return;
+var VS=&quot;attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}&quot;;
+var FS=`precision highp float;
+uniform vec2 uR;uniform float uT,uD;
+float h(vec2 p){p=fract(p*vec2(123.34,456.21));p+=dot(p,p+45.32);return fract(p.x*p.y);}
+float h3(vec3 p){p=fract(p*.3183099+.1);p*=17.;return fract(p.x*p.y*p.z*(p.x+p.y+p.z));}
+float n2(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(h(i),h(i+vec2(1,0)),f.x),mix(h(i+vec2(0,1)),h(i+1.),f.x),f.y);}
+float n3(vec3 x){vec3 i=floor(x),f=fract(x);f=f*f*(3.-2.*f);
+ return mix(mix(mix(h3(i),h3(i+vec3(1,0,0)),f.x),mix(h3(i+vec3(0,1,0)),h3(i+vec3(1,1,0)),f.x),f.y),
+            mix(mix(h3(i+vec3(0,0,1)),h3(i+vec3(1,0,1)),f.x),mix(h3(i+vec3(0,1,1)),h3(i+1.),f.x),f.y),f.z);}
+float fb3(vec3 p){float s=0.,a=.5;for(int i=0;i!=5;i++){s+=a*n3(p);p=p*2.02+vec3(17.1,9.2,4.7);a*=.5;}return s;}
+float fb2(vec2 p){float s=0.,a=.5;for(int i=0;i!=4;i++){s+=a*n2(p);p=p*2.03+vec2(17.1,9.2);a*=.5;}return s;}
+vec3 rot(vec3 v,vec3 k,float a){float c=cos(a),s=sin(a);return v*c+cross(k,v)*s+k*dot(k,v)*(1.-c);}
+float star(vec2 p,float sc,float th,float t){vec2 sp=p/sc,c=floor(sp),f=fract(sp)-.5;float r=h(c);if(th&gt;r)return 0.;
+ vec2 o=(vec2(h(c+1.3),h(c+2.7))-.5)*.5;float tw=.5+.5*sin(t*(.6+2.8*h(c+9.1))+r*90.);
+ return (.25+.75*h(c+7.))*tw*tw*smoothstep(.5,0.,length(f-o)*2.);}
+void main(){
+ vec2 p=gl_FragCoord.xy/uD;p.y=uR.y-p.y;p.y-=OFF*uR.y;float W=uR.x,H=uR.y;
+ vec3 col=vec3(.004,.010,.020)+vec3(.006,.02,.045)*fb2(p/H*2.2+vec2(uT*.004,0.))*(.35+p.y/H);
+ col+=vec3(.70,.85,1.)*star(p+vec2(uT*1.6,0.),2.6,.9955,uT)*.9;
+ col+=vec3(.80,.92,1.)*star(p+vec2(uT*.6,0.),7.,.9962,uT*.8)*1.1;
+ col+=vec3(1.,.95,.85)*star(p+vec2(uT*.25,0.),16.,.9975,uT*.5)*1.3;
+ /* camera 0.05 radii above a unit sphere, pitched 10.3 deg down */
+ float k=.93,cp=cos(.155),spi=sin(.155);
+ vec3 r0=normalize(vec3((p.x-W*.5)/H*k,(H*.5-p.y)/H*k,-1.));
+ vec3 rd=vec3(r0.x,r0.y*cp+r0.z*spi,-r0.y*spi+r0.z*cp);
+ vec3 ro=vec3(0.,1.05,0.);
+ float b=dot(ro,rd),c=dot(ro,ro)-1.,disc=b*b-c;
+ vec3 sun=normalize(vec3(.6,-.45,-.66));
+ if(min(disc,-b)&gt;0.){
+  float t=-b-sqrt(disc);vec3 n=ro+rd*t;
+  float mu=clamp(dot(n,-rd),0.,1.);
+  vec3 q=rot(n,normalize(vec3(.12,.2,1.)),-uT*6.2831853/150.);
+  float cont=fb3(q*3.2+3.);
+  float land=smoothstep(.45,.53,cont);
+  float cl=smoothstep(.47,.74,fb3(q*vec3(4.5,8.,4.5)+vec3(uT*.012,0.,0.)));
+  cl*=.55+.7*fb3(q*26.+5.);cl=clamp(cl,0.,1.);
+  vec3 e=mix(vec3(.010,.032,.072),vec3(.026,.046,.066),land);
+  float lon=atan(q.z,q.x),lat=asin(clamp(q.y,-1.,1.));
+  float dens=land*smoothstep(.36,.62,fb3(q*7.+11.));
+  vec2 base=vec2(lon*cos(lat),lat);
+  /* two layers of city-light speckles: large towns + fine scatter */
+  vec2 lm=base*230.;vec2 lc=floor(lm);float lr=h(lc);
+  vec2 lf=fract(lm)-.5-(vec2(h(lc+1.),h(lc+2.))-.5)*.55;
+  float lt=step(1.-dens*.9,lr)*smoothstep(.36,0.,length(lf))*(.5+.5*h(lc+5.));
+  vec2 lm2=base*520.;vec2 lc2=floor(lm2);float lr2=h(lc2+31.);
+  vec2 lf2=fract(lm2)-.5-(vec2(h(lc2+3.),h(lc2+4.))-.5)*.55;
+  lt+=step(1.-dens*.75,lr2)*smoothstep(.4,0.,length(lf2))*(.35+.4*h(lc2+6.));
+  float glow=dens*(.2+fb3(q*36.+2.))*.55;
+  float day=dot(n,sun),night=smoothstep(.12,-.15,day);
+  float vis=smoothstep(.0,.04,mu);
+  e+=vec3(1.,.64,.3)*(lt*2.4+glow*.8)*(1.-cl*.75)*night*vis;
+  e+=vec3(.05,.16,.3)*max(day,0.)*(1.+land)*.8;
+  e=mix(e,vec3(.12,.2,.31)*(.8+max(day+.2,0.)),cl*.6);
+  float haze=pow(1.-mu,3.);
+  e=mix(e,vec3(.08,.34,.82),haze*.6);
+  e+=vec3(.1,.45,1.)*pow(1.-mu,9.)*.8*(.7+.6*max(dot(n,sun)+.3,0.))+vec3(.55,.88,1.)*pow(1.-mu,40.)*1.3;
+  col=e;
+ }else{
+  float dc=0.&gt;b?sqrt(max(dot(ro,ro)-b*b,0.)):length(ro);
+  float dd=max(dc-1.,0.)*H/.3;
+  float sd=.75+.5*max(rd.x,0.);
+  col+=(vec3(.35,.76,1.)*exp(-dd/2.5)*1.+vec3(.1,.45,.95)*exp(-dd/16.)*.6+vec3(.05,.22,.55)*exp(-dd/90.)*.4+vec3(.03,.1,.25)*exp(-dd/380.)*.3)*sd;
+ }
+ vec2 g=(p-vec2(W*.49,H*.9))/vec2(W*.26,H*.13);col+=vec3(.03,.16,.36)*exp(-dot(g,g));
+ vec2 v=p/uR-.5;col*=1.-dot(v,v)*.45;
+ gl_FragColor=vec4(col,1.);
+}`.replace(&quot;OFF&quot;,OFF);
+function sh(t,s){var o=gl.createShader(t);gl.shaderSource(o,s);gl.compileShader(o);return o;}
+var pr=gl.createProgram();gl.attachShader(pr,sh(gl.VERTEX_SHADER,VS));gl.attachShader(pr,sh(gl.FRAGMENT_SHADER,FS));gl.linkProgram(pr);gl.useProgram(pr);
+gl.bindBuffer(gl.ARRAY_BUFFER,gl.createBuffer());gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);
+var l=gl.getAttribLocation(pr,&quot;p&quot;);gl.enableVertexAttribArray(l);gl.vertexAttribPointer(l,2,gl.FLOAT,false,0,0);
+var uR=gl.getUniformLocation(pr,&quot;uR&quot;),uT=gl.getUniformLocation(pr,&quot;uT&quot;),uD=gl.getUniformLocation(pr,&quot;uD&quot;);
+var W,H,d;function size(){W=innerWidth;H=innerHeight;d=Math.min(devicePixelRatio||1,1);cv.width=W*d;cv.height=H*d;gl.viewport(0,0,cv.width,cv.height);}
+function draw(t){gl.uniform2f(uR,W,H);gl.uniform1f(uD,d);gl.uniform1f(uT,t);gl.drawArrays(gl.TRIANGLES,0,3);}
+addEventListener(&quot;resize&quot;,size);size();draw(20);
+var t0=performance.now(),last=0;function loop(n){requestAnimationFrame(loop);if(30&gt;n-last||document.hidden)return;last=n;draw((n-t0)/1000+20);}requestAnimationFrame(loop);})();
+&lt;/script&gt;&lt;/body&gt;&lt;/html&gt;" style="position:absolute;left:0;top:0;width:1920px;height:1080px;border:0" tabindex="-1" aria-hidden="true"></iframe>
+<div class="space-shade"></div>
+<p class="eyebrow rise" style="--i:0">Data and NASA resources</p>
+<h2 class="title rise" style="--i:1">Built on NASA research, tested on real data</h2>
+<div class="row" style="margin-top:56px;gap:64px;align-items:flex-start">
+<div class="col grow" style="gap:32px">
+<div class="point rise" style="--i:2"><span class="xi"><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20" /> </svg> </span><div class="txt"><p class="h">Risks of Human Spaceflight</p><p class="d">Sleep loss, body clock, workload and focus became the factors of our model.</p></div></div>
+<div class="point rise" style="--i:3"><span class="xi"><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span><div class="txt"><p class="h">5 Hazards of Human Spaceflight</p><p class="d">Distance from Earth is why FORECAST works offline.</p></div></div>
+<div class="point rise" style="--i:4"><span class="xi"><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915" /> <circle cx="12" cy="12" r="3" /> </svg> </span><div class="txt"><p class="h">NASA-STD-3001</p><p class="d">NASA’s crew health standard shaped our alert colours and wording.</p></div></div>
+<div class="point rise" style="--i:5"><span class="xi"><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <ellipse cx="12" cy="5" rx="9" ry="3" /> <path d="M3 5V19A9 3 0 0 0 21 19V5" /> <path d="M3 12A9 3 0 0 0 21 12" /> </svg> </span><div class="txt"><p class="h">Real wearable data</p><p class="d">Fitbit data of real people (Furberg et al., 2016). HRV, skin temp and schedule are simulated and labelled.</p></div></div>
+</div>
+<div class="card rise" style="--i:6;width:620px;padding:48px;gap:20px;border-color:#5CD6F0">
+<p class="tag">Real-data test · 21 days</p>
+<p class="small" style="color:#EAF0F7">Readiness after a short night</p>
+<p class="num-mid hl">84.8%</p>
+<p class="small" style="color:#EAF0F7">Readiness on other days</p>
+<p class="num-mid" style="color:#EAF0F7">93.8%</p>
+<p class="small">The model drops readiness after short sleep, with no peeking at the answer.</p>
+</div>
+</div>
+<p class="foot">Sources: NASA Human Research Program · NASA-STD-3001 · Furberg et al., Zenodo 2016</p>
+<div class="logos"><img class="l-team" src="assets/logo.png" alt="PulsarX"><img class="l-part" src="assets/partners.png" alt="MAIA and NASA Space Apps"></div>
+
+</section>
+<section data-n="5" id="impact" class="alt" data-transition="fade">
+<img src="assets/earth-content2.jpg" alt="" style="position:absolute;left:0;top:0;width:1920px;height:1080px;object-fit:cover">
+<iframe class="space-frame" class="space" data-src="&lt;!doctype html&gt;&lt;html&gt;&lt;head&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;style&gt;html,body{margin:0;height:100%;background:#03070d;overflow:hidden}canvas{display:block;width:100%;height:100%}&lt;/style&gt;&lt;/head&gt;&lt;body&gt;&lt;canvas id=&quot;c&quot;&gt;&lt;/canvas&gt;&lt;script&gt;
+(function(){var OFF=&quot;0.22&quot;;var cv=document.getElementById(&quot;c&quot;),gl=cv.getContext(&quot;webgl&quot;,{antialias:false,alpha:false});if(!gl)return;
+var VS=&quot;attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}&quot;;
+var FS=`precision highp float;
+uniform vec2 uR;uniform float uT,uD;
+float h(vec2 p){p=fract(p*vec2(123.34,456.21));p+=dot(p,p+45.32);return fract(p.x*p.y);}
+float h3(vec3 p){p=fract(p*.3183099+.1);p*=17.;return fract(p.x*p.y*p.z*(p.x+p.y+p.z));}
+float n2(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(h(i),h(i+vec2(1,0)),f.x),mix(h(i+vec2(0,1)),h(i+1.),f.x),f.y);}
+float n3(vec3 x){vec3 i=floor(x),f=fract(x);f=f*f*(3.-2.*f);
+ return mix(mix(mix(h3(i),h3(i+vec3(1,0,0)),f.x),mix(h3(i+vec3(0,1,0)),h3(i+vec3(1,1,0)),f.x),f.y),
+            mix(mix(h3(i+vec3(0,0,1)),h3(i+vec3(1,0,1)),f.x),mix(h3(i+vec3(0,1,1)),h3(i+1.),f.x),f.y),f.z);}
+float fb3(vec3 p){float s=0.,a=.5;for(int i=0;i!=5;i++){s+=a*n3(p);p=p*2.02+vec3(17.1,9.2,4.7);a*=.5;}return s;}
+float fb2(vec2 p){float s=0.,a=.5;for(int i=0;i!=4;i++){s+=a*n2(p);p=p*2.03+vec2(17.1,9.2);a*=.5;}return s;}
+vec3 rot(vec3 v,vec3 k,float a){float c=cos(a),s=sin(a);return v*c+cross(k,v)*s+k*dot(k,v)*(1.-c);}
+float star(vec2 p,float sc,float th,float t){vec2 sp=p/sc,c=floor(sp),f=fract(sp)-.5;float r=h(c);if(th&gt;r)return 0.;
+ vec2 o=(vec2(h(c+1.3),h(c+2.7))-.5)*.5;float tw=.5+.5*sin(t*(.6+2.8*h(c+9.1))+r*90.);
+ return (.25+.75*h(c+7.))*tw*tw*smoothstep(.5,0.,length(f-o)*2.);}
+void main(){
+ vec2 p=gl_FragCoord.xy/uD;p.y=uR.y-p.y;p.y-=OFF*uR.y;float W=uR.x,H=uR.y;
+ vec3 col=vec3(.004,.010,.020)+vec3(.006,.02,.045)*fb2(p/H*2.2+vec2(uT*.004,0.))*(.35+p.y/H);
+ col+=vec3(.70,.85,1.)*star(p+vec2(uT*1.6,0.),2.6,.9955,uT)*.9;
+ col+=vec3(.80,.92,1.)*star(p+vec2(uT*.6,0.),7.,.9962,uT*.8)*1.1;
+ col+=vec3(1.,.95,.85)*star(p+vec2(uT*.25,0.),16.,.9975,uT*.5)*1.3;
+ /* camera 0.05 radii above a unit sphere, pitched 10.3 deg down */
+ float k=.93,cp=cos(.155),spi=sin(.155);
+ vec3 r0=normalize(vec3((p.x-W*.5)/H*k,(H*.5-p.y)/H*k,-1.));
+ vec3 rd=vec3(r0.x,r0.y*cp+r0.z*spi,-r0.y*spi+r0.z*cp);
+ vec3 ro=vec3(0.,1.05,0.);
+ float b=dot(ro,rd),c=dot(ro,ro)-1.,disc=b*b-c;
+ vec3 sun=normalize(vec3(.6,-.45,-.66));
+ if(min(disc,-b)&gt;0.){
+  float t=-b-sqrt(disc);vec3 n=ro+rd*t;
+  float mu=clamp(dot(n,-rd),0.,1.);
+  vec3 q=rot(n,normalize(vec3(.12,.2,1.)),-uT*6.2831853/150.);
+  float cont=fb3(q*3.2+3.);
+  float land=smoothstep(.45,.53,cont);
+  float cl=smoothstep(.47,.74,fb3(q*vec3(4.5,8.,4.5)+vec3(uT*.012,0.,0.)));
+  cl*=.55+.7*fb3(q*26.+5.);cl=clamp(cl,0.,1.);
+  vec3 e=mix(vec3(.010,.032,.072),vec3(.026,.046,.066),land);
+  float lon=atan(q.z,q.x),lat=asin(clamp(q.y,-1.,1.));
+  float dens=land*smoothstep(.36,.62,fb3(q*7.+11.));
+  vec2 base=vec2(lon*cos(lat),lat);
+  /* two layers of city-light speckles: large towns + fine scatter */
+  vec2 lm=base*230.;vec2 lc=floor(lm);float lr=h(lc);
+  vec2 lf=fract(lm)-.5-(vec2(h(lc+1.),h(lc+2.))-.5)*.55;
+  float lt=step(1.-dens*.9,lr)*smoothstep(.36,0.,length(lf))*(.5+.5*h(lc+5.));
+  vec2 lm2=base*520.;vec2 lc2=floor(lm2);float lr2=h(lc2+31.);
+  vec2 lf2=fract(lm2)-.5-(vec2(h(lc2+3.),h(lc2+4.))-.5)*.55;
+  lt+=step(1.-dens*.75,lr2)*smoothstep(.4,0.,length(lf2))*(.35+.4*h(lc2+6.));
+  float glow=dens*(.2+fb3(q*36.+2.))*.55;
+  float day=dot(n,sun),night=smoothstep(.12,-.15,day);
+  float vis=smoothstep(.0,.04,mu);
+  e+=vec3(1.,.64,.3)*(lt*2.4+glow*.8)*(1.-cl*.75)*night*vis;
+  e+=vec3(.05,.16,.3)*max(day,0.)*(1.+land)*.8;
+  e=mix(e,vec3(.12,.2,.31)*(.8+max(day+.2,0.)),cl*.6);
+  float haze=pow(1.-mu,3.);
+  e=mix(e,vec3(.08,.34,.82),haze*.6);
+  e+=vec3(.1,.45,1.)*pow(1.-mu,9.)*.8*(.7+.6*max(dot(n,sun)+.3,0.))+vec3(.55,.88,1.)*pow(1.-mu,40.)*1.3;
+  col=e;
+ }else{
+  float dc=0.&gt;b?sqrt(max(dot(ro,ro)-b*b,0.)):length(ro);
+  float dd=max(dc-1.,0.)*H/.3;
+  float sd=.75+.5*max(rd.x,0.);
+  col+=(vec3(.35,.76,1.)*exp(-dd/2.5)*1.+vec3(.1,.45,.95)*exp(-dd/16.)*.6+vec3(.05,.22,.55)*exp(-dd/90.)*.4+vec3(.03,.1,.25)*exp(-dd/380.)*.3)*sd;
+ }
+ vec2 g=(p-vec2(W*.49,H*.9))/vec2(W*.26,H*.13);col+=vec3(.03,.16,.36)*exp(-dot(g,g));
+ vec2 v=p/uR-.5;col*=1.-dot(v,v)*.45;
+ gl_FragColor=vec4(col,1.);
+}`.replace(&quot;OFF&quot;,OFF);
+function sh(t,s){var o=gl.createShader(t);gl.shaderSource(o,s);gl.compileShader(o);return o;}
+var pr=gl.createProgram();gl.attachShader(pr,sh(gl.VERTEX_SHADER,VS));gl.attachShader(pr,sh(gl.FRAGMENT_SHADER,FS));gl.linkProgram(pr);gl.useProgram(pr);
+gl.bindBuffer(gl.ARRAY_BUFFER,gl.createBuffer());gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);
+var l=gl.getAttribLocation(pr,&quot;p&quot;);gl.enableVertexAttribArray(l);gl.vertexAttribPointer(l,2,gl.FLOAT,false,0,0);
+var uR=gl.getUniformLocation(pr,&quot;uR&quot;),uT=gl.getUniformLocation(pr,&quot;uT&quot;),uD=gl.getUniformLocation(pr,&quot;uD&quot;);
+var W,H,d;function size(){W=innerWidth;H=innerHeight;d=Math.min(devicePixelRatio||1,1);cv.width=W*d;cv.height=H*d;gl.viewport(0,0,cv.width,cv.height);}
+function draw(t){gl.uniform2f(uR,W,H);gl.uniform1f(uD,d);gl.uniform1f(uT,t);gl.drawArrays(gl.TRIANGLES,0,3);}
+addEventListener(&quot;resize&quot;,size);size();draw(20);
+var t0=performance.now(),last=0;function loop(n){requestAnimationFrame(loop);if(30&gt;n-last||document.hidden)return;last=n;draw((n-t0)/1000+20);}requestAnimationFrame(loop);})();
+&lt;/script&gt;&lt;/body&gt;&lt;/html&gt;" style="position:absolute;left:0;top:0;width:1920px;height:1080px;border:0" tabindex="-1" aria-hidden="true"></iframe>
+<div class="space-shade"></div>
+<p class="eyebrow rise" style="--i:0">Impact and feasibility</p>
+<h2 class="title rise" style="--i:1">Safer missions now, healthier shift work later</h2>
+<div class="row" style="margin-top:48px;gap:56px;align-items:flex-start">
+<div class="col" style="width:720px;gap:28px">
+<div class="point rise" style="--i:2"><span class="xi"><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /> <path d="M16 3.128a4 4 0 0 1 0 7.744" /> <path d="M22 21v-2a4 4 0 0 0-3-3.87" /> <circle cx="9" cy="7" r="4" /> </svg> </span><div class="txt"><p class="h">Who it serves</p><p class="d">Astronauts, flight doctors and Mission Control.</p></div></div>
+<div class="point rise" style="--i:3"><span class="xi"><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2" /> </svg> </span><div class="txt"><p class="h">Impact</p><p class="d"><b class="hl">Scientific:</b> fatigue caught days early, before a mistake on a critical task. <b class="hl">Social:</b> the same tool can protect pilots, nurses and shift workers.</p></div></div>
+<div class="point rise" style="--i:4"><span class="xi"><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.106-3.105c.32-.322.863-.22.983.218a6 6 0 0 1-8.259 7.057l-7.91 7.91a1 1 0 0 1-2.999-3l7.91-7.91a6 6 0 0 1 7.057-8.259c.438.12.54.662.219.984z" /> </svg> </span><div class="txt"><p class="h">Why it is realistic</p><p class="d">Smart rings already exist. FORECAST is software: it runs onboard, works offline, has 48 automated tests and open code.</p></div></div>
+</div>
+<img class="shot rise" style="--i:5;width:888px;height:500px" src="assets/hud-mc.jpg" alt="Mission Control screen: crew status, 3-day schedule and change approvals raising readiness from 29% to 50%">
+</div>
+<p class="foot">Screen: Mission Control view of our working prototype</p>
+<div class="logos"><img class="l-team" src="assets/logo.png" alt="PulsarX"><img class="l-part" src="assets/partners.png" alt="MAIA and NASA Space Apps"></div>
+
+</section>
+<section data-n="6" id="next" data-transition="fade">
+<img src="assets/earth-content2.jpg" alt="" style="position:absolute;left:0;top:0;width:1920px;height:1080px;object-fit:cover">
+<iframe class="space-frame" class="space" data-src="&lt;!doctype html&gt;&lt;html&gt;&lt;head&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;style&gt;html,body{margin:0;height:100%;background:#03070d;overflow:hidden}canvas{display:block;width:100%;height:100%}&lt;/style&gt;&lt;/head&gt;&lt;body&gt;&lt;canvas id=&quot;c&quot;&gt;&lt;/canvas&gt;&lt;script&gt;
+(function(){var OFF=&quot;0.22&quot;;var cv=document.getElementById(&quot;c&quot;),gl=cv.getContext(&quot;webgl&quot;,{antialias:false,alpha:false});if(!gl)return;
+var VS=&quot;attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}&quot;;
+var FS=`precision highp float;
+uniform vec2 uR;uniform float uT,uD;
+float h(vec2 p){p=fract(p*vec2(123.34,456.21));p+=dot(p,p+45.32);return fract(p.x*p.y);}
+float h3(vec3 p){p=fract(p*.3183099+.1);p*=17.;return fract(p.x*p.y*p.z*(p.x+p.y+p.z));}
+float n2(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(h(i),h(i+vec2(1,0)),f.x),mix(h(i+vec2(0,1)),h(i+1.),f.x),f.y);}
+float n3(vec3 x){vec3 i=floor(x),f=fract(x);f=f*f*(3.-2.*f);
+ return mix(mix(mix(h3(i),h3(i+vec3(1,0,0)),f.x),mix(h3(i+vec3(0,1,0)),h3(i+vec3(1,1,0)),f.x),f.y),
+            mix(mix(h3(i+vec3(0,0,1)),h3(i+vec3(1,0,1)),f.x),mix(h3(i+vec3(0,1,1)),h3(i+1.),f.x),f.y),f.z);}
+float fb3(vec3 p){float s=0.,a=.5;for(int i=0;i!=5;i++){s+=a*n3(p);p=p*2.02+vec3(17.1,9.2,4.7);a*=.5;}return s;}
+float fb2(vec2 p){float s=0.,a=.5;for(int i=0;i!=4;i++){s+=a*n2(p);p=p*2.03+vec2(17.1,9.2);a*=.5;}return s;}
+vec3 rot(vec3 v,vec3 k,float a){float c=cos(a),s=sin(a);return v*c+cross(k,v)*s+k*dot(k,v)*(1.-c);}
+float star(vec2 p,float sc,float th,float t){vec2 sp=p/sc,c=floor(sp),f=fract(sp)-.5;float r=h(c);if(th&gt;r)return 0.;
+ vec2 o=(vec2(h(c+1.3),h(c+2.7))-.5)*.5;float tw=.5+.5*sin(t*(.6+2.8*h(c+9.1))+r*90.);
+ return (.25+.75*h(c+7.))*tw*tw*smoothstep(.5,0.,length(f-o)*2.);}
+void main(){
+ vec2 p=gl_FragCoord.xy/uD;p.y=uR.y-p.y;p.y-=OFF*uR.y;float W=uR.x,H=uR.y;
+ vec3 col=vec3(.004,.010,.020)+vec3(.006,.02,.045)*fb2(p/H*2.2+vec2(uT*.004,0.))*(.35+p.y/H);
+ col+=vec3(.70,.85,1.)*star(p+vec2(uT*1.6,0.),2.6,.9955,uT)*.9;
+ col+=vec3(.80,.92,1.)*star(p+vec2(uT*.6,0.),7.,.9962,uT*.8)*1.1;
+ col+=vec3(1.,.95,.85)*star(p+vec2(uT*.25,0.),16.,.9975,uT*.5)*1.3;
+ /* camera 0.05 radii above a unit sphere, pitched 10.3 deg down */
+ float k=.93,cp=cos(.155),spi=sin(.155);
+ vec3 r0=normalize(vec3((p.x-W*.5)/H*k,(H*.5-p.y)/H*k,-1.));
+ vec3 rd=vec3(r0.x,r0.y*cp+r0.z*spi,-r0.y*spi+r0.z*cp);
+ vec3 ro=vec3(0.,1.05,0.);
+ float b=dot(ro,rd),c=dot(ro,ro)-1.,disc=b*b-c;
+ vec3 sun=normalize(vec3(.6,-.45,-.66));
+ if(min(disc,-b)&gt;0.){
+  float t=-b-sqrt(disc);vec3 n=ro+rd*t;
+  float mu=clamp(dot(n,-rd),0.,1.);
+  vec3 q=rot(n,normalize(vec3(.12,.2,1.)),-uT*6.2831853/150.);
+  float cont=fb3(q*3.2+3.);
+  float land=smoothstep(.45,.53,cont);
+  float cl=smoothstep(.47,.74,fb3(q*vec3(4.5,8.,4.5)+vec3(uT*.012,0.,0.)));
+  cl*=.55+.7*fb3(q*26.+5.);cl=clamp(cl,0.,1.);
+  vec3 e=mix(vec3(.010,.032,.072),vec3(.026,.046,.066),land);
+  float lon=atan(q.z,q.x),lat=asin(clamp(q.y,-1.,1.));
+  float dens=land*smoothstep(.36,.62,fb3(q*7.+11.));
+  vec2 base=vec2(lon*cos(lat),lat);
+  /* two layers of city-light speckles: large towns + fine scatter */
+  vec2 lm=base*230.;vec2 lc=floor(lm);float lr=h(lc);
+  vec2 lf=fract(lm)-.5-(vec2(h(lc+1.),h(lc+2.))-.5)*.55;
+  float lt=step(1.-dens*.9,lr)*smoothstep(.36,0.,length(lf))*(.5+.5*h(lc+5.));
+  vec2 lm2=base*520.;vec2 lc2=floor(lm2);float lr2=h(lc2+31.);
+  vec2 lf2=fract(lm2)-.5-(vec2(h(lc2+3.),h(lc2+4.))-.5)*.55;
+  lt+=step(1.-dens*.75,lr2)*smoothstep(.4,0.,length(lf2))*(.35+.4*h(lc2+6.));
+  float glow=dens*(.2+fb3(q*36.+2.))*.55;
+  float day=dot(n,sun),night=smoothstep(.12,-.15,day);
+  float vis=smoothstep(.0,.04,mu);
+  e+=vec3(1.,.64,.3)*(lt*2.4+glow*.8)*(1.-cl*.75)*night*vis;
+  e+=vec3(.05,.16,.3)*max(day,0.)*(1.+land)*.8;
+  e=mix(e,vec3(.12,.2,.31)*(.8+max(day+.2,0.)),cl*.6);
+  float haze=pow(1.-mu,3.);
+  e=mix(e,vec3(.08,.34,.82),haze*.6);
+  e+=vec3(.1,.45,1.)*pow(1.-mu,9.)*.8*(.7+.6*max(dot(n,sun)+.3,0.))+vec3(.55,.88,1.)*pow(1.-mu,40.)*1.3;
+  col=e;
+ }else{
+  float dc=0.&gt;b?sqrt(max(dot(ro,ro)-b*b,0.)):length(ro);
+  float dd=max(dc-1.,0.)*H/.3;
+  float sd=.75+.5*max(rd.x,0.);
+  col+=(vec3(.35,.76,1.)*exp(-dd/2.5)*1.+vec3(.1,.45,.95)*exp(-dd/16.)*.6+vec3(.05,.22,.55)*exp(-dd/90.)*.4+vec3(.03,.1,.25)*exp(-dd/380.)*.3)*sd;
+ }
+ vec2 g=(p-vec2(W*.49,H*.9))/vec2(W*.26,H*.13);col+=vec3(.03,.16,.36)*exp(-dot(g,g));
+ vec2 v=p/uR-.5;col*=1.-dot(v,v)*.45;
+ gl_FragColor=vec4(col,1.);
+}`.replace(&quot;OFF&quot;,OFF);
+function sh(t,s){var o=gl.createShader(t);gl.shaderSource(o,s);gl.compileShader(o);return o;}
+var pr=gl.createProgram();gl.attachShader(pr,sh(gl.VERTEX_SHADER,VS));gl.attachShader(pr,sh(gl.FRAGMENT_SHADER,FS));gl.linkProgram(pr);gl.useProgram(pr);
+gl.bindBuffer(gl.ARRAY_BUFFER,gl.createBuffer());gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);
+var l=gl.getAttribLocation(pr,&quot;p&quot;);gl.enableVertexAttribArray(l);gl.vertexAttribPointer(l,2,gl.FLOAT,false,0,0);
+var uR=gl.getUniformLocation(pr,&quot;uR&quot;),uT=gl.getUniformLocation(pr,&quot;uT&quot;),uD=gl.getUniformLocation(pr,&quot;uD&quot;);
+var W,H,d;function size(){W=innerWidth;H=innerHeight;d=Math.min(devicePixelRatio||1,1);cv.width=W*d;cv.height=H*d;gl.viewport(0,0,cv.width,cv.height);}
+function draw(t){gl.uniform2f(uR,W,H);gl.uniform1f(uD,d);gl.uniform1f(uT,t);gl.drawArrays(gl.TRIANGLES,0,3);}
+addEventListener(&quot;resize&quot;,size);size();draw(20);
+var t0=performance.now(),last=0;function loop(n){requestAnimationFrame(loop);if(30&gt;n-last||document.hidden)return;last=n;draw((n-t0)/1000+20);}requestAnimationFrame(loop);})();
+&lt;/script&gt;&lt;/body&gt;&lt;/html&gt;" style="position:absolute;left:0;top:0;width:1920px;height:1080px;border:0" tabindex="-1" aria-hidden="true"></iframe>
+<div class="space-shade"></div>
+<p class="eyebrow rise" style="--i:0">Next steps</p>
+<h2 class="title rise" style="--i:1">From prototype to a real crew</h2>
+<div class="row" style="margin-top:56px;gap:24px">
+<div class="card grow rise" style="--i:2"><p class="tag">01</p><h3>Validate</h3><p class="body">Test the model on NASA OSDR spaceflight data.</p></div>
+<div class="card grow rise" style="--i:3"><p class="tag">02</p><h3>Try with crews</h3><p class="body">Run it in a space analog mission and measure workload.</p></div>
+<div class="card grow rise" style="--i:4"><p class="tag">03</p><h3>Ring partner</h3><p class="body">Work with a smart ring maker on battery and radiation.</p></div>
+<div class="card grow rise" style="--i:5"><p class="tag">04</p><h3>Voice research</h3><p class="body">Study voice tone as an early sign of fatigue.</p></div>
+</div>
+<div class="row rise" style="--i:6;margin-top:80px;align-items:flex-end;justify-content:space-between">
+<div class="col" style="gap:8px">
+<p style="font-family:'Space Grotesk',Arial,sans-serif;font-size:120px;font-weight:600;line-height:1;color:#EAF0F7">Thank you</p>
+</div>
+</div>
+<div class="logos"><img class="l-team" src="assets/logo.png" alt="PulsarX"><img class="l-part" src="assets/partners.png" alt="MAIA and NASA Space Apps"></div>
+
+</section>
+
+</div>
+<button class="arrow" id="prev" aria-label="Previous slide"></button><button class="arrow" id="next" aria-label="Next slide"></button>
+<div id="nav"></div>
+<script>
+(function(){
+var S=[].slice.call(document.querySelectorAll('section')),st=document.getElementById('stage'),nav=document.getElementById('nav'),cur=-1;
+function fit(){var k=Math.min(innerWidth/1920,innerHeight/1080);st.style.transform='scale('+k+') translate(-50%,-50%)';}
+addEventListener('resize',fit);fit();
+S.forEach(function(s,i){var b=document.createElement('button');b.setAttribute('aria-label','Slide '+(i+1));b.onclick=function(e){e.stopPropagation();go(i)};nav.appendChild(b);});
+function go(i){i=Math.max(0,Math.min(S.length-1,i));if(i===cur)return;
+ if(cur>=0){S[cur].classList.remove('on');var f=S[cur].querySelector('iframe[data-src]');if(f)f.removeAttribute('srcdoc');}
+ cur=i;var s=S[i];var f=s.querySelector('iframe[data-src]');if(f)f.srcdoc=f.getAttribute('data-src');s.classList.add('on');
+ [].forEach.call(nav.children,function(b,j){b.classList.toggle('on',j===i)});
+ try{history.replaceState(null,'','#'+(i+1))}catch(e){}}
+addEventListener('keydown',function(e){var k=e.key;
+ if(k==='ArrowRight'||k==='PageDown'||k===' '||k==='Enter'){e.preventDefault();go(cur+1)}
+ else if(k==='ArrowLeft'||k==='PageUp'||k==='Backspace'){e.preventDefault();go(cur-1)}
+ else if(k==='Home')go(0);else if(k==='End')go(S.length-1);
+ else if(k==='f'||k==='F'){if(document.fullscreenElement)document.exitFullscreen();else document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen()}});
+document.getElementById('next').onclick=function(){go(cur+1)};document.getElementById('prev').onclick=function(){go(cur-1)};
+var tx=null;addEventListener('touchstart',function(e){tx=e.touches[0].clientX},{passive:true});
+addEventListener('touchend',function(e){if(tx===null)return;var d=e.changedTouches[0].clientX-tx;if(Math.abs(d)>40)go(cur+(d<0?1:-1));tx=null});
+var h=parseInt((location.hash||'').slice(1),10);go(h>0?h-1:0);
+})();
+</script></body></html>
