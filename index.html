@@ -1,9 +1,9 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>FORECAST by PulsarX</title>
+<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FORECAST · PulsarX</title>
 <meta name="description" content="FORECAST: predict astronaut fatigue before it becomes a mission risk. NASA Space Apps Challenge 2026, Madinah. Team PulsarX.">
 <link rel="icon" href="assets/logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&family=Inter:wght@400;500;600&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:content-box}
 html,body{height:100%;background:#03070d;overflow:hidden}
@@ -203,6 +203,36 @@ body:hover #nav,#nav:focus-within{opacity:1}
 #nav button.on{background:#5CD6F0;width:28px}
 .arrow{position:fixed;top:0;bottom:0;width:18%;z-index:8;cursor:pointer;background:none;border:0}
 #prev{left:0}#next{right:0}
+html[dir=rtl] body, html[dir=rtl] section{font-family:'IBM Plex Sans Arabic','Inter',Arial,sans-serif}
+html[dir=rtl] .eyebrow,html[dir=rtl] .title,html[dir=rtl] .card h3,html[dir=rtl] .card .tag,html[dir=rtl] .point .h,html[dir=rtl] .tag-box .t-k,html[dir=rtl] .tag-box .t-s{font-family:'IBM Plex Sans Arabic','Space Grotesk',Arial,sans-serif;letter-spacing:0}
+html[dir=rtl] .eyebrow{font-size:26px;font-weight:600}
+html[dir=rtl] .title{font-size:60px;line-height:1.3;font-weight:700}
+.en{font-family:'Space Grotesk','Inter',Arial,sans-serif;direction:ltr;unicode-bidi:isolate}
+.eyebrow .en{letter-spacing:3px}
+.sm{font-size:20px;color:#7F91A8;font-weight:500}
+.ls{list-style:none;display:flex;flex-direction:column;gap:12px;margin-top:8px}
+.ls li{position:relative;padding-inline-start:30px;font-size:27px;line-height:1.5;color:#EAF0F7}
+.ls li::before{content:"";position:absolute;inset-inline-start:2px;top:17px;width:12px;height:12px;border-radius:99px;background:#5CD6F0}
+.card .body{font-size:27px;line-height:1.6}
+.card .tag{font-size:26px}
+.callout{border-inline-start:5px solid #5CD6F0;flex-direction:column}
+.callout .body{font-size:30px;color:#EAF0F7}
+.xi.big{width:44px;height:44px}
+.lead{line-height:1.6}
+html[dir=rtl] .point .d{font-size:25px;line-height:1.5}
+html[dir=rtl] .point .h{font-size:30px}
+.pill{flex:1;font-size:21px;line-height:1.5;color:#EAF0F7;background:rgba(15,24,40,.9);border:1px solid #1F2C42;border-inline-start:4px solid #5CD6F0;border-radius:12px;padding:12px 16px}
+.pill.pr{border-inline-start-color:#F2C14E}
+.team-ar{margin-top:26px}.team-ar .tk{color:#5CD6F0;font-size:22px;font-weight:600;margin-bottom:8px}.team-ar .tn{font-size:24px;line-height:1.6;color:#EAF0F7;text-align:right}
+html[dir=rtl] .cover-title{font-family:'Space Grotesk',Arial,sans-serif}
+html[dir=rtl] .foot{font-size:22px}
+html[dir=rtl] .logos{flex-direction:row-reverse}
+html[dir=rtl] .tag-box{direction:rtl;text-align:right}
+html[dir=rtl] .cover-main{direction:ltr;text-align:left}
+html[dir=rtl] .cover-main .lead{direction:rtl;text-align:left}
+html[dir=rtl] .team-ar .tk{direction:rtl;text-align:left}
+html[dir=rtl] .team-ar .tn{text-align:left}
+html[dir=rtl] .tag-box .t-v{direction:ltr;text-align:right}
 </style></head><body>
 <div id="stage">
 <section data-n="0" id="cover" class="cover" data-transition="fade">
@@ -294,25 +324,19 @@ var t0=performance.now(),last=0;function loop(n){requestAnimationFrame(loop);if(
 <div class="node bad" style="left:1390px;top:204px"></div>
 <div class="node bad" style="left:1356px;top:386px"></div>
 <div class="node warn" style="left:1520px;top:570px"></div>
-<div class="tag-box" style="top:180px"><p class="t-k">Sleep</p><p class="t-v">5.0 h</p><p class="t-s hot">2.4 h below normal</p></div>
-<div class="tag-box" style="top:362px"><p class="t-k">HRV</p><p class="t-v">37 ms</p><p class="t-s hot">well below normal</p></div>
-<div class="tag-box" style="top:546px"><p class="t-k">Skin temp</p><p class="t-v">34.6 °C</p><p class="t-s" style="color:#F2C14E">above normal</p></div>
+<div class="tag-box" style="top:180px"><p class="t-k">النوم</p><p class="t-v">5.0 س</p><p class="t-s hot">أقل من المعتاد بـ 2.4 س</p></div>
+<div class="tag-box" style="top:362px"><p class="t-k">تقلب نبض القلب HRV</p><p class="t-v">37 ms</p><p class="t-s hot">أقل بكثير من المعتاد</p></div>
+<div class="tag-box" style="top:546px"><p class="t-k">حرارة الجلد</p><p class="t-v">34.6 °C</p><p class="t-s" style="color:#F2C14E">أعلى من المعتاد</p></div>
 <div class="cover-main">
 <div class="row rise" style="--i:0;align-items:center;gap:40px">
 <img class="cover-logo" src="assets/logo.png" alt="PulsarX logo">
 <div style="width:2px;height:72px;background:#1F2C42"></div>
 <img style="width:300px;height:68px;object-fit:contain" src="assets/partners.png" alt="MAIA and NASA Space Apps logos">
 </div>
-<p class="eyebrow rise" style="--i:1">NASA Space Apps Challenge 2026 · Madinah</p>
-<h1 class="cover-title rise" style="--i:2">FORECAST</h1>
-<p class="lead rise" style="--i:3">Predict astronaut fatigue before it becomes a mission risk.</p>
-<div class="rise" style="--i:4;margin-top:32px;font-family:'Space Grotesk',Arial,sans-serif;color:#EAF0F7"><p style="margin:0 0 10px;color:#5CD6F0;letter-spacing:4px;font-size:20px;font-weight:500">TEAM</p><p style="margin:0;font-size:26px;font-weight:500;letter-spacing:.5px;line-height:1.6"><span style="white-space:nowrap">Ahlam Alharbi</span><span style="color:#5CD6F0;margin:0 12px">·</span><span style="white-space:nowrap">Layan Alhaddad</span><span style="color:#5CD6F0;margin:0 12px">·</span><span style="white-space:nowrap">Alhassan Mohammed</span><br><span style="white-space:nowrap">Omnia Jelaidan</span><span style="color:#5CD6F0;margin:0 12px">·</span><span style="white-space:nowrap">Sarah Alharthi</span></p></div>
-</div>
+<p class="eyebrow rise" style="--i:1"><span class="en">NASA Space Apps Challenge 2026 · Madinah</span></p><h1 class="cover-title rise" style="--i:2">FORECAST</h1><p class="lead rise" style="--i:3;color:#EAF0F7;font-size:38px;font-weight:600">نظام ذكي لمراقبة صحة رواد الفضاء والتنبؤ بالإرهاق</p><p class="small rise" style="--i:4"><span class="en">NASA Space Apps Challenge</span><br><span class="en" style="color:#5CD6F0">Create Health Monitoring Software for Astronauts on Space Missions</span></p><div class="rise team-ar" style="--i:5"><p class="tk">الفريق</p><p class="tn en">Ahlam Alharbi · Layan Alhaddad · Alhassan Mohammed<br>Omnia Jelaidan · Sarah Alharthi</p></div></div>
 
 </section>
-<section data-n="1" id="challenge" data-transition="fade">
-<img src="assets/earth-content2.jpg" alt="" style="position:absolute;left:0;top:0;width:1920px;height:1080px;object-fit:cover">
-<iframe class="space-frame" class="space" data-src="&lt;!doctype html&gt;&lt;html&gt;&lt;head&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;style&gt;html,body{margin:0;height:100%;background:#03070d;overflow:hidden}canvas{display:block;width:100%;height:100%}&lt;/style&gt;&lt;/head&gt;&lt;body&gt;&lt;canvas id=&quot;c&quot;&gt;&lt;/canvas&gt;&lt;script&gt;
+<section data-n="1" id="problem" class="alt"><img src="assets/earth-content2.jpg" alt="" style="position:absolute;left:0;top:0;width:1920px;height:1080px;object-fit:cover"><iframe class="space-frame" class="space" data-src="&lt;!doctype html&gt;&lt;html&gt;&lt;head&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;style&gt;html,body{margin:0;height:100%;background:#03070d;overflow:hidden}canvas{display:block;width:100%;height:100%}&lt;/style&gt;&lt;/head&gt;&lt;body&gt;&lt;canvas id=&quot;c&quot;&gt;&lt;/canvas&gt;&lt;script&gt;
 (function(){var OFF=&quot;0.22&quot;;var cv=document.getElementById(&quot;c&quot;),gl=cv.getContext(&quot;webgl&quot;,{antialias:false,alpha:false});if(!gl)return;
 var VS=&quot;attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}&quot;;
 var FS=`precision highp float;
@@ -390,22 +414,13 @@ var W,H,d;function size(){W=innerWidth;H=innerHeight;d=Math.min(devicePixelRatio
 function draw(t){gl.uniform2f(uR,W,H);gl.uniform1f(uD,d);gl.uniform1f(uT,t);gl.drawArrays(gl.TRIANGLES,0,3);}
 addEventListener(&quot;resize&quot;,size);size();draw(20);
 var t0=performance.now(),last=0;function loop(n){requestAnimationFrame(loop);if(30&gt;n-last||document.hidden)return;last=n;draw((n-t0)/1000+20);}requestAnimationFrame(loop);})();
-&lt;/script&gt;&lt;/body&gt;&lt;/html&gt;" style="position:absolute;left:0;top:0;width:1920px;height:1080px;border:0" tabindex="-1" aria-hidden="true"></iframe>
-<div class="space-shade"></div>
-<p class="eyebrow rise" style="--i:0">The NASA challenge we chose</p>
-<h2 class="title rise" style="--i:1;font-size:80px;max-width:1500px">Create Health Monitoring Software for Astronauts on Space Missions</h2>
-<div class="row" style="margin-top:72px">
-<div class="card grow rise" style="--i:2"><span class="xi"><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <circle cx="12" cy="12" r="10" /> <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" /> <path d="M2 12h20" /> </svg> </span><h3>Help is far away</h3><p class="body">On a Mars mission, a message to Earth takes up to 22 minutes one way. The crew must catch problems on their own.</p></div>
-<div class="card grow rise" style="--i:3"><span class="xi"><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span><h3>Fatigue is a known risk</h3><p class="body">NASA lists sleep loss and a broken body clock among the risks of human spaceflight.</p></div>
-<div class="card grow rise" style="--i:4"><span class="xi"><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5" /> <path d="M9 18h6" /> <path d="M10 22h4" /> </svg> </span><h3>We can build it</h3><p class="body">Wearables, data and AI are ready today. The missing piece is software that turns them into a decision.</p></div>
+&lt;/script&gt;&lt;/body&gt;&lt;/html&gt;" style="position:absolute;left:0;top:0;width:1920px;height:1080px;border:0" tabindex="-1" aria-hidden="true"></iframe><div class="space-shade"></div><p class="eyebrow rise" style="--i:0"><span class="en">The Problem</span> · المشكلة</p><h2 class="title rise" style="--i:1">عندما يكون رائد الفضاء بعيدًا عن الأرض، من يراقب جاهزيته؟</h2>
+<div class="row" style="margin-top:48px;gap:40px;align-items:stretch">
+<div class="card grow rise" style="--i:2"><p class="tag">تفرض المهمات الفضائية ظروفًا قد تؤثر على صحة رائد الفضاء، مثل:</p><ul class="ls"><li class="rise" style="--i:3">اضطراب أنماط النوم.</li><li class="rise" style="--i:4">تغير مستويات النشاط والتعافي.</li><li class="rise" style="--i:5">تراكم الإرهاق مع مرور الوقت.</li></ul></div>
+<div class="card grow rise" style="--i:6;border-color:#FF8A70"><p class="tag" style="color:#FF8A70">وقد تؤدي هذه التغيرات إلى:</p><ul class="ls"><li class="rise" style="--i:7">ضعف التركيز والانتباه.</li><li class="rise" style="--i:8">بطء الاستجابة واتخاذ القرارات.</li><li class="rise" style="--i:9">زيادة احتمالية الأخطاء أثناء تنفيذ المهام.</li><li class="rise" style="--i:10">صعوبة التعامل مع الحالات الطارئة، مما قد يرفع المخاطر على الطاقم وسلامة المهمة.</li></ul></div>
 </div>
-<p class="foot">Source: NASA Human Research Program, Risks of Human Spaceflight</p>
-<div class="logos"><img class="l-team" src="assets/logo.png" alt="PulsarX"><img class="l-part" src="assets/partners.png" alt="MAIA and NASA Space Apps"></div>
-
-</section>
-<section data-n="2" id="problem" class="alt" data-transition="fade">
-<img src="assets/earth-content2.jpg" alt="" style="position:absolute;left:0;top:0;width:1920px;height:1080px;object-fit:cover">
-<iframe class="space-frame" class="space" data-src="&lt;!doctype html&gt;&lt;html&gt;&lt;head&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;style&gt;html,body{margin:0;height:100%;background:#03070d;overflow:hidden}canvas{display:block;width:100%;height:100%}&lt;/style&gt;&lt;/head&gt;&lt;body&gt;&lt;canvas id=&quot;c&quot;&gt;&lt;/canvas&gt;&lt;script&gt;
+<div class="card rise callout" style="--i:11;margin-top:32px"><p class="body"><b class="hl">التحدي الحقيقي:</b> لا يكفي معرفة الحالة الصحية الحالية، بل نحتاج إلى التنبؤ بتغير مستوى الإرهاق وتأثيره المحتمل على جاهزية رائد الفضاء للمهام القادمة.</p></div>
+<div class="logos"><img class="l-team" src="assets/logo.png" alt="PulsarX"><img class="l-part" src="assets/partners.png" alt="MAIA و NASA Space Apps"></div></section><section data-n="2" id="solution"><img src="assets/earth-content2.jpg" alt="" style="position:absolute;left:0;top:0;width:1920px;height:1080px;object-fit:cover"><iframe class="space-frame" class="space" data-src="&lt;!doctype html&gt;&lt;html&gt;&lt;head&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;style&gt;html,body{margin:0;height:100%;background:#03070d;overflow:hidden}canvas{display:block;width:100%;height:100%}&lt;/style&gt;&lt;/head&gt;&lt;body&gt;&lt;canvas id=&quot;c&quot;&gt;&lt;/canvas&gt;&lt;script&gt;
 (function(){var OFF=&quot;0.22&quot;;var cv=document.getElementById(&quot;c&quot;),gl=cv.getContext(&quot;webgl&quot;,{antialias:false,alpha:false});if(!gl)return;
 var VS=&quot;attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}&quot;;
 var FS=`precision highp float;
@@ -483,27 +498,14 @@ var W,H,d;function size(){W=innerWidth;H=innerHeight;d=Math.min(devicePixelRatio
 function draw(t){gl.uniform2f(uR,W,H);gl.uniform1f(uD,d);gl.uniform1f(uT,t);gl.drawArrays(gl.TRIANGLES,0,3);}
 addEventListener(&quot;resize&quot;,size);size();draw(20);
 var t0=performance.now(),last=0;function loop(n){requestAnimationFrame(loop);if(30&gt;n-last||document.hidden)return;last=n;draw((n-t0)/1000+20);}requestAnimationFrame(loop);})();
-&lt;/script&gt;&lt;/body&gt;&lt;/html&gt;" style="position:absolute;left:0;top:0;width:1920px;height:1080px;border:0" tabindex="-1" aria-hidden="true"></iframe>
-<div class="space-shade"></div>
-<p class="eyebrow rise" style="--i:0">The problem</p>
-<div class="row" style="margin-top:56px;align-items:center;gap:96px">
-<div class="col" style="width:760px">
-<p class="num rise" style="--i:1">~6 h</p>
-<p class="lead rise" style="--i:2;color:#EAF0F7">of sleep a night in space, on average.</p>
-<p class="lead rise" style="--i:3">NASA schedules <b class="hl">8.5 h</b>. And <b class="hl">3 in 4</b> ISS crew members took sleep medication.</p>
-</div>
-<div class="col grow">
-<div class="card rise" style="--i:4;border-left:4px solid #FF8A70"><p class="tag" style="color:#FF8A70">The gap</p><p class="body" style="font-size:30px;color:#EAF0F7">Today fatigue is noticed after it happens. Nothing forecasts it against tomorrow’s critical tasks, like a spacewalk.</p></div>
-<div class="card rise" style="--i:5"><p class="tag">Why it matters</p><p class="body" style="font-size:30px;color:#EAF0F7">A tired crew makes more mistakes. On Earth the same gap hurts pilots, doctors and shift workers.</p></div>
-</div>
-</div>
-<p class="foot">Source: Barger et al., The Lancet Neurology, 2014 (85 astronauts, Shuttle and ISS)</p>
-<div class="logos"><img class="l-team" src="assets/logo.png" alt="PulsarX"><img class="l-part" src="assets/partners.png" alt="MAIA and NASA Space Apps"></div>
-
-</section>
-<section data-n="3" id="solution" data-transition="fade">
-<img src="assets/earth-content2.jpg" alt="" style="position:absolute;left:0;top:0;width:1920px;height:1080px;object-fit:cover">
-<iframe class="space-frame" class="space" data-src="&lt;!doctype html&gt;&lt;html&gt;&lt;head&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;style&gt;html,body{margin:0;height:100%;background:#03070d;overflow:hidden}canvas{display:block;width:100%;height:100%}&lt;/style&gt;&lt;/head&gt;&lt;body&gt;&lt;canvas id=&quot;c&quot;&gt;&lt;/canvas&gt;&lt;script&gt;
+&lt;/script&gt;&lt;/body&gt;&lt;/html&gt;" style="position:absolute;left:0;top:0;width:1920px;height:1080px;border:0" tabindex="-1" aria-hidden="true"></iframe><div class="space-shade"></div><p class="eyebrow rise" style="--i:0"><span class="en">Our Solution</span> · الحل</p><h2 class="title rise" style="--i:1">نقدم لكم <span class="en hl">FORECAST</span></h2>
+<p class="lead rise" style="--i:2;margin-top:28px;max-width:1560px">نظام ذكي يراقب المؤشرات الصحية لرائد الفضاء، ويحلل تغيرها للتنبؤ بمستوى الإرهاق والجاهزية خلال الساعات والأيام القادمة.</p>
+<p class="small rise" style="--i:3;margin-top:40px;color:#EAF0F7">يعتمد النظام على ثلاثة عناصر رئيسية:</p>
+<div class="row" style="margin-top:20px">
+<div class="card grow rise" style="--i:4"><span class="xi big"><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <circle cx="12" cy="12" r="1" /> <circle cx="12" cy="12" r="10" /> </svg> </span><p class="tag"><span class="en">Smart Ring</span></p><h3>الخاتم الذكي</h3><p class="body">خاتم مقترح لجمع المؤشرات الحيوية وبيانات النشاط.</p></div>
+<div class="card grow rise" style="--i:5"><span class="xi big"><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /> <path d="M16 3.128a4 4 0 0 1 0 7.744" /> <path d="M22 21v-2a4 4 0 0 0-3-3.87" /> <circle cx="9" cy="7" r="4" /> </svg> </span><p class="tag"><span class="en">Digital Twin</span></p><h3>التوأم الرقمي</h3><p class="body">تمثيل رقمي لحالة رائد الفضاء الصحية، يتحدث وفق البيانات المتاحة.</p></div>
+<div class="card grow rise" style="--i:6"><span class="xi big"><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2" /> </svg> </span><p class="tag"><span class="en">FORECAST &amp; NOVA</span></p><h3>التحليل والمساعد الذكي</h3><p class="body">يتنبأ النظام بمستوى الإرهاق والجاهزية، بينما يساعد NOVA في توضيح النتائج والتنبيهات والتوصيات.</p></div>
+</div><div class="logos"><img class="l-team" src="assets/logo.png" alt="PulsarX"><img class="l-part" src="assets/partners.png" alt="MAIA و NASA Space Apps"></div></section><section data-n="3" id="how"><img src="assets/earth-content2.jpg" alt="" style="position:absolute;left:0;top:0;width:1920px;height:1080px;object-fit:cover"><iframe class="space-frame" class="space" data-src="&lt;!doctype html&gt;&lt;html&gt;&lt;head&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;style&gt;html,body{margin:0;height:100%;background:#03070d;overflow:hidden}canvas{display:block;width:100%;height:100%}&lt;/style&gt;&lt;/head&gt;&lt;body&gt;&lt;canvas id=&quot;c&quot;&gt;&lt;/canvas&gt;&lt;script&gt;
 (function(){var OFF=&quot;0.22&quot;;var cv=document.getElementById(&quot;c&quot;),gl=cv.getContext(&quot;webgl&quot;,{antialias:false,alpha:false});if(!gl)return;
 var VS=&quot;attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}&quot;;
 var FS=`precision highp float;
@@ -581,27 +583,12 @@ var W,H,d;function size(){W=innerWidth;H=innerHeight;d=Math.min(devicePixelRatio
 function draw(t){gl.uniform2f(uR,W,H);gl.uniform1f(uD,d);gl.uniform1f(uT,t);gl.drawArrays(gl.TRIANGLES,0,3);}
 addEventListener(&quot;resize&quot;,size);size();draw(20);
 var t0=performance.now(),last=0;function loop(n){requestAnimationFrame(loop);if(30&gt;n-last||document.hidden)return;last=n;draw((n-t0)/1000+20);}requestAnimationFrame(loop);})();
-&lt;/script&gt;&lt;/body&gt;&lt;/html&gt;" style="position:absolute;left:0;top:0;width:1920px;height:1080px;border:0" tabindex="-1" aria-hidden="true"></iframe>
-<div class="space-shade"></div>
-<p class="eyebrow rise" style="--i:0">Our solution</p>
-<h2 class="title rise" style="--i:1">The ring measures. The twin forecasts. People decide.</h2>
+&lt;/script&gt;&lt;/body&gt;&lt;/html&gt;" style="position:absolute;left:0;top:0;width:1920px;height:1080px;border:0" tabindex="-1" aria-hidden="true"></iframe><div class="space-shade"></div><p class="eyebrow rise" style="--i:0"><span class="en">How It Works</span> · آلية العمل</p><h2 class="title rise" style="--i:1">من البيانات إلى التنبؤ</h2>
 <div class="row" style="margin-top:40px;gap:48px;align-items:flex-start">
-<img class="shot rise" style="--i:2;width:1031px;height:580px;flex-shrink:0" src="assets/tech.webp" alt="3D view inside the FORECAST ring: two radio boards on opposite sides, Bluetooth to the station, Ku-band main and S-band backup to Earth">
-<div class="col grow" style="gap:22px">
-<div class="point rise" style="--i:3"><p class="step" style="flex:0 0 44px"><span class="n">1</span></p><div class="txt"><p class="h">Smart ring</p><p class="d">Heart rate, HRV, skin temp, sleep, motion</p></div></div>
-<div class="point rise" style="--i:4"><p class="step" style="flex:0 0 44px"><span class="n">2</span></p><div class="txt"><p class="h">Digital twin</p><p class="d">Learns each astronaut&rsquo;s own normal</p></div></div>
-<div class="point rise" style="--i:5"><p class="step" style="flex:0 0 44px"><span class="n">3</span></p><div class="txt"><p class="h">3-day forecast</p><p class="d">Readiness vs the task schedule</p></div></div>
-<div class="point rise" style="--i:6"><p class="step" style="flex:0 0 44px"><span class="n">4</span></p><div class="txt"><p class="h">NOVA</p><p class="d">Asks by voice through the ring, explains, suggests</p></div></div>
-<div class="point rise" style="--i:7"><p class="step" style="flex:0 0 44px"><span class="n">5</span></p><div class="txt"><p class="h">Humans decide</p><p class="d">Crew and Mission Control accept or reject</p></div></div>
+<div class="col grow" style="gap:20px"><div class="point rise" style="--i:3"><p class="step" style="flex:0 0 44px"><span class="n">1</span></p><div class="txt"><p class="h">جمع البيانات <span class="en sm">Data Collection</span></p><p class="d">يجمع الخاتم الذكي المؤشرات الحيوية وبيانات النشاط.</p></div></div><div class="point rise" style="--i:4"><p class="step" style="flex:0 0 44px"><span class="n">2</span></p><div class="txt"><p class="h">تحليل البيانات <span class="en sm">Data Analysis</span></p><p class="d">تُحلل البيانات وتُقارن بالمستوى المعتاد لكل رائد فضاء.</p></div></div><div class="point rise" style="--i:5"><p class="step" style="flex:0 0 44px"><span class="n">3</span></p><div class="txt"><p class="h">التوأم الرقمي <span class="en sm">Digital Twin</span></p><p class="d">تُحدّث صورة الحالة الصحية الرقمية وفق البيانات الجديدة.</p></div></div><div class="point rise" style="--i:6"><p class="step" style="flex:0 0 44px"><span class="n">4</span></p><div class="txt"><p class="h">التنبؤ <span class="en sm">Prediction</span></p><p class="d">يحلل FORECAST احتمالية الإرهاق والتغير المتوقع في الجاهزية خلال 24 و48 و72 ساعة.</p></div></div><div class="point rise" style="--i:7"><p class="step" style="flex:0 0 44px"><span class="n">5</span></p><div class="txt"><p class="h">التوصيات <span class="en sm">NOVA</span></p><p class="d">يعرض المساعد الذكي التنبيهات والتوصيات لدعم التخطيط للمهام.</p></div></div></div>
+<img class="shot rise" style="--i:2;width:960px;height:540px;flex-shrink:0" src="assets/tech.webp" alt="تصميم الخاتم المقترح: لوحتا اتصال منفصلتان، وصلة أساسية وأخرى احتياطية">
 </div>
-</div>
-<p class="foot">Two radio boards on opposite sides · Ku-band main, S-band backup · runs onboard, offline</p>
-<div class="logos"><img class="l-team" src="assets/logo.png" alt="PulsarX"><img class="l-part" src="assets/partners.png" alt="MAIA and NASA Space Apps"></div>
-
-</section>
-<section data-n="4" id="data" data-transition="fade">
-<img src="assets/earth-content2.jpg" alt="" style="position:absolute;left:0;top:0;width:1920px;height:1080px;object-fit:cover">
-<iframe class="space-frame" class="space" data-src="&lt;!doctype html&gt;&lt;html&gt;&lt;head&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;style&gt;html,body{margin:0;height:100%;background:#03070d;overflow:hidden}canvas{display:block;width:100%;height:100%}&lt;/style&gt;&lt;/head&gt;&lt;body&gt;&lt;canvas id=&quot;c&quot;&gt;&lt;/canvas&gt;&lt;script&gt;
+<p class="foot">تصميم مقترح: لوحتا اتصال متقابلتان · مسار أساسي وآخر احتياطي · يعمل دون اتصال</p><div class="logos"><img class="l-team" src="assets/logo.png" alt="PulsarX"><img class="l-part" src="assets/partners.png" alt="MAIA و NASA Space Apps"></div></section><section data-n="4" id="support" class="alt"><img src="assets/earth-content2.jpg" alt="" style="position:absolute;left:0;top:0;width:1920px;height:1080px;object-fit:cover"><iframe class="space-frame" class="space" data-src="&lt;!doctype html&gt;&lt;html&gt;&lt;head&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;style&gt;html,body{margin:0;height:100%;background:#03070d;overflow:hidden}canvas{display:block;width:100%;height:100%}&lt;/style&gt;&lt;/head&gt;&lt;body&gt;&lt;canvas id=&quot;c&quot;&gt;&lt;/canvas&gt;&lt;script&gt;
 (function(){var OFF=&quot;0.22&quot;;var cv=document.getElementById(&quot;c&quot;),gl=cv.getContext(&quot;webgl&quot;,{antialias:false,alpha:false});if(!gl)return;
 var VS=&quot;attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}&quot;;
 var FS=`precision highp float;
@@ -679,33 +666,11 @@ var W,H,d;function size(){W=innerWidth;H=innerHeight;d=Math.min(devicePixelRatio
 function draw(t){gl.uniform2f(uR,W,H);gl.uniform1f(uD,d);gl.uniform1f(uT,t);gl.drawArrays(gl.TRIANGLES,0,3);}
 addEventListener(&quot;resize&quot;,size);size();draw(20);
 var t0=performance.now(),last=0;function loop(n){requestAnimationFrame(loop);if(30&gt;n-last||document.hidden)return;last=n;draw((n-t0)/1000+20);}requestAnimationFrame(loop);})();
-&lt;/script&gt;&lt;/body&gt;&lt;/html&gt;" style="position:absolute;left:0;top:0;width:1920px;height:1080px;border:0" tabindex="-1" aria-hidden="true"></iframe>
-<div class="space-shade"></div>
-<p class="eyebrow rise" style="--i:0">Data and NASA resources</p>
-<h2 class="title rise" style="--i:1">Built on NASA research, tested on real data</h2>
-<div class="row" style="margin-top:56px;gap:64px;align-items:flex-start">
-<div class="col grow" style="gap:32px">
-<div class="point rise" style="--i:2"><span class="xi"><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20" /> </svg> </span><div class="txt"><p class="h">Risks of Human Spaceflight</p><p class="d">Sleep loss, body clock, workload and focus became the factors of our model.</p></div></div>
-<div class="point rise" style="--i:3"><span class="xi"><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span><div class="txt"><p class="h">5 Hazards of Human Spaceflight</p><p class="d">Distance from Earth is why FORECAST works offline.</p></div></div>
-<div class="point rise" style="--i:4"><span class="xi"><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915" /> <circle cx="12" cy="12" r="3" /> </svg> </span><div class="txt"><p class="h">NASA-STD-3001</p><p class="d">NASA’s crew health standard shaped our alert colours and wording.</p></div></div>
-<div class="point rise" style="--i:5"><span class="xi"><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <ellipse cx="12" cy="5" rx="9" ry="3" /> <path d="M3 5V19A9 3 0 0 0 21 19V5" /> <path d="M3 12A9 3 0 0 0 21 12" /> </svg> </span><div class="txt"><p class="h">Real wearable data</p><p class="d">Fitbit data of real people (Furberg et al., 2016). HRV, skin temp and schedule are simulated and labelled.</p></div></div>
-</div>
-<div class="card rise" style="--i:6;width:620px;padding:48px;gap:20px;border-color:#5CD6F0">
-<p class="tag">Real-data test · 21 days</p>
-<p class="small" style="color:#EAF0F7">Readiness after a short night</p>
-<p class="num-mid hl">84.8%</p>
-<p class="small" style="color:#EAF0F7">Readiness on other days</p>
-<p class="num-mid" style="color:#EAF0F7">93.8%</p>
-<p class="small">The model drops readiness after short sleep, with no peeking at the answer.</p>
-</div>
-</div>
-<p class="foot">Sources: NASA Human Research Program · NASA-STD-3001 · Furberg et al., Zenodo 2016</p>
-<div class="logos"><img class="l-team" src="assets/logo.png" alt="PulsarX"><img class="l-part" src="assets/partners.png" alt="MAIA and NASA Space Apps"></div>
-
-</section>
-<section data-n="5" id="impact" class="alt" data-transition="fade">
-<img src="assets/earth-content2.jpg" alt="" style="position:absolute;left:0;top:0;width:1920px;height:1080px;object-fit:cover">
-<iframe class="space-frame" class="space" data-src="&lt;!doctype html&gt;&lt;html&gt;&lt;head&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;style&gt;html,body{margin:0;height:100%;background:#03070d;overflow:hidden}canvas{display:block;width:100%;height:100%}&lt;/style&gt;&lt;/head&gt;&lt;body&gt;&lt;canvas id=&quot;c&quot;&gt;&lt;/canvas&gt;&lt;script&gt;
+&lt;/script&gt;&lt;/body&gt;&lt;/html&gt;" style="position:absolute;left:0;top:0;width:1920px;height:1080px;border:0" tabindex="-1" aria-hidden="true"></iframe><div class="space-shade"></div><p class="eyebrow rise" style="--i:0"><span class="en">Mission Support</span> · دعم المهمة</p><h2 class="title rise" style="--i:1">كيف يساعد <span class="en">FORECAST</span> في حماية الطاقم؟</h2>
+<div class="row" style="margin-top:48px;gap:40px;align-items:stretch">
+<div class="card grow rise" style="--i:2"><p class="body" style="color:#EAF0F7">إذا أظهرت المؤشرات ارتفاع احتمالية الإرهاق قبل مهمة تتطلب تركيزًا عاليًا، يمكن للنظام:</p><ul class="ls"><li class="rise" style="--i:3">تنبيه الطاقم إلى احتمالية انخفاض الجاهزية.</li><li class="rise" style="--i:4">اقتراح إعادة جدولة المهمة إذا كانت طبيعتها تسمح بذلك.</li><li class="rise" style="--i:5">اقتراح إسناد المهمة إلى رائد فضاء آخر مؤهل، وفق قرار المسؤولين عن المهمة.</li></ul></div>
+<div class="card grow rise" style="--i:6"><span class="xi big"><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <circle cx="12" cy="12" r="10" /> <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" /> <path d="M2 12h20" /> </svg> </span><p class="tag"><span class="en">Communication &amp; Data Continuity</span></p><h3>استمرارية الاتصال والبيانات</h3><ul class="ls"><li class="rise" style="--i:7">حفظ البيانات محليًا على متن المركبة عند انقطاع الاتصال.</li><li class="rise" style="--i:8">إرسال التحديثات إلى مركز التحكم عند عودة الاتصال.</li><li class="rise" style="--i:9">استخدام مسار اتصال أساسي وآخر احتياطي ضمن البنية الهندسية المقترحة.</li></ul></div>
+</div><div class="logos"><img class="l-team" src="assets/logo.png" alt="PulsarX"><img class="l-part" src="assets/partners.png" alt="MAIA و NASA Space Apps"></div></section><section data-n="5" id="impact"><img src="assets/earth-content2.jpg" alt="" style="position:absolute;left:0;top:0;width:1920px;height:1080px;object-fit:cover"><iframe class="space-frame" class="space" data-src="&lt;!doctype html&gt;&lt;html&gt;&lt;head&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;style&gt;html,body{margin:0;height:100%;background:#03070d;overflow:hidden}canvas{display:block;width:100%;height:100%}&lt;/style&gt;&lt;/head&gt;&lt;body&gt;&lt;canvas id=&quot;c&quot;&gt;&lt;/canvas&gt;&lt;script&gt;
 (function(){var OFF=&quot;0.22&quot;;var cv=document.getElementById(&quot;c&quot;),gl=cv.getContext(&quot;webgl&quot;,{antialias:false,alpha:false});if(!gl)return;
 var VS=&quot;attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}&quot;;
 var FS=`precision highp float;
@@ -783,25 +748,17 @@ var W,H,d;function size(){W=innerWidth;H=innerHeight;d=Math.min(devicePixelRatio
 function draw(t){gl.uniform2f(uR,W,H);gl.uniform1f(uD,d);gl.uniform1f(uT,t);gl.drawArrays(gl.TRIANGLES,0,3);}
 addEventListener(&quot;resize&quot;,size);size();draw(20);
 var t0=performance.now(),last=0;function loop(n){requestAnimationFrame(loop);if(30&gt;n-last||document.hidden)return;last=n;draw((n-t0)/1000+20);}requestAnimationFrame(loop);})();
-&lt;/script&gt;&lt;/body&gt;&lt;/html&gt;" style="position:absolute;left:0;top:0;width:1920px;height:1080px;border:0" tabindex="-1" aria-hidden="true"></iframe>
-<div class="space-shade"></div>
-<p class="eyebrow rise" style="--i:0">Impact and feasibility</p>
-<h2 class="title rise" style="--i:1">Safer missions now, healthier shift work later</h2>
-<div class="row" style="margin-top:48px;gap:56px;align-items:flex-start">
-<div class="col" style="width:720px;gap:28px">
-<div class="point rise" style="--i:2"><span class="xi"><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /> <path d="M16 3.128a4 4 0 0 1 0 7.744" /> <path d="M22 21v-2a4 4 0 0 0-3-3.87" /> <circle cx="9" cy="7" r="4" /> </svg> </span><div class="txt"><p class="h">Who it serves</p><p class="d">Astronauts, flight doctors and Mission Control.</p></div></div>
-<div class="point rise" style="--i:3"><span class="xi"><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2" /> </svg> </span><div class="txt"><p class="h">Impact</p><p class="d"><b class="hl">Scientific:</b> fatigue caught days early, before a mistake on a critical task. <b class="hl">Social:</b> the same tool can protect pilots, nurses and shift workers.</p></div></div>
-<div class="point rise" style="--i:4"><span class="xi"><svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.106-3.105c.32-.322.863-.22.983.218a6 6 0 0 1-8.259 7.057l-7.91 7.91a1 1 0 0 1-2.999-3l7.91-7.91a6 6 0 0 1 7.057-8.259c.438.12.54.662.219.984z" /> </svg> </span><div class="txt"><p class="h">Why it is realistic</p><p class="d">Smart rings already exist. FORECAST is software: it runs onboard, works offline, has 48 automated tests and open code.</p></div></div>
+&lt;/script&gt;&lt;/body&gt;&lt;/html&gt;" style="position:absolute;left:0;top:0;width:1920px;height:1080px;border:0" tabindex="-1" aria-hidden="true"></iframe><div class="space-shade"></div><p class="eyebrow rise" style="--i:0"><span class="en">Dashboard &amp; Impact</span> · لوحة النظام والأثر</p><h2 class="title rise" style="--i:1">رؤية أوضح للحالة الصحية والجاهزية</h2>
+<p class="small rise" style="--i:2;margin-top:16px;max-width:1600px">تعرض لوحة <span class="en">FORECAST</span> المؤشرات الصحية والتغيرات التي تطرأ عليها، إلى جانب نتائج التحليل والتوقعات.</p>
+<div class="row" style="margin-top:28px;gap:40px;align-items:flex-start">
+<div class="col" style="width:820px;gap:16px">
+<img class="shot rise" style="--i:3;width:820px;height:461px" src="assets/hud-mc.jpg" alt="لوحة مركز التحكم في نموذجنا الأولي">
+<div class="row rise" style="--i:4;gap:16px"><p class="pill"><b>بيانات مقاسة:</b> النوم، نبض القلب، HRV، حرارة الجلد، النشاط</p><p class="pill pr"><b>نتائج تنبؤية:</b> الجاهزية المتوقعة خلال 24 و48 و72 ساعة</p></div>
 </div>
-<img class="shot rise" style="--i:5;width:888px;height:500px" src="assets/hud-mc.jpg" alt="Mission Control screen: crew status, 3-day schedule and change approvals raising readiness from 29% to 50%">
-</div>
-<p class="foot">Screen: Mission Control view of our working prototype</p>
-<div class="logos"><img class="l-team" src="assets/logo.png" alt="PulsarX"><img class="l-part" src="assets/partners.png" alt="MAIA and NASA Space Apps"></div>
-
-</section>
-<section data-n="6" id="next" data-transition="fade">
-<img src="assets/earth-content2.jpg" alt="" style="position:absolute;left:0;top:0;width:1920px;height:1080px;object-fit:cover">
-<iframe class="space-frame" class="space" data-src="&lt;!doctype html&gt;&lt;html&gt;&lt;head&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;style&gt;html,body{margin:0;height:100%;background:#03070d;overflow:hidden}canvas{display:block;width:100%;height:100%}&lt;/style&gt;&lt;/head&gt;&lt;body&gt;&lt;canvas id=&quot;c&quot;&gt;&lt;/canvas&gt;&lt;script&gt;
+<div class="col grow" style="gap:24px">
+<div class="card rise" style="--i:5;padding:24px 28px"><p class="tag">القيمة التي يقدمها النظام:</p><ul class="ls"><li class="rise" style="--i:6">متابعة المؤشرات الصحية والنشاط.</li><li class="rise" style="--i:7">ملاحظة التغيرات مقارنة بالمستوى المعتاد.</li><li class="rise" style="--i:8">التنبؤ بمستوى الإرهاق والجاهزية.</li><li class="rise" style="--i:9">دعم التخطيط للمهام واتخاذ القرارات.</li></ul></div>
+<div class="card rise" style="--i:10;padding:24px 28px"><p class="tag">الأثر المتوقع:</p><ul class="ls"><li class="rise" style="--i:11">التنبه المبكر لمؤشرات الإرهاق.</li><li class="rise" style="--i:12">دعم توزيع المهام وفق الجاهزية المتوقعة.</li><li class="rise" style="--i:13">الحد من احتمالية تأثر أداء الطاقم بالإرهاق.</li><li class="rise" style="--i:14">تعزيز سلامة الطاقم والمهمة الفضائية.</li></ul></div>
+</div></div><div class="logos"><img class="l-team" src="assets/logo.png" alt="PulsarX"><img class="l-part" src="assets/partners.png" alt="MAIA و NASA Space Apps"></div></section><section data-n="6" id="next"><img src="assets/earth-content2.jpg" alt="" style="position:absolute;left:0;top:0;width:1920px;height:1080px;object-fit:cover"><iframe class="space-frame" class="space" data-src="&lt;!doctype html&gt;&lt;html&gt;&lt;head&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;style&gt;html,body{margin:0;height:100%;background:#03070d;overflow:hidden}canvas{display:block;width:100%;height:100%}&lt;/style&gt;&lt;/head&gt;&lt;body&gt;&lt;canvas id=&quot;c&quot;&gt;&lt;/canvas&gt;&lt;script&gt;
 (function(){var OFF=&quot;0.22&quot;;var cv=document.getElementById(&quot;c&quot;),gl=cv.getContext(&quot;webgl&quot;,{antialias:false,alpha:false});if(!gl)return;
 var VS=&quot;attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}&quot;;
 var FS=`precision highp float;
@@ -879,25 +836,11 @@ var W,H,d;function size(){W=innerWidth;H=innerHeight;d=Math.min(devicePixelRatio
 function draw(t){gl.uniform2f(uR,W,H);gl.uniform1f(uD,d);gl.uniform1f(uT,t);gl.drawArrays(gl.TRIANGLES,0,3);}
 addEventListener(&quot;resize&quot;,size);size();draw(20);
 var t0=performance.now(),last=0;function loop(n){requestAnimationFrame(loop);if(30&gt;n-last||document.hidden)return;last=n;draw((n-t0)/1000+20);}requestAnimationFrame(loop);})();
-&lt;/script&gt;&lt;/body&gt;&lt;/html&gt;" style="position:absolute;left:0;top:0;width:1920px;height:1080px;border:0" tabindex="-1" aria-hidden="true"></iframe>
-<div class="space-shade"></div>
-<p class="eyebrow rise" style="--i:0">Next steps</p>
-<h2 class="title rise" style="--i:1">From prototype to a real crew</h2>
-<div class="row" style="margin-top:56px;gap:24px">
-<div class="card grow rise" style="--i:2"><p class="tag">01</p><h3>Validate</h3><p class="body">Test the model on NASA OSDR spaceflight data.</p></div>
-<div class="card grow rise" style="--i:3"><p class="tag">02</p><h3>Try with crews</h3><p class="body">Run it in a space analog mission and measure workload.</p></div>
-<div class="card grow rise" style="--i:4"><p class="tag">03</p><h3>Ring partner</h3><p class="body">Work with a smart ring maker on battery and radiation.</p></div>
-<div class="card grow rise" style="--i:5"><p class="tag">04</p><h3>Voice research</h3><p class="body">Study voice tone as an early sign of fatigue.</p></div>
-</div>
-<div class="row rise" style="--i:6;margin-top:80px;align-items:flex-end;justify-content:space-between">
-<div class="col" style="gap:8px">
-<p style="font-family:'Space Grotesk',Arial,sans-serif;font-size:120px;font-weight:600;line-height:1;color:#EAF0F7">Thank you</p>
-</div>
-</div>
-<div class="logos"><img class="l-team" src="assets/logo.png" alt="PulsarX"><img class="l-part" src="assets/partners.png" alt="MAIA and NASA Space Apps"></div>
-
-</section>
-
+&lt;/script&gt;&lt;/body&gt;&lt;/html&gt;" style="position:absolute;left:0;top:0;width:1920px;height:1080px;border:0" tabindex="-1" aria-hidden="true"></iframe><div class="space-shade"></div><p class="eyebrow rise" style="--i:0"><span class="en">Conclusion</span> · الخاتمة</p><h2 class="title rise" style="--i:1">لماذا <span class="en">FORECAST</span>؟</h2>
+<div class="row" style="margin-top:44px;gap:20px"><div class="card grow rise" style="--i:2;padding:28px 24px"><p class="tag"><span class="en">Impact</span></p><h3>الأثر</h3><p class="body">يربط مراقبة الصحة بأداء الطاقم وسلامة المهمة.</p></div><div class="card grow rise" style="--i:3;padding:28px 24px"><p class="tag"><span class="en">Creativity</span></p><h3>الابتكار</h3><p class="body">يجمع بين الخاتم الذكي والتوأم الرقمي والتنبؤ بالجاهزية.</p></div><div class="card grow rise" style="--i:4;padding:28px 24px"><p class="tag"><span class="en">Validity</span></p><h3>الصحة التقنية</h3><p class="body">يعتمد على تحليل المؤشرات الصحية ومقارنتها بالمستوى المعتاد لكل رائد فضاء.</p></div><div class="card grow rise" style="--i:5;padding:28px 24px"><p class="tag"><span class="en">Relevance</span></p><h3>الارتباط بالتحدي</h3><p class="body">يعالج تحدي مراقبة صحة رواد الفضاء خلال المهمات الفضائية.</p></div><div class="card grow rise" style="--i:6;padding:28px 24px"><p class="tag"><span class="en">Presentation Quality</span></p><h3>جودة العرض</h3><p class="body">يعرض المشكلة والحل وآلية العمل والأثر بصورة واضحة ومترابطة.</p></div></div>
+<div class="row" style="margin-top:32px;gap:48px;align-items:center"><div class="card rise callout grow" style="--i:8"><p class="tag">الخطوات القادمة</p><p class="body" style="color:#EAF0F7">تطوير النموذج، والتحقق من دقة التنبؤات، واختبار النظام في سيناريوهات تحاكي المهمات الفضائية.</p></div>
+<p class="rise" style="--i:9;font-size:80px;font-weight:700;color:#EAF0F7;line-height:1;white-space:nowrap">شكرًا لكم</p></div>
+<div class="logos"><img class="l-team" src="assets/logo.png" alt="PulsarX"><img class="l-part" src="assets/partners.png" alt="MAIA و NASA Space Apps"></div></section>
 </div>
 <button class="arrow" id="prev" aria-label="Previous slide"></button><button class="arrow" id="next" aria-label="Next slide"></button>
 <div id="nav"></div>
